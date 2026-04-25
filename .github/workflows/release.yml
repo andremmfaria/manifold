@@ -1,0 +1,80 @@
+name: Release
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      # ── Build frontend ────────────────────────────────────────────
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run build
+        working-directory: frontend
+        env:
+          VITE_API_BASE_URL: /api
+      - run: |
+          cd frontend && tar -czf ../manifold-frontend-${{ steps.version.outputs.version }}.tar.gz dist/
+
+      # ── Build backend wheel ───────────────────────────────────────
+      - uses: astral-sh/setup-uv@v3
+      - run: uv build
+        working-directory: backend
+        env:
+          SETUPTOOLS_SCM_PRETEND_VERSION: ${{ steps.version.outputs.version }}
+      - run: |
+          mv backend/dist/manifold-*.whl ./manifold-backend-${{ steps.version.outputs.version }}.whl
+
+      # ── Build and push Docker images ──────────────────────────────
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/backend:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}/backend:latest
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          build-args: VITE_API_BASE_URL=/api
+          tags: |
+            ghcr.io/${{ github.repository }}/frontend:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}/frontend:latest
+
+      # ── Create GitHub Release ─────────────────────────────────────
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            manifold-frontend-${{ steps.version.outputs.version }}.tar.gz
+            manifold-backend-${{ steps.version.outputs.version }}.whl
+          generate_release_notes: true
+          body: |
+            ## Docker images
+            ```
+            docker pull ghcr.io/${{ github.repository }}/backend:${{ github.ref_name }}
+            docker pull ghcr.io/${{ github.repository }}/frontend:${{ github.ref_name }}
+            ```

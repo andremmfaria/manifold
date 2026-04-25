@@ -1,0 +1,7 @@
+Alarm: {{ alarm_name }}
+
+Status: RESOLVED
+
+The alarm condition is no longer met.
+
+Manifold | {{ resolved_at }}

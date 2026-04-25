@@ -1,0 +1,7 @@
+Alarm: {{ alarm_name }}
+
+Status: FIRING
+
+{{ alarm_explanation }}
+
+Manifold | {{ fired_at }}

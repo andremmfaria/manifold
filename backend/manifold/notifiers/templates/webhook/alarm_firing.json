@@ -1,0 +1,8 @@
+{
+  "event_type": "alarm_firing",
+  "alarm_id": "{{ alarm_id }}",
+  "alarm_name": "{{ alarm_name }}",
+  "explanation": "{{ alarm_explanation }}",
+  "fired_at": "{{ fired_at }}",
+  "delivery_id": "{{ delivery_id }}"
+}

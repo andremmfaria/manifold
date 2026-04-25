@@ -20,11 +20,23 @@ import { settingsIndexRoute } from '@/routes/settings/index'
 import { settingsUsersRoute } from '@/routes/settings/users'
 import { settingsAccessRoute } from '@/routes/settings/access'
 import { settingsSessionsRoute } from '@/routes/settings/sessions'
+import { dashboardRoute } from '@/routes/dashboard/index'
+import { alarmsIndexRoute } from '@/routes/alarms/index'
+import { alarmsNewRoute } from '@/routes/alarms/new'
+import { alarmDetailRoute } from '@/routes/alarms/$alarmId'
+import { notifiersIndexRoute } from '@/routes/notifiers/index'
+import { notifiersNewRoute } from '@/routes/notifiers/new'
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
   changePasswordRoute,
+  dashboardRoute,
+  alarmsIndexRoute,
+  alarmsNewRoute,
+  alarmDetailRoute,
+  notifiersIndexRoute,
+  notifiersNewRoute,
   connectionsRoute,
   connectionDetailRoute,
   accountsRoute,
