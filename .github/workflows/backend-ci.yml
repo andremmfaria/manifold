@@ -1,0 +1,80 @@
+name: Backend CI
+on:
+  push:
+    paths: ["backend/**", ".github/workflows/backend-ci.yml"]
+  pull_request:
+    paths: ["backend/**"]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: manifold_test
+          POSTGRES_USER: manifold
+          POSTGRES_PASSWORD: manifold
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_DATABASE: manifold_test
+          MARIADB_USER: manifold
+          MARIADB_PASSWORD: manifold
+          MARIADB_ROOT_PASSWORD: rootpass
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mariadb-admin ping -h 127.0.0.1 -uroot -prootpass"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+      - run: uv sync --extra all-backends
+      - run: uv run alembic upgrade head
+        env:
+          DATABASE_URL: sqlite+aiosqlite:///:memory:
+          SECRET_KEY: test-secret-key
+          APP_ENV: test
+      - run: uv run alembic upgrade head
+        env:
+          DATABASE_URL: postgresql+asyncpg://manifold:manifold@localhost:5432/manifold_test
+          SECRET_KEY: test-secret-key
+          APP_ENV: test
+      - run: uv run alembic upgrade head
+        env:
+          DATABASE_URL: mysql+asyncmy://manifold:manifold@127.0.0.1:3306/manifold_test
+          SECRET_KEY: test-secret-key
+          APP_ENV: test
+      - run: uv run ruff check manifold/ tests/
+      - run: uv run ruff format --check manifold/ tests/
+      - run: uv run mypy manifold/
+      - run: uv run pytest tests/ -v --tb=short
+        env:
+          DATABASE_URL: sqlite+aiosqlite:///:memory:
+          SECRET_KEY: test-secret-key
+          APP_ENV: test
+      - run: uv run pytest tests/ -v --tb=short
+        env:
+          DATABASE_URL: postgresql+asyncpg://manifold:manifold@localhost:5432/manifold_test
+          SECRET_KEY: test-secret-key
+          APP_ENV: test
+      - run: uv run pytest tests/ -v --tb=short
+        env:
+          DATABASE_URL: mysql+asyncmy://manifold:manifold@127.0.0.1:3306/manifold_test
+          SECRET_KEY: test-secret-key
+          APP_ENV: test

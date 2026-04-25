@@ -1,0 +1,48 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      target: builder
+    volumes:
+      - ./backend:/app
+      - venv-data:/app/.venv
+    command: uv run uvicorn manifold.main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      - APP_ENV=development
+      - REDIS_URL=redis://manifold-redis:6379/0
+
+  manifold-tasker:
+    build:
+      context: ./backend
+      target: builder
+    volumes:
+      - ./backend:/app
+      - venv-data:/app/.venv
+    command: >
+      sh -c "uv run taskiq worker manifold.tasks.broker:broker --queues manual,sync &
+               uv run taskiq worker manifold.tasks.broker:broker --queues manual,sync &
+               uv run taskiq worker manifold.tasks.broker:broker --queues manual,sync &
+               uv run taskiq scheduler manifold.tasks.scheduler:scheduler &
+               wait"
+    environment:
+      - APP_ENV=development
+      - REDIS_URL=redis://manifold-redis:6379/0
+
+  frontend:
+    build: ./frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev -- --host 0.0.0.0
+    ports:
+      - "5173:5173"
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    restart: unless-stopped
+
+volumes:
+  venv-data:
