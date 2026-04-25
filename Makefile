@@ -69,7 +69,7 @@ ci-check: lint typecheck-backend typecheck-frontend test ## Full CI gate: lint +
 # Linting
 # ──────────────────────────────────────────────────────────
 lint-backend: ## Lint backend (ruff)
-	cd backend && uv run ruff check manifold/ tests/
+	cd backend && uv run ruff check src/manifold/ tests/
 
 lint-frontend: ## Lint frontend (eslint)
 	cd frontend && npm run lint
@@ -80,7 +80,7 @@ lint: lint-backend lint-frontend ## Lint everything
 # Formatting
 # ──────────────────────────────────────────────────────────
 format-backend: ## Format backend (ruff format)
-	cd backend && uv run ruff format manifold/ tests/
+	cd backend && uv run ruff format src/manifold/ tests/
 
 format-frontend: ## Format frontend (prettier)
 	cd frontend && npm run format
@@ -91,7 +91,7 @@ format: format-backend format-frontend ## Format everything
 # Type checking
 # ──────────────────────────────────────────────────────────
 typecheck-backend: ## Type check backend (mypy)
-	cd backend && uv run mypy manifold/
+	cd backend && uv run mypy src/manifold/
 
 typecheck-frontend: ## Type check frontend (tsc)
 	cd frontend && npm run typecheck

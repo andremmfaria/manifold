@@ -27,7 +27,7 @@ def _serialize_user(user: User) -> UserResponse:
     )
 
 
-@router.get("", response_model=list[UserResponse])
+@router.get("", operation_id="listUsers", response_model=list[UserResponse])
 async def list_users(
     _: User = Depends(require_superadmin),
     session: AsyncSession = Depends(get_session),
@@ -36,7 +36,7 @@ async def list_users(
     return [_serialize_user(user) for user in result.scalars().all()]
 
 
-@router.post("", response_model=UserResponse, status_code=201)
+@router.post("", operation_id="createUser", response_model=UserResponse, status_code=201)
 async def create_user(
     payload: UserCreateRequest,
     _: User = Depends(require_superadmin),
@@ -52,7 +52,7 @@ async def create_user(
     return _serialize_user(user)
 
 
-@router.get("/{user_id}", response_model=UserResponse)
+@router.get("/{user_id}", operation_id="getUser", response_model=UserResponse)
 async def get_user(
     user_id: str,
     _: User = Depends(require_superadmin),
@@ -64,7 +64,7 @@ async def get_user(
     return _serialize_user(user)
 
 
-@router.patch("/{user_id}", response_model=UserResponse)
+@router.patch("/{user_id}", operation_id="updateUser", response_model=UserResponse)
 async def update_user(
     user_id: str,
     payload: UserUpdateRequest,
@@ -89,7 +89,7 @@ async def update_user(
     return _serialize_user(user)
 
 
-@router.delete("/{user_id}", status_code=204)
+@router.delete("/{user_id}", status_code=204, operation_id="deleteUser", response_model=None)
 async def delete_user(
     user_id: str,
     _: User = Depends(require_superadmin),
@@ -102,7 +102,11 @@ async def delete_user(
     return Response(status_code=204)
 
 
-@router.get("/me/access", response_model=list[AccessGrantResponse])
+@router.get(
+    "/me/access",
+    operation_id="listAccessGrants",
+    response_model=list[AccessGrantResponse],
+)
 async def list_access_grants(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
@@ -124,7 +128,12 @@ async def list_access_grants(
     ]
 
 
-@router.post("/me/access", response_model=AccessGrantResponse, status_code=201)
+@router.post(
+    "/me/access",
+    operation_id="createAccessGrant",
+    response_model=AccessGrantResponse,
+    status_code=201,
+)
 async def create_access_grant(
     payload: AccessGrantCreateRequest,
     current_user: User = Depends(get_current_user),
@@ -151,7 +160,12 @@ async def create_access_grant(
     )
 
 
-@router.delete("/me/access/{grant_id}", status_code=204)
+@router.delete(
+    "/me/access/{grant_id}",
+    status_code=204,
+    operation_id="deleteAccessGrant",
+    response_model=None,
+)
 async def delete_access_grant(
     grant_id: str,
     current_user: User = Depends(get_current_user),

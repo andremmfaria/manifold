@@ -167,7 +167,12 @@ async def update_connection(
     return await with_user_dek(session, current_user.id, _update)
 
 
-@router.delete("/{connection_id}", status_code=204)
+@router.delete(
+    "/{connection_id}",
+    status_code=204,
+    operation_id="deleteConnection",
+    response_model=None,
+)
 async def delete_connection(
     connection_id: str,
     current_user: User = Depends(get_current_user),
@@ -276,6 +281,8 @@ async def list_connection_sync_runs(
     return [
         {
             "id": str(item.id),
+            "provider_connection_id": str(item.provider_connection_id),
+            "account_id": str(item.account_id) if item.account_id else None,
             "status": item.status,
             "started_at": item.started_at.isoformat() if item.started_at else None,
             "completed_at": item.completed_at.isoformat() if item.completed_at else None,

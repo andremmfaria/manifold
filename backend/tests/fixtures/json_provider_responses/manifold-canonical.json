@@ -1,0 +1,11 @@
+{
+  "accounts": [
+    {"id": "json-acc-001", "name": "Savings", "balance": 1500.00, "currency": "GBP"}
+  ],
+  "transactions": [
+    {"txn_id": "json-txn-001", "amount": -50.00, "currency": "GBP", "description": "Supermarket", "posted_at": "2025-01-20"}
+  ],
+  "balances": [
+    {"account_id": "json-acc-001", "current": 1500.00, "currency": "GBP"}
+  ]
+}

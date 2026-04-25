@@ -8,7 +8,10 @@
     {"txn_id": "txn-002", "account_id": "acc-001", "amount": -120.0, "currency": "GBP", "description": "Electricity Bill", "posted_at": "2026-04-03T09:30:00Z"},
     {"txn_id": "txn-003", "account_id": "acc-001", "amount": 2500.0, "currency": "GBP", "description": "Salary", "posted_at": "2026-04-05T08:00:00Z"},
     {"txn_id": "txn-004", "account_id": "acc-001", "amount": -85.0, "currency": "GBP", "description": "Internet Bill", "posted_at": "2026-04-07T11:00:00Z"},
-    {"txn_id": "txn-005", "account_id": "acc-002", "amount": 500.0, "currency": "GBP", "description": "Transfer from Current", "posted_at": "2026-04-10T14:00:00Z"}
+    {"txn_id": "txn-005", "account_id": "acc-002", "amount": 500.0, "currency": "GBP", "description": "Transfer from Current", "posted_at": "2026-04-10T14:00:00Z"},
+    {"txn_id": "recurring-1", "account_id": "acc-001", "amount": -9.99, "currency": "GBP", "description": "Netflix Monthly", "merchant_name": "Netflix", "posted_at": "2025-01-15T00:00:00Z"},
+    {"txn_id": "recurring-2", "account_id": "acc-001", "amount": -9.99, "currency": "GBP", "description": "Netflix Monthly", "merchant_name": "Netflix", "posted_at": "2025-02-15T00:00:00Z"},
+    {"txn_id": "recurring-3", "account_id": "acc-001", "amount": -9.99, "currency": "GBP", "description": "Netflix Monthly", "merchant_name": "Netflix", "posted_at": "2025-03-15T00:00:00Z"}
   ],
   "balances": [
     {"account_id": "acc-001", "current": 1250.0, "currency": "GBP"},

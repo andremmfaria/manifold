@@ -1,0 +1,15 @@
+{
+  "results": [
+    {
+      "account_id": "tl-account-001",
+      "account_type": "TRANSACTION",
+      "currency": "GBP",
+      "display_name": "Current Account",
+      "account_number": {
+        "iban": "GB29NWBK60161331926819",
+        "sort_code": "601613",
+        "number": "31926819"
+      }
+    }
+  ]
+}

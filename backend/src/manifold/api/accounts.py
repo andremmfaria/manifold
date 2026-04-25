@@ -10,6 +10,7 @@ from manifold.domain.ownership import get_accessible_scope
 from manifold.models.account import Account
 from manifold.models.balance import Balance
 from manifold.models.pending_transaction import PendingTransaction
+from manifold.models.recurrence_profile import RecurrenceProfile
 from manifold.models.transaction import Transaction
 from manifold.models.user import User
 from manifold.schemas.accounts import (
@@ -18,6 +19,7 @@ from manifold.schemas.accounts import (
     BalanceResponse,
     PendingTransactionResponse,
 )
+from manifold.schemas.recurrence_profiles import RecurrenceProfileListResponse
 from manifold.schemas.transactions import TransactionResponse
 
 router = APIRouter()
@@ -79,10 +81,11 @@ async def list_accounts(
 ) -> AccountListResponse:
     scope = await get_accessible_scope(current_user, session)
     from sqlalchemy import func
+
     total_result = await session.execute(
-        select(func.count()).select_from(Account.__table__).where(
-            Account.__table__.c.user_id.in_(scope_to_uuids(scope))
-        )
+        select(func.count())
+        .select_from(Account.__table__)
+        .where(Account.__table__.c.user_id.in_(scope_to_uuids(scope)))
     )
     total = total_result.scalar_one()
     result = await session.execute(
@@ -94,6 +97,7 @@ async def list_accounts(
     )
     items: list[dict] = []
     for account_id, owner_user_id in result.all():
+
         async def _serialize(aid: str = account_id, oid: str = owner_user_id) -> dict:
             account = await session.get(Account, aid)
             if account is None:
@@ -167,7 +171,7 @@ async def get_account_balances(
                 "recorded_at": item.recorded_at.isoformat(),
                 "created_at": item.created_at.isoformat(),
             }
-                for item in result.scalars().all()
+            for item in result.scalars().all()
         ]
 
     return await with_user_dek(session, account.user_id, _get)
@@ -223,6 +227,80 @@ async def get_account_transactions(
 
 
 @router.get(
+    "/{account_id}/recurrence-profiles",
+    operation_id="getAccountRecurrenceProfiles",
+    response_model=RecurrenceProfileListResponse,
+)
+async def get_account_recurrence_profiles(
+    account_id: str,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=200),
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> RecurrenceProfileListResponse:
+    if current_user.role == "superadmin":
+        raise HTTPException(status_code=403, detail="financial_data_forbidden")
+    account = await _account_or_404(session, account_id)
+    await _check_access(current_user, session, str(account.user_id))
+
+    async def _get() -> dict:
+        from sqlalchemy import func
+
+        total_result = await session.execute(
+            select(func.count())
+            .select_from(RecurrenceProfile)
+            .where(RecurrenceProfile.account_id == account.id)
+        )
+        result = await session.execute(
+            select(RecurrenceProfile)
+            .where(RecurrenceProfile.account_id == account.id)
+            .order_by(RecurrenceProfile.created_at.desc())
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
+        items = [
+            {
+                "id": str(item.id),
+                "account_id": str(item.account_id),
+                "label": item.label,
+                "merchant_pattern": item.merchant_pattern,
+                "amount_mean": (str(item.amount_mean) if item.amount_mean is not None else None),
+                "amount_stddev": (
+                    str(item.amount_stddev) if item.amount_stddev is not None else None
+                ),
+                "cadence_days": item.cadence_days,
+                "cadence_stddev": (
+                    float(item.cadence_stddev) if item.cadence_stddev is not None else None
+                ),
+                "confidence": (float(item.confidence) if item.confidence is not None else None),
+                "first_seen": item.first_seen.isoformat() if item.first_seen else None,
+                "last_seen": item.last_seen.isoformat() if item.last_seen else None,
+                "next_predicted_at": (
+                    item.next_predicted_at.isoformat() if item.next_predicted_at else None
+                ),
+                "next_predicted_amount": (
+                    str(item.next_predicted_amount)
+                    if item.next_predicted_amount is not None
+                    else None
+                ),
+                "status": item.status,
+                "data_source": item.data_source,
+                "created_at": item.created_at.isoformat(),
+                "updated_at": item.updated_at.isoformat(),
+            }
+            for item in result.scalars().all()
+        ]
+        return {
+            "items": items,
+            "total": int(total_result.scalar_one()),
+            "page": page,
+            "page_size": page_size,
+        }
+
+    return await with_user_dek(session, account.user_id, _get)
+
+
+@router.get(
     "/{account_id}/pending",
     operation_id="getAccountPendingTransactions",
     response_model=list[PendingTransactionResponse],
@@ -255,4 +333,3 @@ async def get_account_pending(
         ]
 
     return await with_user_dek(session, account.user_id, _get)
-

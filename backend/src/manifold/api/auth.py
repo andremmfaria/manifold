@@ -94,7 +94,7 @@ async def _create_refresh_token(
     return raw_token
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login", operation_id="login", response_model=TokenResponse)
 async def login(
     payload: LoginRequest,
     request: Request,
@@ -137,7 +137,7 @@ async def login(
     return TokenResponse(access_token=access_token, expires_in=expires_in)
 
 
-@router.post("/logout", status_code=204)
+@router.post("/logout", status_code=204, operation_id="logout", response_model=None)
 async def logout(
     response: Response,
     session: AsyncSession = Depends(get_session),
@@ -159,7 +159,7 @@ async def logout(
     return response
 
 
-@router.post("/refresh", response_model=TokenResponse)
+@router.post("/refresh", operation_id="refreshSession", response_model=TokenResponse)
 async def refresh(
     response: Response,
     session: AsyncSession = Depends(get_session),
@@ -210,12 +210,17 @@ async def refresh(
     return TokenResponse(access_token=access_token, expires_in=expires_in)
 
 
-@router.get("/me", response_model=MeResponse)
+@router.get("/me", operation_id="getMe", response_model=MeResponse)
 async def me(current_user: User = Depends(get_current_user)) -> MeResponse:
     return _serialize_me(current_user)
 
 
-@router.patch("/me/password", status_code=204)
+@router.patch(
+    "/me/password",
+    status_code=204,
+    operation_id="changePassword",
+    response_model=None,
+)
 async def change_password(
     payload: ChangePasswordRequest,
     current_user: User = Depends(get_current_user_allow_password_change),
@@ -229,7 +234,7 @@ async def change_password(
     return Response(status_code=204)
 
 
-@router.get("/sessions", response_model=list[SessionResponse])
+@router.get("/sessions", operation_id="listSessions", response_model=list[SessionResponse])
 async def list_sessions(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
@@ -254,7 +259,12 @@ async def list_sessions(
     ]
 
 
-@router.delete("/sessions/{session_id}", status_code=204)
+@router.delete(
+    "/sessions/{session_id}",
+    status_code=204,
+    operation_id="revokeSession",
+    response_model=None,
+)
 async def revoke_session(
     session_id: str,
     current_user: User = Depends(get_current_user),
@@ -268,7 +278,12 @@ async def revoke_session(
     return Response(status_code=204)
 
 
-@router.post("/sessions/revoke-others", status_code=204)
+@router.post(
+    "/sessions/revoke-others",
+    status_code=204,
+    operation_id="revokeOtherSessions",
+    response_model=None,
+)
 async def revoke_other_sessions(
     current_user: User = Depends(get_current_user),
     current_session: UserSession | None = Depends(get_current_session),

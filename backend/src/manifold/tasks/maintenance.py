@@ -67,7 +67,10 @@ async def run_data_retention_jobs() -> dict[str, int]:
         if settings.event_retention_days > 0:
             cutoff = now - timedelta(days=settings.event_retention_days)
             result = await session.execute(
-                delete(Event).where(Event.source_type == "predicted", Event.created_at < cutoff)
+                delete(Event).where(
+                    Event.source_type == "predicted",
+                    Event.recorded_at < cutoff,
+                )
             )
             results["predicted_events"] = result.rowcount or 0
             await session.commit()

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime, timedelta
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import func, select, text
+from sqlalchemy import update as sa_update
 from taskiq_fastapi import init as taskiq_init
 
 from manifold.api.accounts import router as accounts_router
@@ -21,11 +23,10 @@ from manifold.api.notifiers import router as notifiers_router
 from manifold.api.providers import router as providers_router
 from manifold.api.recurrence_profiles import router as recurrence_profiles_router
 from manifold.api.settings import router as settings_router
-from manifold.api.sync import router as sync_router
 from manifold.api.transactions import router as transactions_router
 from manifold.api.users import router as users_router
 from manifold.config import settings
-from manifold.database import AsyncSessionLocal, engine
+from manifold.database import AsyncSessionLocal, db_session, engine
 from manifold.domain.users import create_user_record
 from manifold.exceptions import (
     AuthorizationError,
@@ -36,6 +37,7 @@ from manifold.exceptions import (
     ValidationError as DomainValidationError,
 )
 from manifold.logging import configure_logging, request_id_var
+from manifold.models.sync_run import SyncRun
 from manifold.models.user import User
 from manifold.notifiers.registry import register_all as register_notifiers
 from manifold.providers.registry import register_all as register_providers
@@ -48,6 +50,19 @@ async def lifespan(_app: FastAPI):
     configure_logging()
     register_providers()
     register_notifiers()
+    stale_cutoff = datetime.now(UTC) - timedelta(hours=2)
+    async with db_session() as session:
+        await session.execute(
+            sa_update(SyncRun)
+            .where(SyncRun.status == "running")
+            .where(SyncRun.started_at < stale_cutoff)
+            .values(
+                status="failed",
+                error_code="interrupted",
+                completed_at=datetime.now(UTC),
+            )
+        )
+        await session.commit()
     async with engine.connect() as conn:
         await conn.execute(text("SELECT 1"))
 
@@ -129,7 +144,7 @@ def create_app() -> FastAPI:
     async def validation_handler(_request: Request, exc: DomainValidationError) -> JSONResponse:
         return JSONResponse(status_code=422, content={"detail": str(exc)})
 
-    @app.get("/health", operation_id="healthCheck", response_model=HealthResponse)
+    @app.get("/health", operation_id="health", response_model=HealthResponse)
     async def health() -> HealthResponse:
         return {"status": "ok"}
 
@@ -139,7 +154,6 @@ def create_app() -> FastAPI:
     app.include_router(connections_router, prefix="/api/v1/connections", tags=["connections"])
     app.include_router(accounts_router, prefix="/api/v1/accounts", tags=["accounts"])
     app.include_router(alarms_router, prefix="/api/v1/alarms", tags=["alarms"])
-    app.include_router(sync_router, prefix="/api/v1", tags=["sync"])
     app.include_router(transactions_router, prefix="/api/v1/transactions", tags=["transactions"])
     app.include_router(cards_router, prefix="/api/v1/cards", tags=["cards"])
     app.include_router(dashboard_router, prefix="/api/v1", tags=["dashboard"])
