@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { authApi, type LoginPayload, type PasswordPayload } from '@/api/auth'
 
-type AuthContextValue = {
+export type AuthContextValue = {
   isAuthenticated: boolean
   role: string | null
   mustChangePassword: boolean

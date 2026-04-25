@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from uuid import UUID
 
 from fastapi import Cookie, Depends, Header, HTTPException, status
 from jose import JWTError, jwt
@@ -39,10 +38,7 @@ async def get_current_user_optional(
     subject = payload.get("sub")
     if not isinstance(subject, str):
         raise _auth_error()
-    try:
-        user = await session.get(User, UUID(subject))
-    except ValueError as exc:
-        raise _auth_error() from exc
+    user = await session.get(User, subject)
     if user is None or not user.is_active:
         raise _auth_error()
     user_id_var.set(str(user.id))

@@ -1,11 +1,12 @@
 import { createRoute, redirect } from '@tanstack/react-router'
 import { rootRoute } from '../__root'
 import { AppShell } from '@/components/layout/AppShell'
+import type { AuthContextValue } from '@/features/auth/AuthProvider'
 
 export const settingsUsersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/settings/users',
-  beforeLoad: ({ context }) => {
+  beforeLoad: ({ context }: { context: { auth: AuthContextValue } }) => {
     if (!context.auth.isAuthenticated) throw redirect({ to: '/login' })
     if (context.auth.mustChangePassword) throw redirect({ to: '/change-password' })
     if (context.auth.role !== 'superadmin') throw redirect({ to: '/settings/access' })

@@ -1,3 +1,6 @@
+from taskiq import TaskiqScheduler
+from taskiq.schedule_sources import LabelScheduleSource
+
 from manifold.tasks.broker import broker
 
-scheduler = broker
+scheduler = TaskiqScheduler(broker=broker, sources=[LabelScheduleSource(broker)])

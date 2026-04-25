@@ -7,19 +7,28 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import func, select, text
 from taskiq_fastapi import init as taskiq_init
 
+from manifold.api.accounts import router as accounts_router
+from manifold.api.admin import router as admin_router
 from manifold.api.auth import router as auth_router
+from manifold.api.cards import router as cards_router
+from manifold.api.connections import router as connections_router
+from manifold.api.events import router as events_router
+from manifold.api.providers import router as providers_router
+from manifold.api.transactions import router as transactions_router
 from manifold.api.users import router as users_router
 from manifold.config import settings
 from manifold.database import AsyncSessionLocal, engine
 from manifold.domain.users import create_user_record
 from manifold.logging import configure_logging, request_id_var
 from manifold.models.user import User
+from manifold.providers.registry import register_all
 from manifold.tasks.broker import broker
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     configure_logging()
+    register_all()
     async with engine.connect() as conn:
         await conn.execute(text("SELECT 1"))
 
@@ -91,6 +100,13 @@ def create_app() -> FastAPI:
 
     app.include_router(auth_router, prefix="/api/v1/auth", tags=["auth"])
     app.include_router(users_router, prefix="/api/v1/users", tags=["users"])
+    app.include_router(providers_router, prefix="/api/v1/providers", tags=["providers"])
+    app.include_router(connections_router, prefix="/api/v1/connections", tags=["connections"])
+    app.include_router(accounts_router, prefix="/api/v1/accounts", tags=["accounts"])
+    app.include_router(transactions_router, prefix="/api/v1/transactions", tags=["transactions"])
+    app.include_router(cards_router, prefix="/api/v1/cards", tags=["cards"])
+    app.include_router(events_router, prefix="/api/v1", tags=["events"])
+    app.include_router(admin_router, prefix="/api/v1/admin", tags=["admin"])
     return app
 
 

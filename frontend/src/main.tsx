@@ -8,6 +8,14 @@ import { rootRoute } from '@/routes/__root'
 import { indexRoute } from '@/routes/index'
 import { loginRoute } from '@/routes/login'
 import { changePasswordRoute } from '@/routes/change-password'
+import { connectionsRoute } from '@/routes/connections/index'
+import { connectionDetailRoute } from '@/routes/connections/$connectionId'
+import { accountsRoute } from '@/routes/accounts/index'
+import { accountDetailRoute } from '@/routes/accounts/$accountId'
+import { transactionsRoute } from '@/routes/transactions/index'
+import { directDebitsRoute } from '@/routes/direct-debits/index'
+import { standingOrdersRoute } from '@/routes/standing-orders/index'
+import { cardsRoute } from '@/routes/cards/index'
 import { settingsIndexRoute } from '@/routes/settings/index'
 import { settingsUsersRoute } from '@/routes/settings/users'
 import { settingsAccessRoute } from '@/routes/settings/access'
@@ -17,6 +25,14 @@ const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
   changePasswordRoute,
+  connectionsRoute,
+  connectionDetailRoute,
+  accountsRoute,
+  accountDetailRoute,
+  transactionsRoute,
+  directDebitsRoute,
+  standingOrdersRoute,
+  cardsRoute,
   settingsIndexRoute,
   settingsUsersRoute,
   settingsAccessRoute,

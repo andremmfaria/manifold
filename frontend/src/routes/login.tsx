@@ -1,12 +1,13 @@
 import { FormEvent, useState } from 'react'
 import { createRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { rootRoute } from './__root'
+import type { AuthContextValue } from '@/features/auth/AuthProvider'
 import { useAuth } from '@/features/auth/useAuth'
 
 export const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
-  beforeLoad: ({ context }) => {
+  beforeLoad: ({ context }: { context: { auth: AuthContextValue } }) => {
     if (context.auth.isAuthenticated) throw redirect({ to: '/' })
   },
   component: LoginPage,

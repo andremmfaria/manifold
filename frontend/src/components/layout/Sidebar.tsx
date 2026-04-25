@@ -7,6 +7,12 @@ export function Sidebar() {
     <aside className="min-h-[calc(100vh-4rem)] w-64 border-r bg-white p-4">
       <nav className="space-y-2">
         <Link className="block rounded px-3 py-2 hover:bg-slate-100" to="/">Overview</Link>
+        <Link className="block rounded px-3 py-2 hover:bg-slate-100" to="/connections">Connections</Link>
+        <Link className="block rounded px-3 py-2 hover:bg-slate-100" to="/accounts">Accounts</Link>
+        <Link className="block rounded px-3 py-2 hover:bg-slate-100" to="/transactions">Transactions</Link>
+        <Link className="block rounded px-3 py-2 hover:bg-slate-100" to="/cards">Cards</Link>
+        <Link className="block rounded px-3 py-2 hover:bg-slate-100" to="/direct-debits">Direct debits</Link>
+        <Link className="block rounded px-3 py-2 hover:bg-slate-100" to="/standing-orders">Standing orders</Link>
         {auth.role === 'superadmin' ? (
           <Link className="block rounded px-3 py-2 hover:bg-slate-100" to="/settings/users">Users</Link>
         ) : (

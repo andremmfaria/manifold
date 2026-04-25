@@ -17,7 +17,7 @@ depends_on = None
 def upgrade() -> None:
     op.create_table(
         "users",
-        sa.Column("id", sa.Uuid(as_uuid=True), primary_key=True, nullable=False),
+        sa.Column("id", sa.String(length=36), primary_key=True, nullable=False),
         sa.Column("username", sa.Text(), nullable=False, unique=True),
         sa.Column("email", sa.Text(), nullable=True, unique=True),
         sa.Column("password_hash", sa.Text(), nullable=False),
@@ -31,8 +31,8 @@ def upgrade() -> None:
 
     op.create_table(
         "user_sessions",
-        sa.Column("id", sa.Uuid(as_uuid=True), primary_key=True, nullable=False),
-        sa.Column("user_id", sa.Uuid(as_uuid=True), sa.ForeignKey("users.id"), nullable=False),
+        sa.Column("id", sa.String(length=36), primary_key=True, nullable=False),
+        sa.Column("user_id", sa.String(length=36), sa.ForeignKey("users.id"), nullable=False),
         sa.Column("device_cookie_hash", sa.Text(), nullable=False),
         sa.Column("device_label", sa.Text(), nullable=True),
         sa.Column("user_agent", sa.Text(), nullable=True),
@@ -46,16 +46,16 @@ def upgrade() -> None:
 
     op.create_table(
         "refresh_tokens",
-        sa.Column("id", sa.Uuid(as_uuid=True), primary_key=True, nullable=False),
+        sa.Column("id", sa.String(length=36), primary_key=True, nullable=False),
         sa.Column(
             "user_id",
-            sa.Uuid(as_uuid=True),
+            sa.String(length=36),
             sa.ForeignKey("users.id", ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column(
             "session_id",
-            sa.Uuid(as_uuid=True),
+            sa.String(length=36),
             sa.ForeignKey("user_sessions.id"),
             nullable=False,
         ),
@@ -67,22 +67,22 @@ def upgrade() -> None:
 
     op.create_table(
         "account_access",
-        sa.Column("id", sa.Uuid(as_uuid=True), primary_key=True, nullable=False),
+        sa.Column("id", sa.String(length=36), primary_key=True, nullable=False),
         sa.Column(
             "owner_user_id",
-            sa.Uuid(as_uuid=True),
+            sa.String(length=36),
             sa.ForeignKey("users.id"),
             nullable=False,
         ),
         sa.Column(
             "grantee_user_id",
-            sa.Uuid(as_uuid=True),
+            sa.String(length=36),
             sa.ForeignKey("users.id"),
             nullable=False,
         ),
         sa.Column("role", sa.String(length=32), nullable=False),
         sa.Column("granted_at", sa.DateTime(timezone=True), nullable=False),
-        sa.Column("granted_by", sa.Uuid(as_uuid=True), sa.ForeignKey("users.id"), nullable=True),
+        sa.Column("granted_by", sa.String(length=36), sa.ForeignKey("users.id"), nullable=True),
         sa.UniqueConstraint("owner_user_id", "grantee_user_id", name="uq_account_access_pair"),
     )
     op.create_index("ix_account_access_grantee_user_id", "account_access", ["grantee_user_id"])
