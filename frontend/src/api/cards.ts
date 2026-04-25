@@ -9,4 +9,12 @@ export const cardsApi = {
     const response = await client.get(`/api/v1/cards/${cardId}`)
     return response.data
   },
+  async listTransactions(cardId: string) {
+    const response = await client.get(`/api/v1/cards/${cardId}/transactions`)
+    return response.data
+  },
+  async listBalances(cardId: string) {
+    const response = await client.get(`/api/v1/cards/${cardId}/balances`)
+    return response.data
+  },
 }

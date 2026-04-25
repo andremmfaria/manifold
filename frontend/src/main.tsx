@@ -9,6 +9,7 @@ import { indexRoute } from '@/routes/index'
 import { loginRoute } from '@/routes/login'
 import { changePasswordRoute } from '@/routes/change-password'
 import { connectionsRoute } from '@/routes/connections/index'
+import { connectRoute } from '@/routes/connections/connect'
 import { connectionDetailRoute } from '@/routes/connections/$connectionId'
 import { accountsRoute } from '@/routes/accounts/index'
 import { accountDetailRoute } from '@/routes/accounts/$accountId'
@@ -16,6 +17,7 @@ import { transactionsRoute } from '@/routes/transactions/index'
 import { directDebitsRoute } from '@/routes/direct-debits/index'
 import { standingOrdersRoute } from '@/routes/standing-orders/index'
 import { cardsRoute } from '@/routes/cards/index'
+import { cardDetailRoute } from '@/routes/cards/$cardId'
 import { settingsIndexRoute } from '@/routes/settings/index'
 import { settingsUsersRoute } from '@/routes/settings/users'
 import { settingsAccessRoute } from '@/routes/settings/access'
@@ -38,6 +40,7 @@ const routeTree = rootRoute.addChildren([
   notifiersIndexRoute,
   notifiersNewRoute,
   connectionsRoute,
+  connectRoute,
   connectionDetailRoute,
   accountsRoute,
   accountDetailRoute,
@@ -45,6 +48,7 @@ const routeTree = rootRoute.addChildren([
   directDebitsRoute,
   standingOrdersRoute,
   cardsRoute,
+  cardDetailRoute,
   settingsIndexRoute,
   settingsUsersRoute,
   settingsAccessRoute,
