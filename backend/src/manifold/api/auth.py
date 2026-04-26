@@ -224,12 +224,15 @@ async def me(current_user: User = Depends(get_current_user)) -> MeResponse:
 async def change_password(
     payload: ChangePasswordRequest,
     current_user: User = Depends(get_current_user_allow_password_change),
+    current_session: UserSession | None = Depends(get_current_session),
     session: AsyncSession = Depends(get_session),
 ) -> Response:
     if not verify_password(payload.current_password, current_user.password_hash):
         raise HTTPException(status_code=401, detail={"error": "invalid_credentials"})
     current_user.password_hash = hash_password(payload.new_password)
     current_user.must_change_password = False
+    if current_session is not None:
+        await revoke_session_tokens(session, str(current_session.id), reason="password_changed")
     await session.commit()
     return Response(status_code=204)
 

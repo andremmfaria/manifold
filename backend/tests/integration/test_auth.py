@@ -94,12 +94,21 @@ async def test_change_password(client, test_user):
     user, password = test_user
 
     await _login(client, user.username, password)
+    old_refresh_token = client.cookies["refresh_token"]
     response = await client.patch(
         "/api/v1/auth/me/password",
         json={"current_password": password, "new_password": "newpass123"},
     )
 
     assert response.status_code == 204
+    refresh_response = await client.post(
+        "/api/v1/auth/refresh",
+        cookies={
+            "refresh_token": old_refresh_token,
+            "device_binding": client.cookies["device_binding"],
+        },
+    )
+    assert refresh_response.status_code == 401
     await client.post("/api/v1/auth/logout")
     old_login = await _login(client, user.username, password)
     assert old_login.status_code == 401

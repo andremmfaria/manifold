@@ -19,6 +19,7 @@ def _serialize_sync_run(run: SyncRun) -> dict:
     return {
         "id": str(run.id),
         "provider_connection_id": str(run.provider_connection_id),
+        "account_id": str(run.account_id) if run.account_id else None,
         "status": run.status,
         "started_at": run.started_at.isoformat() if run.started_at else None,
         "completed_at": run.completed_at.isoformat() if run.completed_at else None,

@@ -19,14 +19,21 @@ from taskiq import InMemoryBroker
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 TEST_SECRET_KEY = "test-secret-key-for-unit-tests-only-32chars"
+TEST_REDIS_URL = "redis://test-redis:6379/0"
 
-os.environ.setdefault("APP_ENV", "development")
-os.environ.setdefault("ADMIN_USERNAME", "bootstrap-admin")
-os.environ.setdefault("ADMIN_PASSWORD", "bootstrap-password")
-os.environ.setdefault("SECRET_KEY", TEST_SECRET_KEY)
-os.environ.setdefault("DATABASE_URL", TEST_DATABASE_URL)
-os.environ.setdefault("MANIFOLD_SECRET_KEY", TEST_SECRET_KEY)
-os.environ.setdefault("MANIFOLD_DATABASE_URL", TEST_DATABASE_URL)
+os.environ.update(
+    {
+        "APP_ENV": "development",
+        "ADMIN_USERNAME": "bootstrap-admin",
+        "ADMIN_PASSWORD": "bootstrap-password",
+        "SECRET_KEY": TEST_SECRET_KEY,
+        "DATABASE_URL": TEST_DATABASE_URL,
+        "REDIS_URL": TEST_REDIS_URL,
+        "MANIFOLD_SECRET_KEY": TEST_SECRET_KEY,
+        "MANIFOLD_DATABASE_URL": TEST_DATABASE_URL,
+        "MANIFOLD_REDIS_URL": TEST_REDIS_URL,
+    }
+)
 
 import manifold.models  # noqa: F401
 from manifold.config import settings

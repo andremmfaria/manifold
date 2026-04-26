@@ -17,12 +17,15 @@ from manifold.api.auth import router as auth_router
 from manifold.api.cards import router as cards_router
 from manifold.api.connections import router as connections_router
 from manifold.api.dashboard import router as dashboard_router
+from manifold.api.direct_debits import router as direct_debits_router
 from manifold.api.events import router as events_router
 from manifold.api.notification_deliveries import router as notification_deliveries_router
 from manifold.api.notifiers import router as notifiers_router
 from manifold.api.providers import router as providers_router
 from manifold.api.recurrence_profiles import router as recurrence_profiles_router
 from manifold.api.settings import router as settings_router
+from manifold.api.standing_orders import router as standing_orders_router
+from manifold.api.sync import router as sync_router
 from manifold.api.transactions import router as transactions_router
 from manifold.api.users import router as users_router
 from manifold.config import settings
@@ -154,6 +157,9 @@ def create_app() -> FastAPI:
     app.include_router(connections_router, prefix="/api/v1/connections", tags=["connections"])
     app.include_router(accounts_router, prefix="/api/v1/accounts", tags=["accounts"])
     app.include_router(alarms_router, prefix="/api/v1/alarms", tags=["alarms"])
+    app.include_router(direct_debits_router, prefix="/api/v1", tags=["direct-debits"])
+    app.include_router(standing_orders_router, prefix="/api/v1", tags=["standing-orders"])
+    app.include_router(sync_router, prefix="/api/v1", tags=["sync"])
     app.include_router(transactions_router, prefix="/api/v1/transactions", tags=["transactions"])
     app.include_router(cards_router, prefix="/api/v1/cards", tags=["cards"])
     app.include_router(dashboard_router, prefix="/api/v1", tags=["dashboard"])
