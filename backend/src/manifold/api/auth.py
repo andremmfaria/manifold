@@ -5,7 +5,7 @@ from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response
 from jose import jwt
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from manifold.api.deps import (
@@ -62,6 +62,8 @@ def _serialize_me(user: User) -> MeResponse:
         username=user.username,
         role=user.role,
         mustChangePassword=user.must_change_password,
+        first_name=user.first_name,
+        last_name=user.last_name,
     )
 
 
@@ -101,7 +103,15 @@ async def login(
     response: Response,
     session: AsyncSession = Depends(get_session),
 ) -> TokenResponse:
-    result = await session.execute(select(User).where(User.username == payload.username))
+    identifier = payload.username
+    result = await session.execute(
+        select(User).where(
+            or_(
+                User.username == identifier,
+                User.email == identifier.lower(),
+            )
+        )
+    )
     user = result.scalar_one_or_none()
     if user is None or not user.is_active:
         raise HTTPException(status_code=401, detail={"error": "invalid_credentials"})
@@ -211,7 +221,9 @@ async def refresh(
 
 
 @router.get("/me", operation_id="getMe", response_model=MeResponse)
-async def me(current_user: User = Depends(get_current_user)) -> MeResponse:
+async def me(current_user: User = Depends(get_current_user_allow_password_change)) -> MeResponse:
+    # Reachable while must_change_password is set: the response carries that flag so the
+    # frontend can route to /change-password. The strict get_current_user would 403 here.
     return _serialize_me(current_user)
 
 
@@ -240,12 +252,14 @@ async def change_password(
 @router.get("/sessions", operation_id="listSessions", response_model=list[SessionResponse])
 async def list_sessions(
     current_user: User = Depends(get_current_user),
+    current_session: UserSession | None = Depends(get_current_session),
     session: AsyncSession = Depends(get_session),
 ) -> list[SessionResponse]:
     result = await session.execute(
         select(UserSession).where(UserSession.user_id == current_user.id)
     )
     sessions = result.scalars().all()
+    current_session_id = current_session.id if current_session is not None else None
     return [
         SessionResponse(
             id=str(item.id),
@@ -256,6 +270,7 @@ async def list_sessions(
             last_seen_at=item.last_seen_at.isoformat(),
             created_at=item.created_at.isoformat(),
             revoked_at=item.revoked_at.isoformat() if item.revoked_at else None,
+            is_current=item.id == current_session_id,
         )
         for item in sessions
         if item.revoked_at is None

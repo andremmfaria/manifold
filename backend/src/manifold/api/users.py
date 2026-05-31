@@ -21,9 +21,12 @@ def _serialize_user(user: User) -> UserResponse:
         id=str(user.id),
         username=user.username,
         email=user.email,
+        first_name=user.first_name,
+        last_name=user.last_name,
         role=user.role,
         is_active=user.is_active,
         must_change_password=user.must_change_password,
+        created_at=user.created_at.isoformat(),
     )
 
 
@@ -47,6 +50,9 @@ async def create_user(
         password=payload.password,
         role=payload.role,
         email=payload.email,
+        first_name=payload.first_name,
+        last_name=payload.last_name,
+        must_change_password=payload.must_change_password,
         session=session,
     )
     return _serialize_user(user)
@@ -82,6 +88,10 @@ async def update_user(
         user.is_active = payload.is_active
     if payload.role is not None:
         user.role = payload.role
+    if payload.first_name is not None:
+        user.first_name = payload.first_name
+    if payload.last_name is not None:
+        user.last_name = payload.last_name
     if payload.must_change_password is not None:
         user.must_change_password = payload.must_change_password
     await session.commit()

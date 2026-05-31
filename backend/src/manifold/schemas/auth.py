@@ -17,6 +17,8 @@ class MeResponse(BaseModel):
     username: str
     role: str
     mustChangePassword: bool
+    first_name: str | None = None
+    last_name: str | None = None
 
 
 class ChangePasswordRequest(BaseModel):
@@ -33,3 +35,4 @@ class SessionResponse(BaseModel):
     last_seen_at: str
     created_at: str
     revoked_at: str | None = None
+    is_current: bool = False

@@ -6,11 +6,16 @@ class UserCreateRequest(BaseModel):
     password: str
     role: str
     email: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    must_change_password: bool = False
 
 
 class UserUpdateRequest(BaseModel):
     is_active: bool | None = None
     role: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
     must_change_password: bool | None = None
 
 
@@ -18,9 +23,12 @@ class UserResponse(BaseModel):
     id: str
     username: str
     email: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
     role: str
     is_active: bool
     must_change_password: bool
+    created_at: str
 
 
 class AccessGrantCreateRequest(BaseModel):

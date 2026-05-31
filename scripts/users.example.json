@@ -1,0 +1,18 @@
+[
+  {
+    "username": "alice",
+    "password": "change-me-alice",
+    "role": "regular",
+    "email": "alice@example.com",
+    "first_name": "Alice",
+    "last_name": "Smith",
+    "must_change_password": true
+  },
+  {
+    "username": "bob",
+    "password": "change-me-bob",
+    "role": "superadmin",
+    "first_name": "Bob",
+    "last_name": "Jones"
+  }
+]

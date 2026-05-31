@@ -3,6 +3,9 @@ import { client } from './client'
 export interface User {
   id: string
   username: string
+  email: string | null
+  first_name: string | null
+  last_name: string | null
   role: string
   is_active: boolean
   must_change_password: boolean
@@ -13,6 +16,9 @@ export interface CreateUserRequest {
   username: string
   password: string
   role: 'regular' | 'superadmin'
+  email?: string | null
+  first_name?: string | null
+  last_name?: string | null
   must_change_password?: boolean
 }
 

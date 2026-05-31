@@ -34,6 +34,8 @@ async def create_user_record(
     role: str,
     session: AsyncSession | None = None,
     email: str | None = None,
+    first_name: str | None = None,
+    last_name: str | None = None,
     must_change_password: bool = False,
 ) -> User:
     owns_session = session is None
@@ -46,6 +48,8 @@ async def create_user_record(
                 role=role,
                 session=own_session,
                 email=email,
+                first_name=first_name,
+                last_name=last_name,
                 must_change_password=must_change_password,
             )
 
@@ -58,6 +62,8 @@ async def create_user_record(
     user = User(
         username=username,
         email=email,
+        first_name=first_name,
+        last_name=last_name,
         password_hash=hash_password(password),
         role=role,
         must_change_password=must_change_password,

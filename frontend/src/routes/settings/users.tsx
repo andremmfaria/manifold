@@ -22,6 +22,9 @@ export const settingsUsersRoute = createRoute({
 interface User {
   id: string
   username: string
+  email: string | null
+  first_name: string | null
+  last_name: string | null
   role: string
   is_active: boolean
   must_change_password: boolean
@@ -32,6 +35,9 @@ function UsersPage() {
   const queryClient = useQueryClient()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [email, setEmail] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [role, setRole] = useState('user')
   const [mustChangePassword, setMustChangePassword] = useState(true)
 
@@ -41,11 +47,23 @@ function UsersPage() {
   })
 
   const createUser = useMutation({
-    mutationFn: () => client.post('/api/v1/users', { username, password, role, must_change_password: mustChangePassword }),
+    mutationFn: () =>
+      client.post('/api/v1/users', {
+        username,
+        password,
+        role,
+        email: email || null,
+        first_name: firstName || null,
+        last_name: lastName || null,
+        must_change_password: mustChangePassword,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
       setUsername('')
       setPassword('')
+      setEmail('')
+      setFirstName('')
+      setLastName('')
       setRole('user')
       setMustChangePassword(true)
     },
@@ -167,6 +185,33 @@ function UsersPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-slate-700">First name</label>
+                <input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-slate-700">Last name</label>
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-slate-700">Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>

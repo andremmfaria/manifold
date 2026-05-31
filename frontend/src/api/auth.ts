@@ -8,6 +8,8 @@ export type MeResponse = {
   username: string
   role: string
   mustChangePassword: boolean
+  first_name: string | null
+  last_name: string | null
 }
 
 export const authApi = {
