@@ -21,9 +21,16 @@ function AccountDetailPage() {
   const { data: balances = [] } = useBalanceHistory(accountId)
   return (
     <AppShell>
-      <div className="space-y-6 p-6">
-        <h1 className="text-2xl font-semibold">Account detail</h1>
-        {account ? <AccountCard account={account} /> : null}
+      <div className="space-y-6 p-6 max-w-7xl mx-auto">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Account Detail</h1>
+          <p className="mt-1 text-muted-foreground font-mono text-sm">{accountId}</p>
+        </div>
+        {account ? (
+          <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+            <AccountCard account={account} />
+          </div>
+        ) : null}
         <BalanceHistoryChart data={balances} />
       </div>
     </AppShell>

@@ -21,10 +21,10 @@ function TransactionsPage() {
   const { data = [] } = useTransactions(accountId ? { account_id: accountId } : undefined)
   return (
     <AppShell>
-      <div className="space-y-6 p-6">
+      <div className="space-y-6 p-6 max-w-7xl mx-auto">
         <div>
-          <h1 className="text-2xl font-semibold">Transactions</h1>
-          <p className="mt-1 text-slate-600">Filterable canonical transaction feed.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Transactions</h1>
+          <p className="mt-1 text-muted-foreground">Filterable canonical transaction feed.</p>
         </div>
         <TransactionFilters accountId={accountId} onChange={setAccountId} />
         <TransactionTable items={data} />
