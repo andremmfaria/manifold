@@ -4,6 +4,17 @@ import react from '@vitejs/plugin-react'
 
 const apiProxyTarget = process.env.VITE_DEV_PROXY_TARGET || 'http://localhost:8000'
 
+// Hosts the dev server will accept (Host header allow-list). Comma-separated.
+// Use "*" or "all" to allow any host (e.g. when fronted by a reverse proxy).
+const rawAllowedHosts = (process.env.VITE_ALLOWED_HOSTS || '').trim()
+const allowedHosts =
+  rawAllowedHosts === '*' || rawAllowedHosts.toLowerCase() === 'all'
+    ? true
+    : rawAllowedHosts
+        .split(',')
+        .map((h) => h.trim())
+        .filter(Boolean)
+
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -12,6 +23,7 @@ export default defineConfig({
     },
   },
   server: {
+    allowedHosts,
     proxy: {
       '/api': {
         target: apiProxyTarget,

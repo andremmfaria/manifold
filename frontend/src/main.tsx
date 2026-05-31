@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
+import '@/index.css'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from '@/lib/queryClient'
@@ -70,6 +71,11 @@ declare module '@tanstack/react-router' {
 
 function AppRouter() {
   const auth = useAuth()
+  // Re-run route guards (beforeLoad) whenever auth state changes, so login/logout redirect
+  // immediately instead of waiting for the next manual navigation.
+  useEffect(() => {
+    void router.invalidate()
+  }, [auth.isAuthenticated, auth.mustChangePassword])
   return <RouterProvider router={router} context={{ auth }} />
 }
 
