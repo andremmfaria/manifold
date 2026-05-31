@@ -4,6 +4,8 @@ import { AppShell } from '@/components/layout/AppShell'
 import type { AuthContextValue } from '@/features/auth/AuthProvider'
 import { NotifierCard } from '@/features/notifiers/NotifierCard'
 import { useNotifiers, useTestNotifier } from '@/features/notifiers/useNotifiers'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { rootRoute } from '../__root'
 
 export const notifiersIndexRoute = createRoute({
@@ -31,33 +33,35 @@ function NotifiersPage() {
       <div className="space-y-6 p-6 max-w-4xl mx-auto">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Notifiers</h1>
-            <p className="mt-1 text-slate-500">Configure how you receive alarm notifications.</p>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Notifiers</h1>
+            <p className="mt-1 text-muted-foreground">Configure how you receive alarm notifications.</p>
           </div>
-          <Link
-            to="/notifiers/new"
-            className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500"
-          >
-            <Plus className="h-4 w-4" />
-            Add Notifier
-          </Link>
+          <Button asChild>
+            <Link to="/notifiers/new">
+              <Plus className="h-4 w-4" />
+              Add Notifier
+            </Link>
+          </Button>
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center p-12 text-slate-500">Loading notifiers...</div>
+          <div className="grid gap-4">
+            <Skeleton className="h-20 rounded-xl" />
+            <Skeleton className="h-20 rounded-xl" />
+          </div>
         ) : (
           <div className="grid gap-4">
             {data?.items.map((notifier) => (
-              <NotifierCard 
-                key={notifier.id} 
-                notifier={notifier} 
+              <NotifierCard
+                key={notifier.id}
+                notifier={notifier}
                 onTest={() => handleTest(notifier.id)}
                 isTesting={isTesting}
               />
             ))}
             {data?.items.length === 0 && (
-              <div className="text-center p-12 border border-border rounded-xl border-dashed bg-slate-50">
-                <p className="text-slate-500">No notifiers configured yet.</p>
+              <div className="text-center p-12 border border-border rounded-xl border-dashed bg-muted/30">
+                <p className="text-muted-foreground">No notifiers configured yet.</p>
               </div>
             )}
           </div>

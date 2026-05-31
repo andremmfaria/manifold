@@ -3,6 +3,10 @@ import { createRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { AppShell } from '@/components/layout/AppShell'
 import type { AuthContextValue } from '@/features/auth/AuthProvider'
 import { useCreateNotifier } from '@/features/notifiers/useNotifiers'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
 import { rootRoute } from '../__root'
 
 export const notifiersNewRoute = createRoute({
@@ -69,68 +73,77 @@ function NewNotifierPage() {
     <AppShell>
       <div className="space-y-6 p-6 max-w-2xl mx-auto">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Add Notifier</h1>
-          <p className="mt-1 text-slate-500">Configure a new destination for alarm notifications.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Add Notifier</h1>
+          <p className="mt-1 text-muted-foreground">Configure a new destination for alarm notifications.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-xl border border-border shadow-xs">
-          {error && <div className="p-3 bg-red-50 text-red-700 text-sm rounded-md">{error}</div>}
+        <Card>
+          <CardHeader>
+            <CardTitle>Notifier Details</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {error && (
+                <div className="p-3 bg-destructive/10 text-destructive text-sm rounded-lg border border-destructive/20">
+                  {error}
+                </div>
+              )}
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Notifier Name</label>
-            <input
-              type="text"
-              required
-              value={name}
-              onChange={e => setName(e.target.value)}
-              className="w-full rounded-md border-slate-300 shadow-xs focus:border-blue-500 focus:ring-blue-500 p-2 border"
-              placeholder="e.g. Work Email, On-Call Slack"
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="notifier-name">Notifier Name</Label>
+                <Input
+                  id="notifier-name"
+                  type="text"
+                  required
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  placeholder="e.g. Work Email, On-Call Slack"
+                />
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Type</label>
-            <select
-              value={type}
-              onChange={handleTypeChange}
-              className="w-full rounded-md border-slate-300 shadow-xs focus:border-blue-500 focus:ring-blue-500 p-2 border border-border bg-white"
-            >
-              <option value="email">Email</option>
-              <option value="webhook">Webhook</option>
-              <option value="slack">Slack</option>
-              <option value="telegram">Telegram</option>
-            </select>
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="notifier-type">Type</Label>
+                <select
+                  id="notifier-type"
+                  value={type}
+                  onChange={handleTypeChange}
+                  className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm text-foreground focus-visible:outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                >
+                  <option value="email">Email</option>
+                  <option value="webhook">Webhook</option>
+                  <option value="slack">Slack</option>
+                  <option value="telegram">Telegram</option>
+                </select>
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Configuration (JSON)</label>
-            <textarea
-              required
-              value={config}
-              onChange={e => setConfig(e.target.value)}
-              className="w-full rounded-md border-slate-300 shadow-xs focus:border-blue-500 focus:ring-blue-500 p-2 border font-mono text-sm h-48"
-              placeholder="{}"
-            />
-            <p className="text-xs text-slate-500 mt-1">Provide the connection details in JSON format.</p>
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="notifier-config">Configuration (JSON)</Label>
+                <textarea
+                  id="notifier-config"
+                  required
+                  value={config}
+                  onChange={e => setConfig(e.target.value)}
+                  className="h-48 w-full rounded-lg border border-input bg-transparent px-2.5 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                  placeholder="{}"
+                />
+                <p className="text-xs text-muted-foreground">Provide the connection details in JSON format.</p>
+              </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={() => navigate({ to: '/notifiers' })}
-              className="rounded-md bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-xs ring-1 ring-inset ring-slate-300 hover:bg-slate-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isPending}
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-blue-500 disabled:opacity-50"
-            >
-              {isPending ? 'Saving...' : 'Add Notifier'}
-            </button>
-          </div>
-        </form>
+              <div className="flex justify-end gap-3 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate({ to: '/notifiers' })}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isPending}>
+                  {isPending ? 'Saving...' : 'Add Notifier'}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </AppShell>
   )

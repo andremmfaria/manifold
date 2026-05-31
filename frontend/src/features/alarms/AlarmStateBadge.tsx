@@ -1,16 +1,19 @@
-export function AlarmStateBadge({ state }: { state: string }) {
-  const colors: Record<string, string> = {
-    ok: 'bg-green-100 text-green-800 border-green-200',
-    pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    firing: 'bg-red-100 text-red-800 border-red-200',
-    resolved: 'bg-blue-100 text-blue-800 border-blue-200',
-    muted: 'bg-gray-100 text-gray-800 border-gray-200',
-  }
-  const color = colors[state] || 'bg-gray-100 text-gray-800 border-gray-200'
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 
+const stateVariantMap: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; extra?: string }> = {
+  ok:       { variant: 'outline', extra: 'border-green-500/50 bg-green-500/10 text-green-600 dark:text-green-400' },
+  pending:  { variant: 'outline', extra: 'border-yellow-500/50 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400' },
+  firing:   { variant: 'destructive' },
+  resolved: { variant: 'outline', extra: 'border-primary/50 bg-primary/10 text-primary' },
+  muted:    { variant: 'secondary' },
+}
+
+export function AlarmStateBadge({ state }: { state: string }) {
+  const mapping = stateVariantMap[state] ?? { variant: 'secondary' as const }
   return (
-    <span className={`inline-flex items-center rounded-full border border-border px-2.5 py-0.5 text-xs font-semibold ${color}`}>
+    <Badge variant={mapping.variant} className={cn(mapping.extra)}>
       {state.toUpperCase()}
-    </span>
+    </Badge>
   )
 }

@@ -15,25 +15,25 @@ export function AlarmRuleBuilder({ value, onChange }: AlarmRuleBuilderProps) {
     { name: 'currency', label: 'Currency' }
   ];
 
-  // Add some basic styling overrides to make it fit with Tailwind
+  // Wrap in a tokenized container — don't fight querybuilder's internal DOM
   return (
-    <div className="rounded-md border border-border p-4 bg-slate-50">
-      <QueryBuilder 
-        fields={fields} 
-        query={value as RuleGroupType} 
+    <div className="rounded-xl border border-border bg-muted/30 p-4">
+      <QueryBuilder
+        fields={fields}
+        query={value as RuleGroupType}
         onQueryChange={onChange as (q: RuleGroupType) => void}
         controlClassnames={{
-          queryBuilder: 'text-sm',
-          ruleGroup: 'bg-white border border-border rounded-md p-3 mb-3',
+          queryBuilder: 'text-sm text-foreground',
+          ruleGroup: 'bg-card border border-border rounded-lg p-3 mb-3',
           header: 'flex gap-2 mb-2',
-          addRule: 'bg-slate-100 px-2 py-1 rounded text-xs font-medium hover:bg-slate-200',
-          addGroup: 'bg-slate-100 px-2 py-1 rounded text-xs font-medium hover:bg-slate-200',
-          removeGroup: 'bg-red-50 text-red-600 px-2 py-1 rounded text-xs font-medium hover:bg-red-100',
+          addRule: 'bg-muted px-2 py-1 rounded text-xs font-medium hover:bg-muted/70 text-foreground',
+          addGroup: 'bg-muted px-2 py-1 rounded text-xs font-medium hover:bg-muted/70 text-foreground',
+          removeGroup: 'bg-destructive/10 text-destructive px-2 py-1 rounded text-xs font-medium hover:bg-destructive/20',
           rule: 'flex gap-2 items-center mb-2',
-          fields: 'border border-border rounded px-2 py-1',
-          operators: 'border border-border rounded px-2 py-1',
-          value: 'border border-border rounded px-2 py-1',
-          removeRule: 'bg-red-50 text-red-600 px-2 py-1 rounded text-xs font-medium hover:bg-red-100 ml-auto',
+          fields: 'border border-border bg-background rounded px-2 py-1 text-foreground',
+          operators: 'border border-border bg-background rounded px-2 py-1 text-foreground',
+          value: 'border border-border bg-background rounded px-2 py-1 text-foreground',
+          removeRule: 'bg-destructive/10 text-destructive px-2 py-1 rounded text-xs font-medium hover:bg-destructive/20 ml-auto',
         }}
       />
     </div>
