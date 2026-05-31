@@ -2,6 +2,10 @@ import { FormEvent, useEffect, useState } from 'react'
 import { createRoute, useNavigate } from '@tanstack/react-router'
 import { rootRoute } from './__root'
 import { useAuth } from '@/features/auth/useAuth'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
 
 export const changePasswordRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -34,14 +38,42 @@ function ChangePasswordPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 p-6">
-      <form onSubmit={onSubmit} className="w-full max-w-md rounded-xl bg-white p-8 shadow-sm">
-        <h1 className="mb-6 text-2xl font-semibold">Change password</h1>
-        <input className="mb-4 w-full rounded border border-border p-3" type="password" placeholder="Current password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
-        <input className="mb-4 w-full rounded border border-border p-3" type="password" placeholder="New password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
-        {error ? <p className="mb-4 text-sm text-red-600">{error}</p> : null}
-        <button className="w-full rounded bg-teal-700 px-4 py-3 text-white" type="submit">Update</button>
-      </form>
+    <main className="flex min-h-screen items-center justify-center bg-background p-6">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-xl font-semibold tracking-tight">Change password</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={onSubmit} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="current-password">Current password</Label>
+              <Input
+                id="current-password"
+                type="password"
+                autoComplete="current-password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="new-password">New password</Label>
+              <Input
+                id="new-password"
+                type="password"
+                autoComplete="new-password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+            </div>
+            {error ? (
+              <p className="text-sm text-destructive">{error}</p>
+            ) : null}
+            <Button type="submit" size="lg" className="w-full mt-1">
+              Update
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </main>
   )
 }
