@@ -1,9 +1,14 @@
 # docker-compose.yml
+# Production stack. Each service lists only the environment it actually consumes
+# (scoped per process — see backend/src/manifold/config.py for the full surface).
+# Every var falls back to a built-in default so the stack boots with zero config;
+# an optional .env (env_file) or shell vars override any of them via interpolation.
 services:
   https-proxy:
     image: nginx:alpine
     profiles: ["https"]
     ports:
+      - "3080:80"
       - "3443:443"
     depends_on:
       frontend:
@@ -16,20 +21,24 @@ services:
     command: >-
       /bin/sh -c '
       if [ ! -f /etc/nginx/certs/manifold.crt ] || [ ! -f /etc/nginx/certs/manifold.key ]; then
-        apk add --no-cache openssl >/dev/null 2>&1 &&
-        openssl req -x509 -nodes -newkey rsa:2048 -days 365
-          -keyout /etc/nginx/certs/manifold.key
-          -out /etc/nginx/certs/manifold.crt
-          -subj "/CN=localhost";
+      apk add --no-cache openssl >/dev/null 2>&1 &&
+      openssl req -x509 -nodes -newkey rsa:2048 -days 365 -keyout /etc/nginx/certs/manifold.key -out /etc/nginx/certs/manifold.crt -subj "/CN=localhost";
       fi &&
       nginx -g "daemon off;"'
     restart: unless-stopped
 
+  # Static SPA served by nginx. VITE_API_BASE_URL is baked at build time; the dev-server vars
+  # are inert for the nginx image but kept for structural parity with docker-compose.dev.yml.
   frontend:
     build:
       context: ./frontend
       args:
-        VITE_API_BASE_URL: /api
+        # Keep empty — api client endpoints already carry the /api/v1 prefix.
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
+    environment:
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-}
+      - VITE_DEV_PROXY_TARGET=${VITE_DEV_PROXY_TARGET:-http://backend:8000}
+      - VITE_ALLOWED_HOSTS=${VITE_ALLOWED_HOSTS:-localhost}
     ports:
       - "3000:80"
     depends_on:
@@ -37,30 +46,64 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  # Alembic migrations — only needs the database connection string.
   migrate:
     build:
       context: ./backend
     command: ["uv", "run", "alembic", "upgrade", "head"]
-    env_file:
-      - .env
+    # No env_file: each service is scoped to exactly the vars below. Values still come from
+    # an optional ./.env (or shell) via ${VAR:-default} interpolation.
     environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_URL=${DATABASE_URL:-sqlite+aiosqlite:///data/manifold.db}
     volumes:
       - manifold-data:/app/data
     restart: "no"
 
+  # API process — app/auth/db/redis, job schedules (surfaced via settings API),
+  # the TrueLayer provider, and notifier fallback creds.
   backend:
     build:
       context: ./backend
     ports:
       - "8000:8000"
-    env_file:
-      - .env
+    # No env_file: each service is scoped to exactly the vars below. Values still come from
+    # an optional ./.env (or shell) via ${VAR:-default} interpolation.
     environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - SECRET_KEY=${SECRET_KEY}
-      - REDIS_URL=redis://manifold-redis:6379/0
+      # ── Application ──
+      - APP_ENV=${APP_ENV:-production}
+      # INSECURE default — override SECRET_KEY for any real deployment.
+      - SECRET_KEY=${SECRET_KEY:-dev-insecure-secret-change-me-0000000000000000}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-["http://localhost:3000","http://localhost:5173"]}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      # ── Bootstrap + auth ──
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      # INSECURE default — override ADMIN_PASSWORD for any real deployment.
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-15}
+      - REFRESH_TOKEN_EXPIRE_DAYS=${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+      # ── Database ──
+      - DATABASE_URL=${DATABASE_URL:-sqlite+aiosqlite:///data/manifold.db}
+      - DB_POOL_SIZE=${DB_POOL_SIZE:-3}
+      - DB_POOL_MAX_OVERFLOW=${DB_POOL_MAX_OVERFLOW:-2}
+      - DB_POOL_TIMEOUT=${DB_POOL_TIMEOUT:-30}
+      # ── Redis / Taskiq (API enqueues jobs) ──
+      - REDIS_URL=${REDIS_URL:-redis://manifold-redis:6379/0}
+      - TASKIQ_RESULT_TTL=${TASKIQ_RESULT_TTL:-3600}
+      # ── Job schedules (read-only, shown in the settings API) ──
+      - SYNC_CRON=${SYNC_CRON:-0 * * * *}
+      - ALARM_EVAL_CRON=${ALARM_EVAL_CRON:-*/5 * * * *}
+      - RECURRENCE_DETECT_CRON=${RECURRENCE_DETECT_CRON:-0 3 * * *}
+      - CLEANUP_CRON=${CLEANUP_CRON:-0 4 * * *}
+      # ── TrueLayer provider ──
+      - TRUELAYER_CLIENT_ID=${TRUELAYER_CLIENT_ID:-}
+      - TRUELAYER_CLIENT_SECRET=${TRUELAYER_CLIENT_SECRET:-}
+      - TRUELAYER_REDIRECT_URI=${TRUELAYER_REDIRECT_URI:-https://localhost:3443/api/v1/providers/truelayer/callback}
+      - TRUELAYER_SANDBOX=${TRUELAYER_SANDBOX:-true}
+      # ── Notifications (global SMTP fallback creds + system channel id) ──
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SYSTEM_NOTIFIER_ID=${SYSTEM_NOTIFIER_ID:-}
     depends_on:
       manifold-redis:
         condition: service_healthy
@@ -78,16 +121,46 @@ services:
       start_period: 20s
     restart: unless-stopped
 
+  # Worker + scheduler — runs sync/alarm/recurrence/cleanup jobs and sends notifications.
   manifold-tasker:
     build:
       context: ./backend
     command: ["supervisord", "-c", "/app/supervisord.conf"]
-    env_file:
-      - .env
+    # No env_file: each service is scoped to exactly the vars below. Values still come from
+    # an optional ./.env (or shell) via ${VAR:-default} interpolation.
     environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - SECRET_KEY=${SECRET_KEY}
-      - REDIS_URL=redis://manifold-redis:6379/0
+      # ── Core ──
+      # INSECURE default — override SECRET_KEY for any real deployment.
+      - SECRET_KEY=${SECRET_KEY:-dev-insecure-secret-change-me-0000000000000000}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      # ── Database ──
+      - DATABASE_URL=${DATABASE_URL:-sqlite+aiosqlite:///data/manifold.db}
+      - DB_POOL_SIZE=${DB_POOL_SIZE:-3}
+      - DB_POOL_MAX_OVERFLOW=${DB_POOL_MAX_OVERFLOW:-2}
+      - DB_POOL_TIMEOUT=${DB_POOL_TIMEOUT:-30}
+      # ── Redis / Taskiq ──
+      - REDIS_URL=${REDIS_URL:-redis://manifold-redis:6379/0}
+      - TASKIQ_RESULT_TTL=${TASKIQ_RESULT_TTL:-3600}
+      # ── Job schedules (scheduler) ──
+      - SYNC_CRON=${SYNC_CRON:-0 * * * *}
+      - ALARM_EVAL_CRON=${ALARM_EVAL_CRON:-*/5 * * * *}
+      - RECURRENCE_DETECT_CRON=${RECURRENCE_DETECT_CRON:-0 3 * * *}
+      - CLEANUP_CRON=${CLEANUP_CRON:-0 4 * * *}
+      # ── Data retention (cleanup job) ──
+      - SYNC_RUN_RETENTION_DAYS=${SYNC_RUN_RETENTION_DAYS:-90}
+      - NOTIFICATION_DELIVERY_RETENTION_DAYS=${NOTIFICATION_DELIVERY_RETENTION_DAYS:-90}
+      - ALARM_EVALUATION_RETENTION_DAYS=${ALARM_EVALUATION_RETENTION_DAYS:-30}
+      - EVENT_RETENTION_DAYS=${EVENT_RETENTION_DAYS:-365}
+      # ── TrueLayer provider (sync) ──
+      - TRUELAYER_CLIENT_ID=${TRUELAYER_CLIENT_ID:-}
+      - TRUELAYER_CLIENT_SECRET=${TRUELAYER_CLIENT_SECRET:-}
+      - TRUELAYER_REDIRECT_URI=${TRUELAYER_REDIRECT_URI:-https://localhost:3443/api/v1/providers/truelayer/callback}
+      - TRUELAYER_SANDBOX=${TRUELAYER_SANDBOX:-true}
+      # ── Notifications (global SMTP fallback creds + system channel id) ──
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SYSTEM_NOTIFIER_ID=${SYSTEM_NOTIFIER_ID:-}
     depends_on:
       manifold-redis:
         condition: service_healthy

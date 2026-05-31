@@ -1,6 +1,6 @@
 # Manifold root Makefile
 
-.PHONY: help setup install dev build test lint format clean docker-up docker-down ci-check
+.PHONY: help setup install dev dev-worker build test lint format clean docker-up docker-down docker-up-dev ci-check
 
 # ──────────────────────────────────────────────────────────
 # Help
@@ -16,7 +16,8 @@ help:
 setup: install-backend install-frontend ## Install all dependencies
 	@cp -n .env.example .env || true
 	@cp -n backend/.env.example backend/.env || true
-	@echo "✓ Setup complete. Edit .env and backend/.env before starting."
+	@echo "✓ Setup complete. The Docker stacks run with built-in defaults;"
+	@echo "  edit .env / backend/.env only to override secrets or add providers."
 
 install-backend: ## Install backend dependencies (uv)
 	cd backend && uv sync
@@ -33,9 +34,14 @@ dev-backend: ## Start backend dev server (hot reload)
 dev-frontend: ## Start frontend dev server
 	cd frontend && npm run dev
 
+dev-worker: ## Start Taskiq worker + scheduler (hot reload)
+	cd backend && uv run taskiq worker manifold.tasks.broker:broker manifold.tasks --reload & \
+	cd backend && uv run taskiq scheduler manifold.tasks.scheduler:scheduler & \
+	wait
+
 dev: ## Start all services (requires tmux or parallel; shows combined log)
-	@echo "Run in separate terminals: make dev-backend / make dev-frontend"
-	@echo "Or: docker compose -f docker-compose.yml -f docker-compose.dev.yml up"
+	@echo "Run in separate terminals: make dev-backend / make dev-frontend / make dev-worker"
+	@echo "Or the standalone Docker dev stack: make docker-up-dev"
 
 # ──────────────────────────────────────────────────────────
 # Database
@@ -116,8 +122,8 @@ docker-build: ## Build Docker images
 docker-up: ## Start Docker Compose stack
 	docker compose up -d
 
-docker-up-dev: ## Start Docker Compose dev stack
-	docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+docker-up-dev: ## Start standalone Docker Compose dev stack (no .env needed)
+	docker compose -f docker-compose.dev.yml up --build
 
 docker-down: ## Stop Docker Compose stack
 	docker compose down

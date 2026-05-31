@@ -3,7 +3,9 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci || npm install
 COPY . .
-ARG VITE_API_BASE_URL=/api
+# Empty by default: the api client's endpoints already include the /api/v1 prefix,
+# so baseURL must stay '' (a non-empty value would double the prefix → /api/api/v1).
+ARG VITE_API_BASE_URL=
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 RUN npm run build
 
