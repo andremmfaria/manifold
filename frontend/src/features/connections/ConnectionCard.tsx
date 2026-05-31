@@ -1,26 +1,41 @@
 import type { Connection } from '@/api/connections'
 import { ConnectionStatusBadge } from './ConnectionStatusBadge'
+import { Card, CardHeader, CardTitle, CardDescription, CardAction, CardContent, CardFooter } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 
 export function ConnectionCard({ connection, onSync }: { connection: Connection; onSync?: () => void }) {
   return (
-    <div className="rounded-xl border border-border bg-white p-4 shadow-xs">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h3 className="font-semibold text-slate-900">{connection.display_name || connection.provider_type}</h3>
-          <p className="text-sm text-slate-500">{connection.provider_type}</p>
-        </div>
-        <ConnectionStatusBadge status={connection.status} />
-      </div>
-      <dl className="mt-4 grid gap-2 text-sm text-slate-600">
-        <div className="flex justify-between gap-3"><dt>Auth</dt><dd>{connection.auth_status}</dd></div>
-        <div className="flex justify-between gap-3"><dt>Consent</dt><dd>{connection.consent_expires_at || '—'}</dd></div>
-        <div className="flex justify-between gap-3"><dt>Last sync</dt><dd>{connection.last_sync_at || 'Never'}</dd></div>
-      </dl>
+    <Card>
+      <CardHeader>
+        <CardTitle>{connection.display_name || connection.provider_type}</CardTitle>
+        <CardDescription>{connection.provider_type}</CardDescription>
+        <CardAction>
+          <ConnectionStatusBadge status={connection.status} />
+        </CardAction>
+      </CardHeader>
+      <CardContent>
+        <dl className="grid gap-2 text-sm">
+          <div className="flex justify-between gap-3">
+            <dt className="text-muted-foreground">Auth</dt>
+            <dd className="text-foreground">{connection.auth_status}</dd>
+          </div>
+          <div className="flex justify-between gap-3">
+            <dt className="text-muted-foreground">Consent</dt>
+            <dd className="text-foreground">{connection.consent_expires_at || '—'}</dd>
+          </div>
+          <div className="flex justify-between gap-3">
+            <dt className="text-muted-foreground">Last sync</dt>
+            <dd className="text-foreground">{connection.last_sync_at || 'Never'}</dd>
+          </div>
+        </dl>
+      </CardContent>
       {onSync ? (
-        <button className="mt-4 rounded border border-border px-3 py-2 text-sm" onClick={onSync} type="button">
-          Run sync
-        </button>
+        <CardFooter>
+          <Button variant="outline" size="sm" onClick={onSync} type="button">
+            Run sync
+          </Button>
+        </CardFooter>
       ) : null}
-    </div>
+    </Card>
   )
 }

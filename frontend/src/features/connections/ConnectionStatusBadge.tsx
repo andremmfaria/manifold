@@ -1,9 +1,19 @@
+import { Badge } from '@/components/ui/badge'
+
 export function ConnectionStatusBadge({ status }: { status: string }) {
-  const color =
+  const className =
     status === 'active'
-      ? 'bg-emerald-100 text-emerald-800'
+      ? 'bg-emerald-600/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 border-transparent'
       : status === 'error'
-        ? 'bg-rose-100 text-rose-800'
-        : 'bg-slate-100 text-slate-700'
-  return <span className={`rounded-full px-2 py-1 text-xs font-medium ${color}`}>{status}</span>
+        ? undefined
+        : 'bg-muted text-muted-foreground border-transparent'
+
+  const variant =
+    status === 'error' ? 'destructive' : 'outline'
+
+  return (
+    <Badge variant={variant} className={className}>
+      {status}
+    </Badge>
+  )
 }

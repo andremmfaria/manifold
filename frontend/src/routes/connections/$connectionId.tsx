@@ -20,9 +20,13 @@ function ConnectionDetailPage() {
   const connection = data.find((item) => item.id === connectionId)
   return (
     <AppShell>
-      <div className="space-y-6 p-6">
-        <h1 className="text-2xl font-semibold">Connection detail</h1>
-        {connection ? <ConnectionCard connection={connection} /> : <p>Connection not found.</p>}
+      <div className="space-y-6 p-6 max-w-7xl mx-auto">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Connection detail</h1>
+        {connection ? (
+          <ConnectionCard connection={connection} />
+        ) : (
+          <p className="text-muted-foreground">Connection not found.</p>
+        )}
       </div>
     </AppShell>
   )

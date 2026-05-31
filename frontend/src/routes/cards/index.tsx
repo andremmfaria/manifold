@@ -18,8 +18,8 @@ function CardsPage() {
   const { data = [] } = useCards()
   return (
     <AppShell>
-      <div className="space-y-6 p-6">
-        <h1 className="text-2xl font-semibold">Cards</h1>
+      <div className="space-y-6 p-6 max-w-7xl mx-auto">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Cards</h1>
         <CardList items={data} />
       </div>
     </AppShell>

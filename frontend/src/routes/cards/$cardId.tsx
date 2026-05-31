@@ -4,6 +4,8 @@ import type { AuthContextValue } from '@/features/auth/AuthProvider'
 import { CardDetail } from '@/features/cards/CardDetail'
 import { useCard, useCardTransactions, useCardBalances } from '@/features/cards/useCards'
 import { TransactionTable } from '@/features/transactions/TransactionTable'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { rootRoute } from '../__root'
 
 export const cardDetailRoute = createRoute({
@@ -23,40 +25,42 @@ function CardDetailPage() {
 
   return (
     <AppShell>
-      <div className="space-y-6 p-6">
-        <h1 className="text-2xl font-semibold">Card detail</h1>
-        
-        {card ? <CardDetail card={card} /> : <p>Loading card details...</p>}
-        
+      <div className="space-y-6 p-6 max-w-7xl mx-auto">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Card detail</h1>
+
+        {card ? <CardDetail card={card} /> : <p className="text-muted-foreground">Loading card details...</p>}
+
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Balances</h2>
+          <h2 className="text-xl font-semibold tracking-tight text-foreground">Balances</h2>
           {balances.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {balances.map((balance: any) => (
-                <div key={balance.id} className="rounded-xl border border-border bg-white p-4 shadow-xs">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-slate-500">{balance.balance_type}</span>
-                    <span className="text-xs rounded-full bg-slate-100 px-2 py-1 text-slate-600">
-                      {new Date(balance.reference_date || balance.created_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-2xl font-bold">
-                    {balance.amount} {balance.currency}
-                  </p>
-                </div>
+                <Card key={balance.id}>
+                  <CardContent className="pt-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-muted-foreground">{balance.balance_type}</span>
+                      <Badge variant="secondary">
+                        {new Date(balance.reference_date || balance.created_at).toLocaleDateString()}
+                      </Badge>
+                    </div>
+                    <p className="mt-3 text-2xl font-bold text-foreground">
+                      {balance.amount} {balance.currency}
+                    </p>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           ) : (
-            <p className="text-slate-500">No balances found.</p>
+            <p className="text-muted-foreground">No balances found.</p>
           )}
         </div>
 
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Recent Transactions</h2>
+          <h2 className="text-xl font-semibold tracking-tight text-foreground">Recent Transactions</h2>
           {transactions.length > 0 ? (
             <TransactionTable items={transactions} />
           ) : (
-            <p className="text-slate-500">No recent transactions found.</p>
+            <p className="text-muted-foreground">No recent transactions found.</p>
           )}
         </div>
       </div>
