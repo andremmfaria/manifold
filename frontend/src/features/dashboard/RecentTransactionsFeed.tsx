@@ -4,7 +4,7 @@ import type { DashboardSummary } from '@/types/dashboard'
 export function RecentTransactionsFeed({ events }: { events: DashboardSummary['recent_events'] }) {
   if (!events?.length) {
     return (
-      <div className="rounded-xl border bg-white p-6 shadow-sm flex flex-col items-center justify-center text-center">
+      <div className="rounded-xl border border-border bg-white p-6 shadow-xs flex flex-col items-center justify-center text-center">
         <Clock className="h-10 w-10 text-slate-300 mb-3" />
         <p className="text-slate-500">No recent activity detected.</p>
       </div>
@@ -12,7 +12,7 @@ export function RecentTransactionsFeed({ events }: { events: DashboardSummary['r
   }
 
   return (
-    <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
+    <div className="rounded-xl border border-border bg-white shadow-xs overflow-hidden">
       <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
         <h3 className="font-semibold text-slate-800">Recent Activity</h3>
       </div>

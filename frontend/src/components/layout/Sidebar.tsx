@@ -9,7 +9,7 @@ export function Sidebar() {
   // endpoints 403 for that role), so don't surface those links.
   const isSuperadmin = auth.role === 'superadmin'
   return (
-    <aside className="min-h-[calc(100vh-4rem)] w-64 border-r bg-white p-4">
+    <aside className="min-h-[calc(100vh-4rem)] w-64 border-r border-border bg-white p-4">
       <nav className="space-y-2">
         <Link className={linkClass} to="/">Overview</Link>
         {!isSuperadmin && (

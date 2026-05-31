@@ -2,7 +2,7 @@ import { DollarSign } from 'lucide-react'
 
 export function BalanceSummaryCard({ accountsTotal }: { accountsTotal: number }) {
   return (
-    <div className="rounded-xl border bg-white p-6 shadow-sm">
+    <div className="rounded-xl border border-border bg-white p-6 shadow-xs">
       <div className="flex items-center gap-3 text-slate-500">
         <DollarSign className="h-5 w-5" />
         <h3 className="font-medium">Total Accounts Balance</h3>

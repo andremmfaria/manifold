@@ -93,7 +93,7 @@ function SessionsPage() {
             <button
               onClick={() => revokeOthers.mutate()}
               disabled={revokeOthers.isPending}
-              className="rounded-md bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 disabled:opacity-50 transition-colors"
+              className="rounded-md bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-xs ring-1 ring-inset ring-slate-300 hover:bg-slate-50 disabled:opacity-50 transition-colors"
             >
               Sign out of all other devices
             </button>
@@ -114,7 +114,7 @@ function SessionsPage() {
         ) : (
           <div className="space-y-4">
             {currentSession && (
-              <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-4 shadow-sm">
+              <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-4 shadow-xs">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4">
                     <div className="rounded-full bg-blue-100 p-2.5">
@@ -142,7 +142,7 @@ function SessionsPage() {
             )}
 
             {activeSessions.map((session) => (
-              <div key={session.id} className="rounded-lg border bg-white p-4 shadow-sm transition-shadow hover:border-slate-300">
+              <div key={session.id} className="rounded-lg border border-border bg-white p-4 shadow-xs transition-shadow hover:border-slate-300">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4">
                     <div className="rounded-full bg-slate-100 p-2.5">

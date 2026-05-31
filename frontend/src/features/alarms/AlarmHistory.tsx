@@ -12,7 +12,7 @@ export function AlarmHistory({ alarmId }: { alarmId: string }) {
   if (!data?.items?.length) return <div className="text-sm text-slate-500">No history available</div>
 
   return (
-    <div className="overflow-x-auto rounded-lg border bg-white">
+    <div className="overflow-x-auto rounded-lg border border-border bg-white">
       <table className="min-w-full divide-y divide-slate-200">
         <thead className="bg-slate-50">
           <tr>

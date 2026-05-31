@@ -52,8 +52,8 @@ function AccessPage() {
           </div>
         )}
 
-        <div className="bg-white border rounded-lg overflow-hidden shadow-sm">
-          <div className="p-4 border-b bg-slate-50 flex items-center justify-between">
+        <div className="bg-white border border-border rounded-lg overflow-hidden shadow-xs">
+          <div className="p-4 border-b border-border bg-slate-50 flex items-center justify-between">
             <span className="font-medium text-sm text-slate-700">Active Grants</span>
           </div>
           
@@ -64,7 +64,7 @@ function AccessPage() {
             </div>
           ) : grants && grants.length > 0 ? (
             <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50/50 text-slate-500 border-b">
+              <thead className="bg-slate-50/50 text-slate-500 border-b border-border">
                 <tr>
                   <th className="px-4 py-3 font-medium">Grantee</th>
                   <th className="px-4 py-3 font-medium">Access Level</th>
@@ -72,7 +72,7 @@ function AccessPage() {
                   <th className="px-4 py-3 font-medium text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className="divide-y divide-slate-200">
                 {grants.map(grant => (
                   <tr key={grant.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-4 py-3 font-medium text-slate-900">{grant.grantee_username}</td>

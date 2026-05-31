@@ -73,7 +73,7 @@ function NewAlarmPage() {
           <p className="mt-1 text-slate-500">Define conditions for automated alerts.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8 bg-white p-6 rounded-xl border shadow-sm">
+        <form onSubmit={handleSubmit} className="space-y-8 bg-white p-6 rounded-xl border border-border shadow-xs">
           {error && <div className="p-3 bg-red-50 text-red-700 text-sm rounded-md">{error}</div>}
 
           <div className="space-y-4">
@@ -84,7 +84,7 @@ function NewAlarmPage() {
                 required
                 value={name}
                 onChange={e => setName(e.target.value)}
-                className="w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                className="w-full rounded-md border-slate-300 shadow-xs focus:border-blue-500 focus:ring-blue-500 p-2 border"
                 placeholder="e.g. Low Balance Alert"
               />
             </div>
@@ -95,7 +95,7 @@ function NewAlarmPage() {
                 multiple
                 value={accountIds}
                 onChange={e => setAccountIds(Array.from(e.target.selectedOptions, option => option.value))}
-                className="w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border h-32"
+                className="w-full rounded-md border-slate-300 shadow-xs focus:border-blue-500 focus:ring-blue-500 p-2 border h-32"
               >
                 {accounts?.map(acc => (
                   <option key={acc.id} value={acc.id}>{acc.display_name || acc.account_type}</option>
@@ -115,7 +115,7 @@ function NewAlarmPage() {
                 multiple
                 value={notifierIds}
                 onChange={e => setNotifierIds(Array.from(e.target.selectedOptions, option => option.value))}
-                className="w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border h-32"
+                className="w-full rounded-md border-slate-300 shadow-xs focus:border-blue-500 focus:ring-blue-500 p-2 border h-32"
               >
                 {notifiers?.items.map(notifier => (
                   <option key={notifier.id} value={notifier.id}>{notifier.name} ({notifier.type})</option>
@@ -123,7 +123,7 @@ function NewAlarmPage() {
               </select>
             </div>
 
-            <div className="border-t pt-4">
+            <div className="border-t border-border pt-4">
               <h3 className="text-sm font-semibold mb-4 text-slate-800">Advanced Settings</h3>
               
               <div className="grid grid-cols-2 gap-4">
@@ -134,7 +134,7 @@ function NewAlarmPage() {
                     min="1"
                     value={repeatCount}
                     onChange={e => setRepeatCount(parseInt(e.target.value))}
-                    className="w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                    className="w-full rounded-md border-slate-300 shadow-xs focus:border-blue-500 focus:ring-blue-500 p-2 border"
                   />
                 </div>
                 
@@ -145,7 +145,7 @@ function NewAlarmPage() {
                     min="0"
                     value={forDurationMinutes}
                     onChange={e => setForDurationMinutes(parseInt(e.target.value))}
-                    className="w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                    className="w-full rounded-md border-slate-300 shadow-xs focus:border-blue-500 focus:ring-blue-500 p-2 border"
                   />
                 </div>
 
@@ -156,7 +156,7 @@ function NewAlarmPage() {
                     min="0"
                     value={cooldownMinutes}
                     onChange={e => setCooldownMinutes(parseInt(e.target.value))}
-                    className="w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                    className="w-full rounded-md border-slate-300 shadow-xs focus:border-blue-500 focus:ring-blue-500 p-2 border"
                   />
                 </div>
                 
@@ -180,14 +180,14 @@ function NewAlarmPage() {
             <button
               type="button"
               onClick={() => navigate({ to: '/alarms' })}
-              className="rounded-md bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50"
+              className="rounded-md bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-xs ring-1 ring-inset ring-slate-300 hover:bg-slate-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isPending}
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 disabled:opacity-50"
+              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-blue-500 disabled:opacity-50"
             >
               {isPending ? 'Saving...' : 'Create Alarm'}
             </button>

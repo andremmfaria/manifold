@@ -56,7 +56,7 @@ function NotifiersPage() {
               />
             ))}
             {data?.items.length === 0 && (
-              <div className="text-center p-12 border rounded-xl border-dashed bg-slate-50">
+              <div className="text-center p-12 border border-border rounded-xl border-dashed bg-slate-50">
                 <p className="text-slate-500">No notifiers configured yet.</p>
               </div>
             )}

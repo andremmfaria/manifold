@@ -11,7 +11,7 @@ export function NotifierCard({
   isTesting?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-xl border bg-white p-4 shadow-sm">
+    <div className="flex items-center justify-between rounded-xl border border-border bg-white p-4 shadow-xs">
       <div className="flex items-start gap-4">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
           <Bell className="h-5 w-5 text-slate-600" />

@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 
 const apiProxyTarget = process.env.VITE_DEV_PROXY_TARGET || 'http://localhost:8000'
 
@@ -16,7 +17,7 @@ const allowedHosts =
         .filter(Boolean)
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [tailwindcss(), react()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

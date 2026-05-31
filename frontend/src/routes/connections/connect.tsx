@@ -69,7 +69,7 @@ function ConnectPage() {
                 key={provider.provider_type}
                 onClick={() => handleConnect(provider)}
                 disabled={isLoading}
-                className="flex flex-col items-start justify-between gap-4 rounded-xl border bg-white p-6 shadow-sm transition-colors hover:border-blue-500 hover:shadow-md disabled:opacity-50"
+                className="flex flex-col items-start justify-between gap-4 rounded-xl border border-border bg-white p-6 shadow-xs transition-colors hover:border-blue-500 hover:shadow-md disabled:opacity-50"
               >
                 <div className="text-left">
                   <h3 className="text-lg font-semibold text-slate-900">{provider.display_name}</h3>

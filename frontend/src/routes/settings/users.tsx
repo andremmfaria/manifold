@@ -90,8 +90,8 @@ function UsersPage() {
           </div>
         )}
 
-        <div className="bg-white border rounded-lg overflow-hidden">
-          <div className="p-4 border-b bg-slate-50 font-medium text-sm text-slate-700">
+        <div className="bg-white border border-border rounded-lg overflow-hidden">
+          <div className="p-4 border-b border-border bg-slate-50 font-medium text-sm text-slate-700">
             User List
           </div>
           {isLoading ? (
@@ -101,7 +101,7 @@ function UsersPage() {
             </div>
           ) : (
             <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50 text-slate-500 border-b">
+              <thead className="bg-slate-50 text-slate-500 border-b border-border">
                 <tr>
                   <th className="px-4 py-3 font-medium">Username</th>
                   <th className="px-4 py-3 font-medium">Role</th>
@@ -110,7 +110,7 @@ function UsersPage() {
                   <th className="px-4 py-3 font-medium text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className="divide-y divide-slate-200">
                 {users?.map(user => (
                   <tr key={user.id} className="hover:bg-slate-50">
                     <td className="px-4 py-3 font-medium text-slate-900">{user.username}</td>
@@ -150,8 +150,8 @@ function UsersPage() {
           )}
         </div>
 
-        <div className="bg-white border rounded-lg overflow-hidden">
-          <div className="p-4 border-b bg-slate-50 font-medium text-sm text-slate-700">
+        <div className="bg-white border border-border rounded-lg overflow-hidden">
+          <div className="p-4 border-b border-border bg-slate-50 font-medium text-sm text-slate-700">
             Create User
           </div>
           <form

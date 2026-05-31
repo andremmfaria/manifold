@@ -9,7 +9,7 @@ export function AlarmStateBadge({ state }: { state: string }) {
   const color = colors[state] || 'bg-gray-100 text-gray-800 border-gray-200'
 
   return (
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${color}`}>
+    <span className={`inline-flex items-center rounded-full border border-border px-2.5 py-0.5 text-xs font-semibold ${color}`}>
       {state.toUpperCase()}
     </span>
   )

@@ -17,22 +17,22 @@ export function AlarmRuleBuilder({ value, onChange }: AlarmRuleBuilderProps) {
 
   // Add some basic styling overrides to make it fit with Tailwind
   return (
-    <div className="rounded-md border p-4 bg-slate-50">
+    <div className="rounded-md border border-border p-4 bg-slate-50">
       <QueryBuilder 
         fields={fields} 
         query={value as RuleGroupType} 
         onQueryChange={onChange as (q: RuleGroupType) => void}
         controlClassnames={{
           queryBuilder: 'text-sm',
-          ruleGroup: 'bg-white border rounded-md p-3 mb-3',
+          ruleGroup: 'bg-white border border-border rounded-md p-3 mb-3',
           header: 'flex gap-2 mb-2',
           addRule: 'bg-slate-100 px-2 py-1 rounded text-xs font-medium hover:bg-slate-200',
           addGroup: 'bg-slate-100 px-2 py-1 rounded text-xs font-medium hover:bg-slate-200',
           removeGroup: 'bg-red-50 text-red-600 px-2 py-1 rounded text-xs font-medium hover:bg-red-100',
           rule: 'flex gap-2 items-center mb-2',
-          fields: 'border rounded px-2 py-1',
-          operators: 'border rounded px-2 py-1',
-          value: 'border rounded px-2 py-1',
+          fields: 'border border-border rounded px-2 py-1',
+          operators: 'border border-border rounded px-2 py-1',
+          value: 'border border-border rounded px-2 py-1',
           removeRule: 'bg-red-50 text-red-600 px-2 py-1 rounded text-xs font-medium hover:bg-red-100 ml-auto',
         }}
       />

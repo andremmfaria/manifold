@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { authApi, type LoginPayload, type PasswordPayload } from '@/api/auth'
 import { clearSessionHint, hasSessionHint, setSessionHint } from '@/api/client'
 
@@ -24,6 +25,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [firstName, setFirstName] = useState<string | null>(null)
   const [lastName, setLastName] = useState<string | null>(null)
   const [mustChangePassword, setMustChangePassword] = useState(false)
+  const queryClient = useQueryClient()
 
   function setUnauthenticated() {
     setIsAuthenticated(false)
@@ -68,6 +70,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       lastName,
       mustChangePassword,
       login: async (payload) => {
+        // Drop any cached query data from a previous session before the new
+        // user loads, so user B never sees user A's accounts/transactions/etc.
+        queryClient.clear()
         await authApi.login(payload)
         setSessionHint()
         await refreshMe()
@@ -76,6 +81,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await authApi.logout()
         clearSessionHint()
         setUnauthenticated()
+        // Wipe cached query data on the way out so the next user starts clean.
+        queryClient.clear()
       },
       changePassword: async (payload) => {
         await authApi.changePassword(payload)
@@ -83,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
       refreshMe,
     }),
-    [isAuthenticated, mustChangePassword, role, username, firstName, lastName],
+    [isAuthenticated, mustChangePassword, role, username, firstName, lastName, queryClient],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

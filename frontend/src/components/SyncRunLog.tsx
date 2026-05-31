@@ -46,7 +46,7 @@ export function SyncRunLog({ connectionId }: SyncRunLogProps) {
   }
 
   return (
-    <div className="border rounded-md divide-y overflow-hidden">
+    <div className="border border-border rounded-md divide-y overflow-hidden">
       {runs.map((run) => (
         <div key={run.id} className="p-3 flex items-center justify-between bg-white text-sm">
           <div className="flex items-center gap-3">

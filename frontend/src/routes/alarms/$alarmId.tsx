@@ -43,7 +43,7 @@ function AlarmDetailPage() {
   return (
     <AppShell>
       <div className="space-y-6 p-6 max-w-5xl mx-auto">
-        <div className="flex items-center justify-between bg-white p-6 rounded-xl border shadow-sm">
+        <div className="flex items-center justify-between bg-white p-6 rounded-xl border border-border shadow-xs">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-3">
               {alarm.name}
@@ -75,33 +75,33 @@ function AlarmDetailPage() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-xl border shadow-sm">
+          <div className="bg-white p-6 rounded-xl border border-border shadow-xs">
             <h3 className="font-semibold text-slate-900 mb-4">Configuration</h3>
             <dl className="space-y-3 text-sm">
-              <div className="flex justify-between border-b pb-2">
+              <div className="flex justify-between border-b border-slate-100 pb-2">
                 <dt className="text-slate-500">Status</dt>
                 <dd className="font-medium">{alarm.status}</dd>
               </div>
-              <div className="flex justify-between border-b pb-2">
+              <div className="flex justify-between border-b border-slate-100 pb-2">
                 <dt className="text-slate-500">Accounts Monitored</dt>
                 <dd className="font-medium">{alarm.account_ids.length}</dd>
               </div>
-              <div className="flex justify-between border-b pb-2">
+              <div className="flex justify-between border-b border-slate-100 pb-2">
                 <dt className="text-slate-500">Notifiers Linked</dt>
                 <dd className="font-medium">{alarm.notifier_ids.length}</dd>
               </div>
-              <div className="flex justify-between border-b pb-2">
+              <div className="flex justify-between border-b border-slate-100 pb-2">
                 <dt className="text-slate-500">Repeat Count</dt>
                 <dd className="font-medium">{alarm.repeat_count}</dd>
               </div>
-              <div className="flex justify-between border-b pb-2">
+              <div className="flex justify-between border-b border-slate-100 pb-2">
                 <dt className="text-slate-500">Cooldown</dt>
                 <dd className="font-medium">{alarm.cooldown_minutes}m</dd>
               </div>
             </dl>
           </div>
 
-          <div className="bg-white p-6 rounded-xl border shadow-sm flex flex-col">
+          <div className="bg-white p-6 rounded-xl border border-border shadow-xs flex flex-col">
             <h3 className="font-semibold text-slate-900 mb-4">Rule Condition</h3>
             <div className="bg-slate-900 text-slate-50 p-4 rounded-md overflow-auto text-xs font-mono flex-1">
               <pre>{JSON.stringify(alarm.condition, null, 2)}</pre>

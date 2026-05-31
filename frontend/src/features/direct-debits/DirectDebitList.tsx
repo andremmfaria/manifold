@@ -1,6 +1,6 @@
 export function DirectDebitList({ items }: { items: any[] }) {
   return (
-    <div className="rounded-xl border bg-white p-4">
+    <div className="rounded-xl border border-border bg-white p-4">
       <ul className="space-y-3">
         {items.map((item) => (
           <li key={item.id} className="flex items-center justify-between gap-3 border-b pb-3 last:border-b-0">

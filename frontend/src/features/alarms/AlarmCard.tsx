@@ -4,7 +4,7 @@ import { BellOff, BellRing } from 'lucide-react'
 
 export function AlarmCard({ alarm, onMute, onUnmute }: { alarm: Alarm; onMute?: () => void; onUnmute?: () => void }) {
   return (
-    <div className="flex items-center justify-between rounded-xl border bg-white p-4 shadow-sm">
+    <div className="flex items-center justify-between rounded-xl border border-border bg-white p-4 shadow-xs">
       <div>
         <div className="flex items-center gap-3">
           <h3 className="font-semibold text-slate-900">{alarm.name}</h3>

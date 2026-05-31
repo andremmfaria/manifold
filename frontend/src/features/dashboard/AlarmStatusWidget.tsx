@@ -2,7 +2,7 @@ import { Bell, AlertTriangle } from 'lucide-react'
 
 export function AlarmStatusWidget({ activeAlarmsCount }: { activeAlarmsCount: number }) {
   return (
-    <div className={`rounded-xl border p-6 shadow-sm ${activeAlarmsCount > 0 ? 'bg-red-50 border-red-100' : 'bg-white border-slate-200'}`}>
+    <div className={`rounded-xl border border-border p-6 shadow-xs ${activeAlarmsCount > 0 ? 'bg-red-50 border-red-100' : 'bg-white border-slate-200'}`}>
       <div className="flex items-center gap-3">
         {activeAlarmsCount > 0 ? (
           <AlertTriangle className="h-5 w-5 text-red-600" />

@@ -6,7 +6,7 @@ export function BalanceHistoryChart({ data }: { data: Array<{ recorded_at: strin
     current: item.current ? Number(item.current) : null,
   }))
   return (
-    <div className="h-72 rounded-xl border bg-white p-4">
+    <div className="h-72 rounded-xl border border-border bg-white p-4">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={chartData}>
           <XAxis dataKey="recorded_at" />

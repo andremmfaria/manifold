@@ -5,7 +5,7 @@ export function UpcomingDebitsWidget({ debits }: { debits: DashboardSummary['upc
   if (!debits?.length) return null;
 
   return (
-    <div className="rounded-xl border bg-white shadow-sm overflow-hidden mt-6">
+    <div className="rounded-xl border border-border bg-white shadow-xs overflow-hidden mt-6">
       <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
         <h3 className="font-semibold text-slate-800">Upcoming Predicted Debits</h3>
       </div>

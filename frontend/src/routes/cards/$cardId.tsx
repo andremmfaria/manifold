@@ -33,7 +33,7 @@ function CardDetailPage() {
           {balances.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {balances.map((balance: any) => (
-                <div key={balance.id} className="rounded-xl border bg-white p-4 shadow-sm">
+                <div key={balance.id} className="rounded-xl border border-border bg-white p-4 shadow-xs">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium text-slate-500">{balance.balance_type}</span>
                     <span className="text-xs rounded-full bg-slate-100 px-2 py-1 text-slate-600">
