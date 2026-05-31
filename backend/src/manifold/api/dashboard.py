@@ -59,12 +59,14 @@ async def get_dashboard_summary(
     scoped_user_ids = scope_to_uuids(scope)
 
     accounts_total_result = await session.execute(
-        select(func.count()).select_from(Account.__table__).where(
-            Account.__table__.c.user_id.in_(scoped_user_ids)
-        )
+        select(func.count())
+        .select_from(Account.__table__)
+        .where(Account.__table__.c.user_id.in_(scoped_user_ids))
     )
     active_alarms_result = await session.execute(
-        select(func.count()).select_from(AlarmDefinition.__table__).where(
+        select(func.count())
+        .select_from(AlarmDefinition.__table__)
+        .where(
             AlarmDefinition.__table__.c.user_id.in_(scoped_user_ids),
             AlarmDefinition.__table__.c.status == "active",
         )
@@ -88,6 +90,7 @@ async def get_dashboard_summary(
     )
     recent_events: list[dict] = []
     for event_id, owner_user_id in recent_events_result.all():
+
         async def _serialize(eid: str = str(event_id)) -> dict:
             item = await session.get(Event, eid)
             if item is None:
@@ -112,6 +115,7 @@ async def get_dashboard_summary(
     )
     upcoming_debits: list[dict] = []
     for profile_id, owner_user_id in upcoming_result.all():
+
         async def _serialize(pid: str = str(profile_id)) -> dict:
             item = await session.get(RecurrenceProfile, pid)
             if item is None:

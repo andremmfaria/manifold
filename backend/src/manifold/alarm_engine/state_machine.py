@@ -65,11 +65,7 @@ class AlarmStateMachine:
     ) -> bool:
         if new_state == "firing" and previous_state != "firing":
             return not self._within_cooldown(alarm, current_state, now)
-        if (
-            previous_state == "firing"
-            and new_state == "resolved"
-            and alarm.notify_on_resolve
-        ):
+        if previous_state == "firing" and new_state == "resolved" and alarm.notify_on_resolve:
             return not self._within_cooldown(alarm, current_state, now)
         return False
 

@@ -26,6 +26,7 @@ async def list_events(
     )
     items: list[dict] = []
     for event_id, owner_user_id in result.all():
+
         async def _serialize() -> dict:
             item = await session.get(Event, event_id)
             if item is None:

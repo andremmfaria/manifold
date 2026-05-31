@@ -11,9 +11,7 @@ from manifold.alarm_engine.predicates import (
 
 
 class AlarmExplainer:
-    def explain(
-        self, condition: dict[str, Any], context: dict[str, Any], result: bool
-    ) -> str:
+    def explain(self, condition: dict[str, Any], context: dict[str, Any], result: bool) -> str:
         """Generate human-readable explanation of why alarm fired/didn't fire."""
         _ = result
         return self._explain_node(condition, context)
@@ -39,8 +37,7 @@ class AlarmExplainer:
         expected = condition.get("value")
         if op in {"IS_NULL", "IS_NOT_NULL"}:
             return (
-                f"{field_name} ({format_field_value(field, actual, context)}) "
-                f"{operator_symbol(op)}"
+                f"{field_name} ({format_field_value(field, actual, context)}) {operator_symbol(op)}"
             )
         if op == "SYNC_FAILED":
             return f"{field_name} ({format_field_value(field, actual, context)}) = failed"

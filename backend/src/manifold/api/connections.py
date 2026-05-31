@@ -82,6 +82,7 @@ async def list_connections(
     )
     items = []
     for connection_id, owner_user_id in result.all():
+
         async def _load() -> ProviderConnection:
             connection = await session.get(ProviderConnection, connection_id)
             if connection is None:
@@ -93,7 +94,12 @@ async def list_connections(
     return items
 
 
-@router.post("", operation_id="createConnection", response_model=ConnectionResponse, status_code=201)
+@router.post(
+    "",
+    operation_id="createConnection",
+    response_model=ConnectionResponse,
+    status_code=201,
+)
 async def create_connection(
     payload: ConnectionCreateRequest,
     current_user: User = Depends(get_current_user),
@@ -101,6 +107,7 @@ async def create_connection(
 ) -> ConnectionResponse:
     register_all()
     _ = registry.get(payload.provider_type)
+
     async def _create() -> dict:
         connection = ProviderConnection(
             user_id=current_user.id,
@@ -129,6 +136,7 @@ async def get_connection(
     scope = await get_accessible_scope(current_user, session)
     if str(connection.user_id) not in scope:
         raise HTTPException(status_code=404, detail={"error": "not_found"})
+
     async def _serialize() -> dict:
         return _serialize_connection(connection)
 
@@ -149,6 +157,7 @@ async def update_connection(
     connection = await _load_connection_or_404(session, connection_id)
     if str(connection.user_id) != str(current_user.id):
         raise HTTPException(status_code=403, detail={"error": "forbidden"})
+
     async def _update() -> dict:
         if payload.display_name is not None:
             connection.display_name = payload.display_name

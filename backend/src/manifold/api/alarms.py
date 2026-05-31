@@ -224,9 +224,9 @@ async def list_alarms(
     _forbid_superadmin(current_user)
     scope = await get_accessible_scope(current_user, session)
     total_result = await session.execute(
-        select(func.count()).select_from(AlarmDefinition.__table__).where(
-            AlarmDefinition.__table__.c.user_id.in_(scope_to_uuids(scope))
-        )
+        select(func.count())
+        .select_from(AlarmDefinition.__table__)
+        .where(AlarmDefinition.__table__.c.user_id.in_(scope_to_uuids(scope)))
     )
     total = total_result.scalar_one()
     result = await session.execute(
@@ -238,6 +238,7 @@ async def list_alarms(
     )
     items: list[dict] = []
     for alarm_id, owner_user_id in result.all():
+
         async def _serialize(aid: str = str(alarm_id)) -> dict:
             alarm = await session.get(AlarmDefinition, parse_uuid(aid))
             if alarm is None:
@@ -365,11 +366,9 @@ async def update_alarm(
         await session.commit()
         await session.refresh(alarm)
         state = await _load_alarm_state(session, str(alarm.id))
-        resolved_account_ids = (
-            account_ids or await _load_alarm_account_ids(session, str(alarm.id))
-        )
-        resolved_notifier_ids = (
-            notifier_ids or await _load_alarm_notifier_ids(session, str(alarm.id))
+        resolved_account_ids = account_ids or await _load_alarm_account_ids(session, str(alarm.id))
+        resolved_notifier_ids = notifier_ids or await _load_alarm_notifier_ids(
+            session, str(alarm.id)
         )
         return _serialize_alarm(alarm, state, resolved_account_ids, resolved_notifier_ids)
 
@@ -478,9 +477,9 @@ async def get_alarm_history(
 
     async def _history() -> dict:
         total_result = await session.execute(
-            select(func.count()).select_from(AlarmEvaluationResult.__table__).where(
-                AlarmEvaluationResult.__table__.c.alarm_id == parse_uuid(alarm_id)
-            )
+            select(func.count())
+            .select_from(AlarmEvaluationResult.__table__)
+            .where(AlarmEvaluationResult.__table__.c.alarm_id == parse_uuid(alarm_id))
         )
         total = total_result.scalar_one()
         result = await session.execute(
@@ -528,9 +527,9 @@ async def get_alarm_firings(
 
     async def _firings() -> dict:
         total_result = await session.execute(
-            select(func.count()).select_from(AlarmFiringEvent.__table__).where(
-                AlarmFiringEvent.__table__.c.alarm_id == parse_uuid(alarm_id)
-            )
+            select(func.count())
+            .select_from(AlarmFiringEvent.__table__)
+            .where(AlarmFiringEvent.__table__.c.alarm_id == parse_uuid(alarm_id))
         )
         total = total_result.scalar_one()
         result = await session.execute(

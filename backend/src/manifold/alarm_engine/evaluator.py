@@ -25,25 +25,19 @@ class AlarmEvaluator:
             return self._evaluate_not(condition, context)
         return self._evaluate_leaf(op, condition, context)
 
-    def _evaluate_and(
-        self, condition: dict[str, Any], context: dict[str, Any]
-    ) -> tuple[bool, str]:
+    def _evaluate_and(self, condition: dict[str, Any], context: dict[str, Any]) -> tuple[bool, str]:
         args = self._require_args(condition)
         results = [self.evaluate(arg, context) for arg in args]
         explanation = " AND ".join(self._wrap(exp) for _, exp in results)
         return all(result for result, _ in results), explanation
 
-    def _evaluate_or(
-        self, condition: dict[str, Any], context: dict[str, Any]
-    ) -> tuple[bool, str]:
+    def _evaluate_or(self, condition: dict[str, Any], context: dict[str, Any]) -> tuple[bool, str]:
         args = self._require_args(condition)
         results = [self.evaluate(arg, context) for arg in args]
         explanation = " OR ".join(self._wrap(exp) for _, exp in results)
         return any(result for result, _ in results), explanation
 
-    def _evaluate_not(
-        self, condition: dict[str, Any], context: dict[str, Any]
-    ) -> tuple[bool, str]:
+    def _evaluate_not(self, condition: dict[str, Any], context: dict[str, Any]) -> tuple[bool, str]:
         args = self._require_args(condition)
         if len(args) != 1:
             raise ValueError("NOT requires exactly one argument")

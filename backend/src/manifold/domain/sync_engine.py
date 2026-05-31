@@ -132,9 +132,7 @@ class SyncEngine:
                 select(
                     ProviderConnection.__table__.c.id,
                     ProviderConnection.__table__.c.user_id,
-                ).where(
-                    ProviderConnection.__table__.c.status.in_(["active", "inactive"])
-                )
+                ).where(ProviderConnection.__table__.c.status.in_(["active", "inactive"]))
             )
             engine = SyncEngine(session)
             for connection_id, _owner_user_id in result.all():

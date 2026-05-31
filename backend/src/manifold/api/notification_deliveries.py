@@ -106,6 +106,7 @@ async def list_notification_deliveries(
     )
     items: list[dict] = []
     for delivery_id, owner_user_id in result.all():
+
         async def _serialize(did: str = str(delivery_id)) -> dict:
             item = await session.get(NotificationDelivery, did)
             if item is None:

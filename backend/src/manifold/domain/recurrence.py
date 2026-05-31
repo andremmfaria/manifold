@@ -51,7 +51,9 @@ class RecurrenceDetector:
 
     async def detect_for_all_users(self) -> None:
         result = await self._session.execute(
-            select(Account.__table__.c.user_id).distinct().order_by(Account.__table__.c.user_id.asc())
+            select(Account.__table__.c.user_id)
+            .distinct()
+            .order_by(Account.__table__.c.user_id.asc())
         )
         for user_id in result.scalars().all():
             await self.detect_for_user(str(user_id))
@@ -154,9 +156,7 @@ class RecurrenceDetector:
             transaction_at=transaction_at,
         )
 
-    def _analyze_group(
-        self, observations: list[TransactionObservation]
-    ) -> RecurrenceMatch | None:
+    def _analyze_group(self, observations: list[TransactionObservation]) -> RecurrenceMatch | None:
         ordered = sorted(observations, key=lambda item: item.transaction_at)
         inter_arrivals = self._compute_inter_arrivals(ordered)
         if not inter_arrivals:

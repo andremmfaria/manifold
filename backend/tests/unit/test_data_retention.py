@@ -67,8 +67,10 @@ async def _event_kinds(db_session: AsyncSession, dek: bytes) -> list[tuple[str, 
     enc = EncryptionService()
     with enc.user_dek_context(dek):
         events = (
-            await db_session.execute(select(Event).order_by(Event.recorded_at.asc()))
-        ).scalars().all()
+            (await db_session.execute(select(Event).order_by(Event.recorded_at.asc())))
+            .scalars()
+            .all()
+        )
         return [(item.source_type, item.payload["kind"]) for item in events]
 
 
@@ -212,23 +214,33 @@ async def test_run_data_retention_jobs_deletes_only_expired_rows(
     }
 
     sync_runs = (
-        await db_session.execute(select(SyncRun).order_by(SyncRun.created_at.asc()))
-    ).scalars().all()
+        (await db_session.execute(select(SyncRun).order_by(SyncRun.created_at.asc())))
+        .scalars()
+        .all()
+    )
     assert [item.status for item in sync_runs] == ["in_progress", "completed"]
 
     deliveries = (
-        await db_session.execute(
-            select(NotificationDelivery).order_by(NotificationDelivery.created_at.asc())
+        (
+            await db_session.execute(
+                select(NotificationDelivery).order_by(NotificationDelivery.created_at.asc())
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     assert len(deliveries) == 1
     assert deliveries[0].created_at == _naive(fresh)
 
     evaluations = (
-        await db_session.execute(
-            select(AlarmEvaluationResult).order_by(AlarmEvaluationResult.created_at.asc())
+        (
+            await db_session.execute(
+                select(AlarmEvaluationResult).order_by(AlarmEvaluationResult.created_at.asc())
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     assert len(evaluations) == 1
     assert evaluations[0].created_at == _naive(fresh)
 

@@ -10,9 +10,7 @@ from manifold.security.types import EncryptedJSON, EncryptedText
 class NotifierConfig(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "notifier_configs"
 
-    user_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("users.id"), nullable=False
-    )
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), nullable=False)
     name: Mapped[str] = mapped_column(EncryptedText(), nullable=False)
     type: Mapped[str] = mapped_column(EncryptedText(), nullable=False)
     config: Mapped[object] = mapped_column(EncryptedJSON(), nullable=False)

@@ -96,6 +96,7 @@ async def list_recurrence_profiles(
     )
     items: list[dict] = []
     for profile_id, owner_user_id in result.all():
+
         async def _serialize(pid: str = str(profile_id)) -> dict:
             item = await session.get(RecurrenceProfile, pid)
             if item is None:

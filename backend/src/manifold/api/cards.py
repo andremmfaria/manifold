@@ -13,7 +13,7 @@ from manifold.models.provider_connection import ProviderConnection
 from manifold.models.transaction import Transaction
 from manifold.models.user import User
 from manifold.schemas.accounts import BalanceResponse
-from manifold.schemas.cards import CardListResponse, CardResponse
+from manifold.schemas.cards import CardResponse
 from manifold.schemas.transactions import TransactionResponse
 
 router = APIRouter()
@@ -36,6 +36,7 @@ async def list_cards(
     )
     items: list[dict] = []
     for card_id, owner_user_id in result.all():
+
         async def _serialize() -> dict:
             card = await session.get(Card, card_id)
             if card is None:
@@ -93,6 +94,7 @@ async def get_card(
     scope = await get_accessible_scope(current_user, session)
     if str(owner_user_id) not in scope:
         raise HTTPException(status_code=404, detail={"error": "not_found"})
+
     async def _get() -> dict:
         return {
             "id": str(card.id),
@@ -125,6 +127,7 @@ async def get_card_balances(
     scope = await get_accessible_scope(current_user, session)
     if str(owner_user_id) not in scope:
         raise HTTPException(status_code=404, detail={"error": "not_found"})
+
     async def _get() -> list[dict]:
         result = await session.execute(
             select(Balance).where(Balance.card_id == card.id).order_by(desc(Balance.recorded_at))
@@ -163,6 +166,7 @@ async def get_card_transactions(
     scope = await get_accessible_scope(current_user, session)
     if str(owner_user_id) not in scope:
         raise HTTPException(status_code=404, detail={"error": "not_found"})
+
     async def _get() -> list[dict]:
         result = await session.execute(select(Transaction).where(Transaction.card_id == card.id))
         return [

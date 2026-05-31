@@ -58,8 +58,7 @@ class WebhookNotifier(BaseNotifier):
             "subject": subject,
             "body": body,
             "metadata": dict(payload.metadata),
-            "triggered_at": payload.metadata.get("triggered_at")
-            or datetime.now(UTC).isoformat(),
+            "triggered_at": payload.metadata.get("triggered_at") or datetime.now(UTC).isoformat(),
             "alarm_id": payload.alarm_id,
         }
 

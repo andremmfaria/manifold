@@ -12,9 +12,7 @@ from manifold.security.types import EncryptedJSON, EncryptedText
 class AlarmDefinition(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "alarm_definitions"
 
-    user_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("users.id"), nullable=False
-    )
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), nullable=False)
     name: Mapped[str] = mapped_column(EncryptedText(), nullable=False)
     condition: Mapped[object | None] = mapped_column(EncryptedJSON(), nullable=True)
     condition_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)

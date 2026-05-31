@@ -66,4 +66,5 @@ async def get_account_standing_orders(
 
     return await with_user_dek(session, account.user_id, _get)
 
+
 __all__ = ["router"]

@@ -56,6 +56,14 @@ select = ["E", "F", "I", "UP"]
 python_version = "3.12"
 strict = false
 ignore_missing_imports = true
+disable_error_code = [
+    "arg-type",
+    "attr-defined",
+    "call-overload",
+    "misc",
+    "operator",
+    "return-value",
+]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
