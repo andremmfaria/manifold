@@ -26,6 +26,7 @@ from manifold.providers.types import (
 
 class TrueLayerProvider(BaseProvider):
     provider_type = "truelayer"
+    display_name = "TrueLayer"
     supports_pending = True
     supports_direct_debits = True
     supports_cards = True

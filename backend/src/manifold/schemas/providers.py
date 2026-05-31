@@ -9,6 +9,8 @@ class ProviderTypeResponse(SchemaModel):
     model_config = ConfigDict(from_attributes=True)
 
     type: str
+    provider_type: str
+    display_name: str
     supports_pending: bool
     supports_direct_debits: bool
     supports_cards: bool

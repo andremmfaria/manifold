@@ -17,6 +17,7 @@ from manifold.providers.types import (
 
 class BaseProvider(ABC):
     provider_type: str
+    display_name: str
     auth: BaseProviderAuth
     supports_pending: bool = False
     supports_direct_debits: bool = False
