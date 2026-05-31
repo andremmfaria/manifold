@@ -1,4 +1,4 @@
-import { QueryBuilder, RuleGroupType } from 'react-querybuilder'
+import { QueryBuilder, RuleGroupType, type ValueEditorType } from 'react-querybuilder'
 import 'react-querybuilder/dist/query-builder.css'
 
 interface AlarmRuleBuilderProps {
@@ -11,7 +11,7 @@ export function AlarmRuleBuilder({ value, onChange }: AlarmRuleBuilderProps) {
   const fields = [
     { name: 'balance', label: 'Balance', inputType: 'number' },
     { name: 'transaction_amount', label: 'Transaction Amount', inputType: 'number' },
-    { name: 'transaction_type', label: 'Transaction Type', valueEditorType: 'select', values: [{name: 'credit', label: 'Credit'}, {name: 'debit', label: 'Debit'}] },
+    { name: 'transaction_type', label: 'Transaction Type', valueEditorType: 'select' as ValueEditorType, values: [{name: 'credit', label: 'Credit'}, {name: 'debit', label: 'Debit'}] },
     { name: 'currency', label: 'Currency' }
   ];
 
