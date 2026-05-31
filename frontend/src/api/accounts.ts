@@ -9,10 +9,18 @@ export type Account = {
   balance_currency: string | null
 }
 
+export type AccountListResponse = {
+  items: Account[]
+  total: number
+  page: number
+  page_size: number
+}
+
 export const accountsApi = {
   async list() {
-    const response = await client.get<Account[]>('/api/v1/accounts')
-    return response.data
+    // The API returns a paginated wrapper { items, total, page, page_size }.
+    const response = await client.get<AccountListResponse>('/api/v1/accounts')
+    return response.data.items
   },
   async get(accountId: string) {
     const response = await client.get<Account>(`/api/v1/accounts/${accountId}`)

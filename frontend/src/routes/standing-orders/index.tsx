@@ -23,7 +23,11 @@ function StandingOrdersPage() {
     <AppShell>
       <div className="space-y-6 p-6">
         <h1 className="text-2xl font-semibold">Standing orders</h1>
-        <StandingOrderList items={data} />
+        {accountId ? (
+          <StandingOrderList items={data} />
+        ) : (
+          <p className="text-sm text-muted-foreground">No accounts yet. Connect an account to see standing orders.</p>
+        )}
       </div>
     </AppShell>
   )

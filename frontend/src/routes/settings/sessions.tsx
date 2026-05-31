@@ -21,7 +21,7 @@ interface Session {
   id: string
   user_agent: string
   created_at: string
-  last_used_at: string
+  last_seen_at: string
   is_current: boolean
 }
 
@@ -157,7 +157,7 @@ function SessionsPage() {
                       </p>
                       <div className="mt-2 flex items-center gap-4 text-xs text-slate-500">
                         <span>Signed in: {new Date(session.created_at).toLocaleDateString()}</span>
-                        <span>Last active: {new Date(session.last_used_at).toLocaleString()}</span>
+                        <span>Last active: {new Date(session.last_seen_at).toLocaleString()}</span>
                       </div>
                     </div>
                   </div>

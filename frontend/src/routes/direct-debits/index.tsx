@@ -23,7 +23,11 @@ function DirectDebitsPage() {
     <AppShell>
       <div className="space-y-6 p-6">
         <h1 className="text-2xl font-semibold">Direct debits</h1>
-        <DirectDebitList items={data} />
+        {accountId ? (
+          <DirectDebitList items={data} />
+        ) : (
+          <p className="text-sm text-muted-foreground">No accounts yet. Connect an account to see direct debits.</p>
+        )}
       </div>
     </AppShell>
   )

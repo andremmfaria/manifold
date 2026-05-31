@@ -16,6 +16,8 @@ export const dashboardRoute = createRoute({
   path: '/dashboard',
   beforeLoad: ({ context }: { context: { auth: AuthContextValue } }) => {
     if (!context.auth.isAuthenticated) throw redirect({ to: '/login' })
+    // Superadmin has no financial data — the API 403s; send them to the overview instead.
+    if (context.auth.role === 'superadmin') throw redirect({ to: '/' })
   },
   component: DashboardPage,
 })
