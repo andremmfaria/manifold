@@ -1,39 +1,58 @@
-import { Clock, ExternalLink } from 'lucide-react'
+import { Clock } from 'lucide-react'
 import type { DashboardSummary } from '@/types/dashboard'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 export function RecentTransactionsFeed({ events }: { events: DashboardSummary['recent_events'] }) {
   if (!events?.length) {
     return (
-      <div className="rounded-xl border border-border bg-white p-6 shadow-xs flex flex-col items-center justify-center text-center">
-        <Clock className="h-10 w-10 text-slate-300 mb-3" />
-        <p className="text-slate-500">No recent activity detected.</p>
-      </div>
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+          <Clock className="h-10 w-10 text-muted-foreground/30 mb-3" />
+          <p className="text-muted-foreground">No recent activity detected.</p>
+        </CardContent>
+      </Card>
     )
   }
 
   return (
-    <div className="rounded-xl border border-border bg-white shadow-xs overflow-hidden">
-      <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-        <h3 className="font-semibold text-slate-800">Recent Activity</h3>
-      </div>
-      <div className="divide-y divide-slate-100">
-        {events.map((event, i) => (
-          <div key={i} className="p-4 hover:bg-slate-50 transition-colors flex items-start gap-4">
-            <div className="mt-1 h-2 w-2 rounded-full bg-blue-500 shrink-0"></div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-900">
-                {event.event_type.replace(/_/g, ' ').toUpperCase()}
-              </p>
-              <p className="text-xs text-slate-500 mt-0.5 truncate">
-                Source: {event.source_type} | Account ID: <span className="font-mono">{event.account_id.substring(0, 8)}...</span>
-              </p>
-            </div>
-            <div className="text-xs text-slate-400 whitespace-nowrap">
-              {new Date(event.occurred_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Recent Activity</CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Event</TableHead>
+              <TableHead>Source</TableHead>
+              <TableHead>Account</TableHead>
+              <TableHead className="text-right">Time</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {events.map((event, i) => (
+              <TableRow key={i}>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-primary shrink-0" />
+                    <span className="font-medium">
+                      {event.event_type.replace(/_/g, ' ').toUpperCase()}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell className="text-muted-foreground">{event.source_type}</TableCell>
+                <TableCell className="font-mono text-muted-foreground">
+                  {event.account_id.substring(0, 8)}&hellip;
+                </TableCell>
+                <TableCell className="text-right text-muted-foreground">
+                  {new Date(event.occurred_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   )
 }

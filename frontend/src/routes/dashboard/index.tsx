@@ -4,6 +4,7 @@ import { AppShell } from '@/components/layout/AppShell'
 import type { AuthContextValue } from '@/features/auth/AuthProvider'
 import { getDashboardSummary } from '@/api/dashboard'
 import { rootRoute } from '../__root'
+import { Skeleton } from '@/components/ui/skeleton'
 
 import { BalanceSummaryCard } from '@/features/dashboard/BalanceSummaryCard'
 import { AlarmStatusWidget } from '@/features/dashboard/AlarmStatusWidget'
@@ -31,8 +32,20 @@ function DashboardPage() {
   if (isLoading) {
     return (
       <AppShell>
-        <div className="flex h-full items-center justify-center p-6 text-slate-500">
-          Loading dashboard...
+        <div className="space-y-6 p-6 max-w-7xl mx-auto">
+          <div>
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="mt-2 h-4 w-72" />
+          </div>
+          <div className="grid gap-6 md:grid-cols-3">
+            <Skeleton className="h-36 rounded-xl" />
+            <Skeleton className="h-36 rounded-xl" />
+            <Skeleton className="h-36 rounded-xl" />
+          </div>
+          <div className="grid gap-6 lg:grid-cols-3 items-start">
+            <Skeleton className="lg:col-span-2 h-64 rounded-xl" />
+            <Skeleton className="h-48 rounded-xl" />
+          </div>
         </div>
       </AppShell>
     )
@@ -41,7 +54,7 @@ function DashboardPage() {
   if (error || !data) {
     return (
       <AppShell>
-        <div className="p-6 text-red-600">Failed to load dashboard</div>
+        <div className="p-6 text-destructive">Failed to load dashboard</div>
       </AppShell>
     )
   }
@@ -50,8 +63,8 @@ function DashboardPage() {
     <AppShell>
       <div className="space-y-6 p-6 max-w-7xl mx-auto">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Dashboard</h1>
-          <p className="mt-1 text-slate-500">Overview of your connected accounts and active alarms.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Dashboard</h1>
+          <p className="mt-1 text-muted-foreground">Overview of your connected accounts and active alarms.</p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">

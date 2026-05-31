@@ -1,24 +1,34 @@
 import { Bell, AlertTriangle } from 'lucide-react'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 
 export function AlarmStatusWidget({ activeAlarmsCount }: { activeAlarmsCount: number }) {
+  const hasAlarms = activeAlarmsCount > 0
   return (
-    <div className={`rounded-xl border border-border p-6 shadow-xs ${activeAlarmsCount > 0 ? 'bg-red-50 border-red-100' : 'bg-white border-slate-200'}`}>
-      <div className="flex items-center gap-3">
-        {activeAlarmsCount > 0 ? (
-          <AlertTriangle className="h-5 w-5 text-red-600" />
-        ) : (
-          <Bell className="h-5 w-5 text-slate-500" />
-        )}
-        <h3 className={`font-medium ${activeAlarmsCount > 0 ? 'text-red-900' : 'text-slate-500'}`}>Active Alarms</h3>
-      </div>
-      <div className="mt-4">
-        <span className={`text-4xl font-bold tracking-tight ${activeAlarmsCount > 0 ? 'text-red-700' : 'text-slate-900'}`}>
+    <Card className={hasAlarms ? 'ring-1 ring-destructive/30' : undefined}>
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          {hasAlarms ? (
+            <AlertTriangle className="h-4 w-4 text-destructive" />
+          ) : (
+            <Bell className="h-4 w-4 text-muted-foreground" />
+          )}
+          <CardTitle className={hasAlarms ? 'text-destructive' : undefined}>
+            Active Alarms
+          </CardTitle>
+          {hasAlarms && (
+            <Badge variant="destructive" className="ml-auto">{activeAlarmsCount}</Badge>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        <span className={`text-4xl font-bold tracking-tight ${hasAlarms ? 'text-destructive' : 'text-foreground'}`}>
           {activeAlarmsCount}
         </span>
-        <p className={`mt-1 text-sm ${activeAlarmsCount > 0 ? 'text-red-600' : 'text-slate-500'}`}>
+        <p className={`mt-1 text-sm ${hasAlarms ? 'text-destructive/80' : 'text-muted-foreground'}`}>
           {activeAlarmsCount === 1 ? 'Alarm requires attention' : 'Alarms require attention'}
         </p>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }
