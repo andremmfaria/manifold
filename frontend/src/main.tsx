@@ -22,6 +22,7 @@ import { cardsRoute } from '@/routes/cards/index'
 import { cardDetailRoute } from '@/routes/cards/$cardId'
 import { settingsIndexRoute } from '@/routes/settings/index'
 import { settingsUsersRoute } from '@/routes/settings/users'
+import { settingsUserDetailRoute } from '@/routes/settings/users/$userId'
 import { settingsAccessRoute } from '@/routes/settings/access'
 import { settingsSessionsRoute } from '@/routes/settings/sessions'
 import { dashboardRoute } from '@/routes/dashboard/index'
@@ -53,6 +54,7 @@ const routeTree = rootRoute.addChildren([
   cardDetailRoute,
   settingsIndexRoute,
   settingsUsersRoute,
+  settingsUserDetailRoute,
   settingsAccessRoute,
   settingsSessionsRoute,
 ])
