@@ -92,10 +92,10 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index("ix_refresh_tokens_expires_at", table_name="refresh_tokens")
-    op.drop_index("ix_refresh_tokens_token_hash", table_name="refresh_tokens")
-    op.drop_index("ix_refresh_tokens_user_id", table_name="refresh_tokens")
-    op.drop_index("ix_account_access_grantee_user_id", table_name="account_access")
+    # Indexes are NOT dropped explicitly before drop_table — MariaDB refuses to
+    # drop a named index that is backing a FK constraint while that FK exists.
+    # All FK constraints (and the indexes backing them) are dropped atomically
+    # with the table by drop_table on every backend (SQLite, Postgres, MariaDB).
     op.drop_table("account_access")
     op.drop_table("refresh_tokens")
     op.drop_table("user_sessions")

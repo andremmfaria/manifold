@@ -79,7 +79,9 @@ def upgrade() -> None:
         sa.Column("raw_payload", sa.LargeBinary(), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
-        sa.UniqueConstraint("provider_connection_id", "provider_card_id", name="uq_cards_provider_card"),
+        sa.UniqueConstraint(
+            "provider_connection_id", "provider_card_id", name="uq_cards_provider_card"
+        ),
     )
     op.create_index("ix_cards_provider_connection_id", "cards", ["provider_connection_id"])
     op.create_index("ix_cards_account_id", "cards", ["account_id"])
@@ -120,7 +122,9 @@ def upgrade() -> None:
         sa.Column("settled_date", sa.LargeBinary(), nullable=True),
         sa.Column("running_balance", sa.LargeBinary(), nullable=True),
         sa.Column("dedup_hash", sa.Text(), nullable=False),
-        sa.Column("is_recurring_candidate", sa.Boolean(), nullable=False, server_default=sa.false()),
+        sa.Column(
+            "is_recurring_candidate", sa.Boolean(), nullable=False, server_default=sa.false()
+        ),
         sa.Column("recurrence_profile_id", sa.String(length=36), nullable=True),
         sa.Column("raw_payload", sa.LargeBinary(), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
@@ -260,31 +264,18 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index("ix_oauth_states_connection_id", table_name="oauth_states")
+    # Indexes are NOT dropped explicitly before drop_table — MariaDB refuses to
+    # drop a named index that is backing a FK constraint while that FK exists.
+    # All FK constraints (and the indexes backing them) are dropped atomically
+    # with the table by drop_table on every backend (SQLite, Postgres, MariaDB).
     op.drop_table("oauth_states")
-    op.drop_index("ix_events_user_id", table_name="events")
-    op.drop_index("ix_events_account_id", table_name="events")
     op.drop_table("events")
-    op.drop_index("ix_sync_runs_account_id", table_name="sync_runs")
-    op.drop_index("ix_sync_runs_provider_connection_id", table_name="sync_runs")
     op.drop_table("sync_runs")
-    op.drop_index("ix_standing_orders_account_id", table_name="standing_orders")
     op.drop_table("standing_orders")
-    op.drop_index("ix_direct_debits_account_id", table_name="direct_debits")
     op.drop_table("direct_debits")
-    op.drop_index("ix_pending_transactions_account_id", table_name="pending_transactions")
     op.drop_table("pending_transactions")
-    op.drop_index("ix_transactions_card_id", table_name="transactions")
-    op.drop_index("ix_transactions_account_id", table_name="transactions")
     op.drop_table("transactions")
-    op.drop_index("ix_balances_card_id", table_name="balances")
-    op.drop_index("ix_balances_account_id", table_name="balances")
     op.drop_table("balances")
-    op.drop_index("ix_cards_account_id", table_name="cards")
-    op.drop_index("ix_cards_provider_connection_id", table_name="cards")
     op.drop_table("cards")
-    op.drop_index("ix_accounts_provider_connection_id", table_name="accounts")
-    op.drop_index("ix_accounts_user_id", table_name="accounts")
     op.drop_table("accounts")
-    op.drop_index("ix_provider_connections_user_id", table_name="provider_connections")
     op.drop_table("provider_connections")
