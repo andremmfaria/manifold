@@ -20,6 +20,7 @@ from manifold.api.connections import router as connections_router
 from manifold.api.dashboard import router as dashboard_router
 from manifold.api.direct_debits import router as direct_debits_router
 from manifold.api.events import router as events_router
+from manifold.api.identities import router as identities_router
 from manifold.api.notification_deliveries import router as notification_deliveries_router
 from manifold.api.notifiers import router as notifiers_router
 from manifold.api.providers import router as providers_router
@@ -157,6 +158,7 @@ def create_app() -> FastAPI:
     app.include_router(providers_router, prefix="/api/v1/providers", tags=["providers"])
     app.include_router(connections_router, prefix="/api/v1/connections", tags=["connections"])
     app.include_router(accounts_router, prefix="/api/v1/accounts", tags=["accounts"])
+    app.include_router(identities_router, prefix="/api/v1/identities", tags=["identities"])
     app.include_router(alarms_router, prefix="/api/v1/alarms", tags=["alarms"])
     app.include_router(direct_debits_router, prefix="/api/v1", tags=["direct-debits"])
     app.include_router(standing_orders_router, prefix="/api/v1", tags=["standing-orders"])

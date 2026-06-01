@@ -715,15 +715,675 @@ async def _recompute_master(session: AsyncSession, identity_id: str) -> None:
         session.add(identity)
 
 
+# ---------------------------------------------------------------------------
+# Phase 6 — aggregation gate
+# ---------------------------------------------------------------------------
+
+# Set to True in Phase 5 when transaction dedup is identity-aware.
+# Until then, any read that would sum across identity_id returns per-member
+# with aggregated=False.
+IDENTITY_AGGREGATION_ENABLED: bool = False
+
+
+# ---------------------------------------------------------------------------
+# Phase 6 — assertion writers
+# ---------------------------------------------------------------------------
+
+
+async def _write_assertion(
+    session: AsyncSession,
+    user_id: str,
+    kind: str,
+    account_a_id: str,
+    account_b_id: str,
+) -> None:
+    """Idempotently write an assertion of *kind* for the canonical-ordered pair.
+
+    Canonical order: account_a_id = min(uuid), account_b_id = max(uuid).
+    Deletes any contradicting assertion of the opposite kind before inserting.
+    """
+    a = min(account_a_id, account_b_id)
+    b = max(account_a_id, account_b_id)
+    opposite_kind = "do_not_merge" if kind == "same" else "same"
+
+    # Delete the contradicting assertion if present.
+    existing_opposite = await session.execute(
+        select(AccountIdentityAssertion).where(
+            AccountIdentityAssertion.user_id == user_id,
+            AccountIdentityAssertion.kind == opposite_kind,
+            AccountIdentityAssertion.account_a_id == a,
+            AccountIdentityAssertion.account_b_id == b,
+        )
+    )
+    for row in existing_opposite.scalars().all():
+        await session.delete(row)
+
+    # Check for existing same-kind assertion (dedup).
+    existing_same = await session.execute(
+        select(AccountIdentityAssertion).where(
+            AccountIdentityAssertion.user_id == user_id,
+            AccountIdentityAssertion.kind == kind,
+            AccountIdentityAssertion.account_a_id == a,
+            AccountIdentityAssertion.account_b_id == b,
+        )
+    )
+    if existing_same.scalar_one_or_none() is None:
+        now = datetime.now(UTC)
+        session.add(
+            AccountIdentityAssertion(
+                id=_new_uuid(),
+                user_id=user_id,
+                kind=kind,
+                account_a_id=a,
+                account_b_id=b,
+                created_at=now,
+            )
+        )
+    await session.flush()
+
+
+async def _ensure_singleton_identity(
+    session: AsyncSession,
+    account: Account,
+    user_id: str,
+) -> str:
+    """Return account.identity_id, creating a singleton identity if null."""
+    if account.identity_id is not None:
+        # Verify it's not a tombstone; follow chain to live identity.
+        result = await session.execute(
+            select(AccountIdentity).where(AccountIdentity.id == account.identity_id)
+        )
+        identity = result.scalar_one_or_none()
+        if identity is not None and identity.merged_into is None:
+            return str(account.identity_id)
+        # Tombstoned — follow chain.
+        if identity is not None and identity.merged_into is not None:
+            account.identity_id = identity.merged_into
+            session.add(account)
+            await session.flush()
+            return str(account.identity_id)
+
+    # Mint a fresh singleton identity.
+    now = datetime.now(UTC)
+    new_id = _new_uuid()
+    session.add(
+        AccountIdentity(
+            id=new_id,
+            user_id=user_id,
+            master_account_id=account.id,
+            origin="manual",
+            created_at=now,
+            updated_at=now,
+        )
+    )
+    account.identity_id = new_id
+    session.add(account)
+    await session.flush()
+    return new_id
+
+
+# ---------------------------------------------------------------------------
+# Phase 6 — IdentityMergeService
+# ---------------------------------------------------------------------------
+
+
+class IdentityMergeService:
+    """Merge ≥2 accounts into one identity (manual user action, §13.3)."""
+
+    async def merge(
+        self,
+        session: AsyncSession,
+        user_id: str,
+        account_ids: list[str],
+    ) -> str:
+        """Merge *account_ids* into one identity; return the survivor identity id.
+
+        Steps:
+        1. Load + validate accounts (all must belong to user_id).
+        2. Mint singleton identities for any null-identity accounts.
+        3. Write 'same' assertion for each unordered pair (delete contradicting
+           'do_not_merge' first).
+        4. Survivor = identity of the oldest account by created_at.
+        5. Run _merge_identities(trigger='manual').
+        6. Set survivor.origin = 'manual'.
+        7. Recompute master_account_id.
+        8. Emit identity_merged event.
+        """
+        if len(account_ids) < 2:
+            raise ValueError("merge requires at least 2 accounts")
+
+        # --- Load accounts ---
+        accounts: list[Account] = []
+        for aid in account_ids:
+            result = await session.execute(
+                select(Account).where(Account.id == aid, Account.user_id == user_id)
+            )
+            acct = result.scalar_one_or_none()
+            if acct is None:
+                raise ValueError(f"account {aid} not found for user {user_id}")
+            accounts.append(acct)
+
+        # --- Ensure singleton identities ---
+        identity_ids: list[str] = []
+        for acct in accounts:
+            iid = await _ensure_singleton_identity(session, acct, user_id)
+            identity_ids.append(iid)
+
+        # --- Write 'same' assertions for each pair ---
+        for i, acct_i in enumerate(accounts):
+            for acct_j in accounts[i + 1 :]:
+                await _write_assertion(session, user_id, "same", str(acct_i.id), str(acct_j.id))
+
+        # --- Determine survivor: identity of oldest account ---
+        oldest_acct = min(accounts, key=lambda a: (a.created_at, str(a.id)))
+        # Refresh identity_id in case it was just set.
+        survivor_id = str(oldest_acct.identity_id)
+
+        # Collect distinct loser identity ids (deduplicate — two accounts may
+        # already share one identity).
+        all_identity_ids = {str(acct.identity_id) for acct in accounts}
+        loser_ids = [iid for iid in all_identity_ids if iid != survivor_id]
+
+        if loser_ids:
+            await _merge_identities(
+                session, survivor_id, loser_ids, trigger="manual", user_id=user_id
+            )
+
+        # --- Set origin = 'manual' on survivor ---
+        result = await session.execute(
+            select(AccountIdentity).where(AccountIdentity.id == survivor_id)
+        )
+        survivor = result.scalar_one_or_none()
+        if survivor is not None:
+            survivor.origin = "manual"
+            session.add(survivor)
+
+        await _recompute_master(session, survivor_id)
+        await session.flush()
+
+        logger.info(
+            "manual_merge_complete",
+            survivor_id=survivor_id,
+            account_ids=account_ids,
+            user_id=user_id,
+        )
+        return survivor_id
+
+
+# ---------------------------------------------------------------------------
+# Phase 6 — IdentityUnmergeService
+# ---------------------------------------------------------------------------
+
+
+class IdentityUnmergeService:
+    """Peel one pre-merge origin group out of a merged identity (§13.4)."""
+
+    async def unmerge(
+        self,
+        session: AsyncSession,
+        user_id: str,
+        account_id: str,
+        secret_key: str | None = None,
+    ) -> str:
+        """Unmerge *account_id* from its current identity.
+
+        Returns a caveat string about imperfect reversibility.
+
+        Algorithm:
+        1. Load account + current identity.  Identity must be live (not tombstone).
+        2. Group the identity's non-retired identifiers by
+           coalesce(merged_from_identity, identity_id) → pre-merge origin groups.
+        3. Identify which group 'account_id' belongs to by re-deriving its live
+           identifiers (decrypt + extract_identifiers) and matching value_hmacs
+           against each group.  Bridge accounts (spanning groups) stay with survivor.
+        4. Resurrect the origin tombstone for the peel group (clear merged_into/
+           merged_at); re-point that group's identifier rows back (clear
+           merged_from_identity on immediately-homed rows; clear retired_at on
+           rows that were retired-on-collision from that origin).
+        5. Re-point peel-set accounts.identity_id to resurrected identity.
+        6. Recompute master_account_id for both identities.
+        7. Write do_not_merge between peel-side account and each stay-side account.
+        8. Delete any contradicting 'same' assertions (log assertion_superseded).
+        """
+        # --- Load account ---
+        acct_result = await session.execute(
+            select(Account).where(Account.id == account_id, Account.user_id == user_id)
+        )
+        account = acct_result.scalar_one_or_none()
+        if account is None:
+            raise ValueError(f"account {account_id} not found for user {user_id}")
+
+        if account.identity_id is None:
+            raise ValueError(f"account {account_id} has no identity to unmerge from")
+
+        identity_id = str(account.identity_id)
+
+        # --- Load identity (must be live) ---
+        id_result = await session.execute(
+            select(AccountIdentity).where(
+                AccountIdentity.id == identity_id,
+                AccountIdentity.merged_into.is_(None),
+            )
+        )
+        current_identity = id_result.scalar_one_or_none()
+        if current_identity is None:
+            raise ValueError(f"identity {identity_id} is a tombstone — cannot unmerge")
+
+        # --- Load all non-retired identifiers for this identity ---
+        ident_result = await session.execute(
+            select(AccountIdentifier).where(
+                AccountIdentifier.identity_id == identity_id,
+                AccountIdentifier.retired_at.is_(None),
+            )
+        )
+        live_identifiers: list[AccountIdentifier] = list(ident_result.scalars().all())
+
+        # --- Group identifiers by origin ---
+        # Origin key = merged_from_identity if set, else the current identity_id
+        # (meaning the identifier was born in this identity, i.e. "native").
+        origin_groups: dict[str, list[AccountIdentifier]] = {}
+        for ident in live_identifiers:
+            origin_key = (
+                str(ident.merged_from_identity) if ident.merged_from_identity else identity_id
+            )
+            origin_groups.setdefault(origin_key, []).append(ident)
+
+        # Also load RETIRED identifiers that were retired-on-collision from merged origins,
+        # so we can resurrect them during unmerge.
+        retired_result = await session.execute(
+            select(AccountIdentifier).where(
+                AccountIdentifier.identity_id == identity_id,
+                AccountIdentifier.retired_at.is_not(None),
+                AccountIdentifier.merged_from_identity.is_not(None),
+            )
+        )
+        retired_collision_rows: list[AccountIdentifier] = list(retired_result.scalars().all())
+
+        # --- Determine which origin group account belongs to ---
+        # Re-derive live identifiers from the account's encrypted fields.
+        from manifold.providers.types import AccountData as _AccountData
+
+        account_data = _AccountData(
+            provider_account_id=str(account.provider_account_id),
+            account_type=str(account.account_type),
+            currency=str(account.currency),
+            display_name=account.display_name,
+            iban=account.iban,
+            sort_code=account.sort_code,
+            account_number=account.account_number,
+        )
+        # provider_type hard-coded to "json" for HMAC — only the user_id + values
+        # matter for matching (MULTI_CURRENCY_PROVIDERS is empty).
+        account_id_rows = extract_identifiers(account_data, user_id, "json", secret_key=secret_key)
+        account_hmacs: set[str] = {hmac_val for _, hmac_val, _ in account_id_rows}
+
+        # Find the peel group: the origin whose value_hmacs intersect the account's hmacs.
+        # If zero overlap, use the native group (the account accreted into this identity
+        # without identifier evidence — e.g. manual merge of no-identifier accounts).
+        peel_origin_key: str | None = None
+        bridge_origins: set[str] = set()
+
+        if account_hmacs:
+            group_hit: dict[str, set[str]] = {}
+            for origin_key, group_idents in origin_groups.items():
+                group_hmacs = {g.value_hmac for g in group_idents}
+                overlap = account_hmacs & group_hmacs
+                if overlap:
+                    group_hit[origin_key] = overlap
+
+            if len(group_hit) == 1:
+                peel_origin_key = next(iter(group_hit))
+            elif len(group_hit) > 1:
+                # Account straddles multiple groups → bridge account; stays with survivor.
+                logger.info(
+                    "unmerge_bridge_account_retained",
+                    account_id=account_id,
+                    identity_id=identity_id,
+                    bridge_groups=list(group_hit.keys()),
+                    user_id=user_id,
+                )
+                return (
+                    "Account is a bridge across multiple groups and cannot be unmerged "
+                    "without splitting evidence. It remains with the current identity."
+                )
+
+        if peel_origin_key is None:
+            # No identifier overlap (zero-identifier account or no group hit).
+            # Use a special sentinel to mean "mint fresh".
+            peel_origin_key = "__native__"
+
+        # --- Collect all accounts in the merged identity ---
+        all_accounts_result = await session.execute(
+            select(Account).where(Account.identity_id == identity_id, Account.user_id == user_id)
+        )
+        all_accounts: list[Account] = list(all_accounts_result.scalars().all())
+
+        # Determine which accounts belong to the peel group and which stay.
+        peel_accounts: list[Account] = []
+        stay_accounts: list[Account] = []
+
+        for acct in all_accounts:
+            # Re-derive identifiers for this account (needs DEK context set by caller).
+            acct_data = _AccountData(
+                provider_account_id=str(acct.provider_account_id),
+                account_type=str(acct.account_type),
+                currency=str(acct.currency),
+                display_name=acct.display_name,
+                iban=acct.iban,
+                sort_code=acct.sort_code,
+                account_number=acct.account_number,
+            )
+            acct_hmacs: set[str] = {
+                hv
+                for _, hv, _ in extract_identifiers(
+                    acct_data, user_id, "json", secret_key=secret_key
+                )
+            }
+
+            if peel_origin_key == "__native__":
+                # Special case: the target account goes to peel; all others stay.
+                if str(acct.id) == account_id:
+                    peel_accounts.append(acct)
+                else:
+                    stay_accounts.append(acct)
+                continue
+
+            group_hmacs = {g.value_hmac for g in origin_groups.get(peel_origin_key, [])}
+
+            if not acct_hmacs:
+                # Zero-identifier account — assign to stay unless it IS the target account.
+                if str(acct.id) == account_id:
+                    peel_accounts.append(acct)
+                else:
+                    stay_accounts.append(acct)
+                continue
+
+            overlap = acct_hmacs & group_hmacs
+            other_group_overlap = acct_hmacs - group_hmacs
+
+            if overlap and other_group_overlap:
+                # Bridge account — stays with survivor.
+                logger.info(
+                    "unmerge_bridge_account_retained",
+                    account_id=str(acct.id),
+                    identity_id=identity_id,
+                    user_id=user_id,
+                )
+                bridge_origins.add(str(acct.id))
+                stay_accounts.append(acct)
+            elif overlap:
+                peel_accounts.append(acct)
+            else:
+                stay_accounts.append(acct)
+
+        # --- Determine the resurrected identity for the peel group ---
+        now = datetime.now(UTC)
+
+        if peel_origin_key == "__native__" or peel_origin_key == identity_id:
+            # Genuinely native group — mint a fresh identity.
+            resurrected_id = _new_uuid()
+            session.add(
+                AccountIdentity(
+                    id=resurrected_id,
+                    user_id=user_id,
+                    master_account_id=None,
+                    origin="manual",
+                    created_at=now,
+                    updated_at=now,
+                )
+            )
+            await session.flush()
+        else:
+            # Resurrect the tombstone: clear merged_into / merged_at.
+            tombstone_result = await session.execute(
+                select(AccountIdentity).where(AccountIdentity.id == peel_origin_key)
+            )
+            tombstone = tombstone_result.scalar_one_or_none()
+            if tombstone is None:
+                # Tombstone missing (shouldn't happen) — mint fresh.
+                resurrected_id = _new_uuid()
+                session.add(
+                    AccountIdentity(
+                        id=resurrected_id,
+                        user_id=user_id,
+                        master_account_id=None,
+                        origin="manual",
+                        created_at=now,
+                        updated_at=now,
+                    )
+                )
+                await session.flush()
+            else:
+                tombstone.merged_into = None
+                tombstone.merged_at = None
+                session.add(tombstone)
+                resurrected_id = peel_origin_key
+                await session.flush()
+
+            # Re-point the peel group's live identifier rows back to the resurrected identity
+            # and clear merged_from_identity for immediately-homed rows (their home is back).
+            for ident in origin_groups.get(peel_origin_key, []):
+                ident.identity_id = resurrected_id
+                # Only clear merged_from_identity if it points directly to this peel_origin_key
+                # (i.e. the identifier was immediately homed there; deeper provenance stays).
+                if str(ident.merged_from_identity) == peel_origin_key:
+                    ident.merged_from_identity = None
+                session.add(ident)
+
+            # Resurrect retired-on-collision rows that originated from this peel group.
+            for ret_row in retired_collision_rows:
+                if str(ret_row.merged_from_identity) == peel_origin_key:
+                    ret_row.retired_at = None
+                    ret_row.identity_id = resurrected_id
+                    ret_row.merged_from_identity = None
+                    session.add(ret_row)
+
+            await session.flush()
+
+        # --- Re-point peel accounts to resurrected identity ---
+        for acct in peel_accounts:
+            acct.identity_id = resurrected_id
+            session.add(acct)
+        await session.flush()
+
+        # --- Recompute master_account_id for both identities ---
+        await _recompute_master(session, resurrected_id)
+        await _recompute_master(session, identity_id)
+        await session.flush()
+
+        # --- Write do_not_merge between peel and stay accounts ---
+        peel_ids = [str(a.id) for a in peel_accounts]
+        stay_ids = [str(a.id) for a in stay_accounts]
+
+        for pid in peel_ids:
+            for sid in stay_ids:
+                # Delete any contradicting 'same' first (log superseded).
+                a_can = min(pid, sid)
+                b_can = max(pid, sid)
+                same_result = await session.execute(
+                    select(AccountIdentityAssertion).where(
+                        AccountIdentityAssertion.user_id == user_id,
+                        AccountIdentityAssertion.kind == "same",
+                        AccountIdentityAssertion.account_a_id == a_can,
+                        AccountIdentityAssertion.account_b_id == b_can,
+                    )
+                )
+                for same_row in same_result.scalars().all():
+                    logger.info(
+                        "assertion_superseded",
+                        superseded_kind="same",
+                        by_kind="do_not_merge",
+                        account_a=a_can,
+                        account_b=b_can,
+                        user_id=user_id,
+                    )
+                    await session.delete(same_row)
+                await session.flush()
+
+                await _write_assertion(session, user_id, "do_not_merge", pid, sid)
+
+        logger.info(
+            "identity_unmerge_complete",
+            original_identity_id=identity_id,
+            resurrected_identity_id=resurrected_id,
+            peel_accounts=peel_ids,
+            stay_accounts=stay_ids,
+            user_id=user_id,
+        )
+
+        caveat = (
+            "Unmerge is best-effort. Identifiers accreted while merged, "
+            "and any Phase-5 transaction-dedup decisions, may not fully re-split. "
+            "Review balances after unmerge."
+        )
+        return caveat
+
+
+# ---------------------------------------------------------------------------
+# Phase 6 — Suggestions
+# ---------------------------------------------------------------------------
+
+
+def _name_similarity(a: str | None, b: str | None) -> float:
+    """Simple character-overlap similarity between two display names."""
+    if not a or not b:
+        return 0.0
+    a = a.lower().strip()
+    b = b.lower().strip()
+    if a == b:
+        return 1.0
+    # Jaccard over trigrams.
+    def trigrams(s: str) -> set[str]:
+        return {s[i : i + 3] for i in range(len(s) - 2)} if len(s) >= 3 else {s}
+
+    tg_a = trigrams(a)
+    tg_b = trigrams(b)
+    union = tg_a | tg_b
+    if not union:
+        return 0.0
+    return len(tg_a & tg_b) / len(union)
+
+
+async def suggest_merges(
+    session: AsyncSession,
+    user_id: str,
+) -> list[dict]:
+    """Score candidate account pairs for a potential manual merge (§13.6).
+
+    Rules:
+    - Only pairs within the same user.
+    - Require matching provider_id (provider institution) — fetched from the
+      ProviderConnection.  Today all connections share 'json' or 'truelayer';
+      same provider_type is used as a proxy for same institution.
+    - Score on display_name similarity (trigram Jaccard) + account_type match
+      + currency match + provider_type match.
+    - Threshold: combined score ≥ 0.8.
+    - Never suggest a pair that has a do_not_merge assertion.
+    - Never mutate any identity.
+    - Returns list of {account_a_id, account_b_id, score, reasons}.
+    """
+    from manifold.models.provider_connection import ProviderConnection
+
+    # Load all accounts + their connection provider_type for this user.
+    acct_result = await session.execute(
+        select(Account, ProviderConnection.provider_type).join(
+            ProviderConnection,
+            Account.provider_connection_id == ProviderConnection.id,
+        ).where(Account.user_id == user_id, Account.is_active == True)  # noqa: E712
+    )
+    rows = acct_result.all()
+
+    if len(rows) < 2:
+        return []
+
+    # Load all do_not_merge assertions for this user (for fast suppression).
+    dnm_result = await session.execute(
+        select(AccountIdentityAssertion).where(
+            AccountIdentityAssertion.user_id == user_id,
+            AccountIdentityAssertion.kind == "do_not_merge",
+        )
+    )
+    dnm_pairs: set[tuple[str, str]] = set()
+    for assertion in dnm_result.scalars().all():
+        dnm_pairs.add((str(assertion.account_a_id), str(assertion.account_b_id)))
+
+    suggestions: list[dict] = []
+
+    for i, (acct_i, pt_i) in enumerate(rows):
+        for acct_j, pt_j in rows[i + 1 :]:
+            a_id = min(str(acct_i.id), str(acct_j.id))
+            b_id = max(str(acct_i.id), str(acct_j.id))
+
+            # Skip do_not_merge pairs.
+            if (a_id, b_id) in dnm_pairs:
+                continue
+
+            # Skip pairs already sharing an identity (already merged).
+            if (
+                acct_i.identity_id is not None
+                and acct_j.identity_id is not None
+                and acct_i.identity_id == acct_j.identity_id
+            ):
+                continue
+
+            # Score components.
+            reasons: list[str] = []
+            score = 0.0
+
+            # Provider institution must match (required gate, not scored).
+            if pt_i != pt_j:
+                continue
+
+            # display_name similarity (weight 0.5).
+            name_sim = _name_similarity(acct_i.display_name, acct_j.display_name)
+            score += name_sim * 0.5
+            if name_sim >= 0.7:
+                reasons.append(f"similar_name ({name_sim:.2f})")
+
+            # account_type match (weight 0.2).
+            if acct_i.account_type and acct_j.account_type:
+                if acct_i.account_type == acct_j.account_type:
+                    score += 0.2
+                    reasons.append("same_account_type")
+
+            # currency match (weight 0.2).
+            if acct_i.currency and acct_j.currency:
+                if acct_i.currency == acct_j.currency:
+                    score += 0.2
+                    reasons.append("same_currency")
+
+            # provider_type match (weight 0.1 — already gated above).
+            score += 0.1
+            reasons.append("same_provider")
+
+            if score >= 0.8:
+                suggestions.append(
+                    {
+                        "account_a_id": a_id,
+                        "account_b_id": b_id,
+                        "score": round(score, 4),
+                        "reasons": reasons,
+                    }
+                )
+
+    # Sort by score descending.
+    suggestions.sort(key=lambda s: s["score"], reverse=True)
+    return suggestions
+
+
 __all__ = [
     "CURRENCY_SENTINEL",
+    "IDENTITY_AGGREGATION_ENABLED",
     "MULTI_CURRENCY_PROVIDERS",
     "IdentifierRow",
+    "IdentityMergeService",
+    "IdentityUnmergeService",
     "extract_identifiers",
     "normalize_aba",
     "normalize_currency",
     "normalize_iban",
     "normalize_scan",
+    "suggest_merges",
     "_merge_identities",
     "resolve_account_identity",
 ]
