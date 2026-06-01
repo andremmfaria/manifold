@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from manifold.config import settings
 from manifold.database import db_session
 from manifold.models.account import Account
 from manifold.models.balance import Balance
@@ -25,6 +26,7 @@ from manifold.security.encryption import EncryptionService
 from manifold.tasks._locks import acquire_lock, release_lock
 
 from ._upsert import insert_row, upsert_and_fetch
+from .account_identity import extract_identifiers, resolve_account_identity
 from .sync_schedule import interval_to_minutes
 
 
@@ -203,25 +205,46 @@ class SyncEngine:
     ) -> dict[str, Account]:
         rows: dict[str, Account] = {}
         for item in accounts:
+            insert_vals = {
+                "user_id": connection.user_id,
+                "provider_connection_id": connection.id,
+                "provider_account_id": item.provider_account_id,
+                "account_type": item.account_type,
+                "currency": item.currency,
+                "display_name": item.display_name,
+                "iban": item.iban,
+                "sort_code": item.sort_code,
+                "account_number": item.account_number,
+                "is_active": True,
+                "raw_payload": item.raw_payload,
+            }
+            # §13.1 guard: created_at must NOT be updated on conflict so that
+            # the oldest-account-wins master selection remains stable across
+            # re-syncs.  Pass only the mutable fields in update_values.
+            update_vals = {k: v for k, v in insert_vals.items() if k != "created_at"}
             row = await upsert_and_fetch(
                 session,
                 Account,
-                {
-                    "user_id": connection.user_id,
-                    "provider_connection_id": connection.id,
-                    "provider_account_id": item.provider_account_id,
-                    "account_type": item.account_type,
-                    "currency": item.currency,
-                    "display_name": item.display_name,
-                    "iban": item.iban,
-                    "sort_code": item.sort_code,
-                    "account_number": item.account_number,
-                    "is_active": True,
-                    "raw_payload": item.raw_payload,
-                },
+                insert_vals,
                 ["provider_connection_id", "provider_account_id"],
+                update_values=update_vals,
             )
             rows[item.provider_account_id] = row
+
+            # --- Phase 3: identity matching ---
+            identifier_rows = extract_identifiers(
+                item,
+                str(connection.user_id),
+                connection.provider_type,
+                secret_key=settings.secret_key,
+            )
+            await resolve_account_identity(
+                session,
+                row,
+                identifier_rows,
+                user_id=str(connection.user_id),
+            )
+
         return rows
 
     async def _sync_balances(

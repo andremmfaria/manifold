@@ -18,9 +18,14 @@ class MariaDBBackend(DatabaseBackend):
             pool_pre_ping=True,
         )
 
-    def upsert(self, table, values: dict, conflict_columns: list[str]):
+    def upsert(
+        self, table, values: dict, conflict_columns: list[str], update_values: dict | None = None
+    ):
         from sqlalchemy.dialects.mysql import insert as mysql_insert
 
         stmt = mysql_insert(table).values(**values)
-        update_cols = {k: stmt.inserted[k] for k in values.keys() if k not in conflict_columns}
+        if update_values is not None:
+            update_cols = {k: stmt.inserted[k] for k in update_values.keys()}
+        else:
+            update_cols = {k: stmt.inserted[k] for k in values.keys() if k not in conflict_columns}
         return stmt.on_duplicate_key_update(**update_cols)

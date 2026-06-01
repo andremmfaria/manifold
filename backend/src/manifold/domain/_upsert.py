@@ -14,8 +14,15 @@ async def upsert_and_fetch(
     values: dict[str, Any],
     conflict_columns: list[str],
     lookup: dict[str, Any] | None = None,
+    update_values: dict[str, Any] | None = None,
 ):
-    stmt = _backend.upsert(model.__table__, values, conflict_columns)
+    """Insert-or-update *model* and return the live row.
+
+    *update_values* — if given, only these key/value pairs are written on
+    conflict (instead of the full *values* dict).  Use to exclude immutable
+    columns like ``created_at`` from the UPDATE path (§13.1 guard).
+    """
+    stmt = _backend.upsert(model.__table__, values, conflict_columns, update_values)
     await session.execute(stmt)
     await session.flush()
     criteria = lookup or {column: values[column] for column in conflict_columns}

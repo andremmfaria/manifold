@@ -26,8 +26,13 @@ class SQLiteBackend(DatabaseBackend):
 
         return engine
 
-    def upsert(self, table, values: dict, conflict_columns: list[str]):
+    def upsert(
+        self, table, values: dict, conflict_columns: list[str], update_values: dict | None = None
+    ):
         from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 
         stmt = sqlite_insert(table).values(**values)
-        return stmt.on_conflict_do_update(index_elements=conflict_columns, set_=values)
+        return stmt.on_conflict_do_update(
+            index_elements=conflict_columns,
+            set_=update_values if update_values is not None else values,
+        )

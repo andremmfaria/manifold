@@ -1,0 +1,22 @@
+{
+  "accounts": [
+    {
+      "id": "acc-wise-nodetails-001",
+      "type": "transaction",
+      "currency": "GBP",
+      "name": "Wise GBP Wallet",
+      "iban": null,
+      "sort_code": null,
+      "account_number": null
+    }
+  ],
+  "balances": [
+    {
+      "id": "acc-wise-nodetails-001",
+      "balance": 42.00,
+      "available": 42.00,
+      "currency": "GBP"
+    }
+  ],
+  "transactions": []
+}

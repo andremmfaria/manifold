@@ -18,8 +18,13 @@ class PostgreSQLBackend(DatabaseBackend):
             pool_pre_ping=True,
         )
 
-    def upsert(self, table, values: dict, conflict_columns: list[str]):
+    def upsert(
+        self, table, values: dict, conflict_columns: list[str], update_values: dict | None = None
+    ):
         from sqlalchemy.dialects.postgresql import insert as pg_insert
 
         stmt = pg_insert(table).values(**values)
-        return stmt.on_conflict_do_update(index_elements=conflict_columns, set_=values)
+        return stmt.on_conflict_do_update(
+            index_elements=conflict_columns,
+            set_=update_values if update_values is not None else values,
+        )
