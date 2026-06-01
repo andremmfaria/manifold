@@ -91,7 +91,7 @@ services:
       - REDIS_URL=${REDIS_URL:-redis://manifold-redis:6379/0}
       - TASKIQ_RESULT_TTL=${TASKIQ_RESULT_TTL:-3600}
       # ── Job schedules (read-only, shown in the settings API) ──
-      - SYNC_CRON=${SYNC_CRON:-0 * * * *}
+      - SYNC_CRON=${SYNC_CRON:-*/5 * * * *}
       - ALARM_EVAL_CRON=${ALARM_EVAL_CRON:-*/5 * * * *}
       - RECURRENCE_DETECT_CRON=${RECURRENCE_DETECT_CRON:-0 3 * * *}
       - CLEANUP_CRON=${CLEANUP_CRON:-0 4 * * *}
@@ -143,7 +143,7 @@ services:
       - REDIS_URL=${REDIS_URL:-redis://manifold-redis:6379/0}
       - TASKIQ_RESULT_TTL=${TASKIQ_RESULT_TTL:-3600}
       # ── Job schedules (scheduler) ──
-      - SYNC_CRON=${SYNC_CRON:-0 * * * *}
+      - SYNC_CRON=${SYNC_CRON:-*/5 * * * *}
       - ALARM_EVAL_CRON=${ALARM_EVAL_CRON:-*/5 * * * *}
       - RECURRENCE_DETECT_CRON=${RECURRENCE_DETECT_CRON:-0 3 * * *}
       - CLEANUP_CRON=${CLEANUP_CRON:-0 4 * * *}

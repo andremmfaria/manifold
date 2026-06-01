@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+from manifold.config import settings
 from manifold.database import db_session
 from manifold.domain.sync_engine import SyncEngine
 from manifold.tasks.broker import broker
 
 
-@broker.task(task_name="sync_all_connections", labels={"queue": "sync"})
+@broker.task(
+    task_name="sync_all_connections",
+    labels={"queue": "sync"},
+    schedule=[{"cron": settings.sync_cron}],
+)
 async def sync_all_connections() -> list[str]:
     runs = await SyncEngine().sync_all_active()
     return [str(run.id) for run in runs]
