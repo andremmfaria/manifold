@@ -63,6 +63,9 @@ services:
       - ./backend:/app
       - venv-data:/app/.venv
       - manifold-data:/app/data
+      # Example JSON-provider fixtures, reachable at /app/samples inside the container.
+      # Use a connection path like: samples/json_examples/json-provider.example.json
+      - ./samples:/app/samples:ro
     depends_on:
       manifold-redis:
         condition: service_healthy
@@ -116,6 +119,9 @@ services:
       - ./backend:/app
       - venv-data:/app/.venv
       - manifold-data:/app/data
+      # Example JSON-provider fixtures, reachable at /app/samples inside the container.
+      # Use a connection path like: samples/json_examples/json-provider.example.json
+      - ./samples:/app/samples:ro
     depends_on:
       manifold-redis:
         condition: service_healthy
@@ -181,6 +187,9 @@ services:
       - ./backend:/app
       - venv-data:/app/.venv
       - manifold-data:/app/data
+      # Example JSON-provider fixtures, reachable at /app/samples inside the container.
+      # Use a connection path like: samples/json_examples/json-provider.example.json
+      - ./samples:/app/samples:ro
     depends_on:
       manifold-redis:
         condition: service_healthy
