@@ -1,0 +1,29 @@
+# EditorConfig — baseline whitespace rules shared across editors.
+# https://editorconfig.org  Backend formatting is owned by ruff, frontend by prettier;
+# this file only sets the cross-editor defaults those tools also expect.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# Python — ruff: 4-space indent, 100-char lines (see backend/pyproject.toml).
+[*.py]
+indent_size = 4
+max_line_length = 100
+
+# JS/TS — prettier: 100-char lines (see frontend/.prettierrc.json).
+[*.{js,jsx,ts,tsx}]
+max_line_length = 100
+
+# Markdown — keep hard line breaks (trailing spaces are significant).
+[*.md]
+trim_trailing_whitespace = false
+
+# Makefiles require real tabs.
+[Makefile]
+indent_style = tab

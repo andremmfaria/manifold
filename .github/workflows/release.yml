@@ -13,10 +13,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Extract version
-        id: version
-        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - name: Verify and extract version
+        id: ver
+        run: |
+          FILE_VERSION="$(cat VERSION)"
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          if [ "$FILE_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::VERSION file ($FILE_VERSION) != git tag ($TAG_VERSION)"; exit 1
+          fi
+          echo "version=$FILE_VERSION" >> "$GITHUB_OUTPUT"
 
       # ── Build frontend ────────────────────────────────────────────
       - uses: actions/setup-node@v4
@@ -29,16 +37,16 @@ jobs:
         env:
           VITE_API_BASE_URL: /api
       - run: |
-          cd frontend && tar -czf ../manifold-frontend-${{ steps.version.outputs.version }}.tar.gz dist/
+          cd frontend && tar -czf ../manifold-frontend-${{ steps.ver.outputs.version }}.tar.gz dist/
 
       # ── Build backend wheel ───────────────────────────────────────
       - uses: astral-sh/setup-uv@v3
       - run: uv build
         working-directory: backend
         env:
-          SETUPTOOLS_SCM_PRETEND_VERSION: ${{ steps.version.outputs.version }}
+          SETUPTOOLS_SCM_PRETEND_VERSION: ${{ steps.ver.outputs.version }}
       - run: |
-          mv backend/dist/manifold-*.whl ./manifold-backend-${{ steps.version.outputs.version }}.whl
+          mv backend/dist/manifold-*.whl ./manifold-backend-${{ steps.ver.outputs.version }}.whl
 
       # ── Build and push Docker images ──────────────────────────────
       - uses: docker/setup-buildx-action@v3
@@ -52,29 +60,33 @@ jobs:
         with:
           context: ./backend
           push: true
+          build-args: |
+            APP_VERSION=${{ steps.ver.outputs.version }}
           tags: |
-            ghcr.io/${{ github.repository }}/backend:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}/backend:${{ steps.ver.outputs.version }}
             ghcr.io/${{ github.repository }}/backend:latest
 
       - uses: docker/build-push-action@v5
         with:
           context: ./frontend
           push: true
-          build-args: VITE_API_BASE_URL=/api
+          build-args: |
+            VITE_API_BASE_URL=/api
+            APP_VERSION=${{ steps.ver.outputs.version }}
           tags: |
-            ghcr.io/${{ github.repository }}/frontend:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}/frontend:${{ steps.ver.outputs.version }}
             ghcr.io/${{ github.repository }}/frontend:latest
 
       # ── Create GitHub Release ─────────────────────────────────────
       - uses: softprops/action-gh-release@v2
         with:
           files: |
-            manifold-frontend-${{ steps.version.outputs.version }}.tar.gz
-            manifold-backend-${{ steps.version.outputs.version }}.whl
+            manifold-frontend-${{ steps.ver.outputs.version }}.tar.gz
+            manifold-backend-${{ steps.ver.outputs.version }}.whl
           generate_release_notes: true
           body: |
             ## Docker images
             ```
-            docker pull ghcr.io/${{ github.repository }}/backend:${{ github.ref_name }}
-            docker pull ghcr.io/${{ github.repository }}/frontend:${{ github.ref_name }}
+            docker pull ghcr.io/${{ github.repository }}/backend:${{ steps.ver.outputs.version }}
+            docker pull ghcr.io/${{ github.repository }}/frontend:${{ steps.ver.outputs.version }}
             ```

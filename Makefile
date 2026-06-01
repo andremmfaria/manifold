@@ -1,6 +1,9 @@
 # Manifold root Makefile
 
-.PHONY: help setup install dev dev-worker build test lint format clean docker-up docker-down docker-up-dev ci-check
+VERSION := $(shell cat VERSION)
+export SETUPTOOLS_SCM_PRETEND_VERSION := $(VERSION)
+
+.PHONY: help setup install dev dev-worker build test lint format clean docker-up docker-down docker-up-dev ci-check version
 
 # ──────────────────────────────────────────────────────────
 # Help
@@ -134,6 +137,9 @@ docker-logs: ## Follow Docker Compose logs
 # ──────────────────────────────────────────────────────────
 # Release helpers
 # ──────────────────────────────────────────────────────────
+version: ## Print current version from VERSION file
+	@echo $(VERSION)
+
 release-dry-run: ## Preview release changes (requires git tags)
 	@echo "Current version: $$(git describe --tags --abbrev=0 2>/dev/null || echo 'no tags')"
 	@echo "Commits since last tag:"

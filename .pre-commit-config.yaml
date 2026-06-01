@@ -1,0 +1,58 @@
+# Pre-commit: auto-scan (and fix) style violations before they reach CI.
+#
+# Setup (one-time):
+#   pip install pre-commit        # or: pipx install pre-commit
+#   pre-commit install            # installs the git hook
+#   cd frontend && npm ci         # so the prettier hook can find ./node_modules/.bin
+#
+# Run on everything without committing:
+#   pre-commit run --all-files
+#
+# Scope mirrors CONTRIBUTING.md: backend is owned by ruff (lint + format, replacing
+# black/isort), frontend by prettier. Heavier gates (mypy, tsc, eslint, tests) stay in
+# CI / `make ci-check` to keep commits fast.
+minimum_pre_commit_version: "3.0.0"
+
+repos:
+  # --- Generic hygiene (whole repo) ---
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: \.md$
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: check-json
+        # Notifier templates are Jinja (.json extension but contain {{ }}), not real JSON.
+        exclude: ^backend/src/manifold/notifiers/templates/
+      - id: check-added-large-files
+        args: ["--maxkb=2048"]
+
+  # Local hooks deliberately use each project's OWN tool binary (not a pinned mirror) so
+  # the version always matches CI / `make lint`. Requires `uv sync` (backend) and
+  # `npm ci` (frontend) so the binaries exist. Both tools auto-discover their config
+  # (backend/pyproject.toml, frontend/.prettierrc.json) per file.
+  - repo: local
+    hooks:
+      # --- Python: ruff (lint --fix) + ruff format. Config: backend/pyproject.toml ---
+      - id: ruff
+        name: ruff (lint + autofix)
+        entry: backend/.venv/bin/ruff check --fix
+        language: system
+        files: ^backend/.*\.py$
+        require_serial: true
+      - id: ruff-format
+        name: ruff (format)
+        entry: backend/.venv/bin/ruff format
+        language: system
+        files: ^backend/.*\.py$
+        require_serial: true
+
+      # --- Frontend: prettier. Config: frontend/.prettierrc.json ---
+      - id: prettier
+        name: prettier (frontend)
+        entry: frontend/node_modules/.bin/prettier --write --ignore-unknown
+        language: system
+        files: ^frontend/.*\.(ts|tsx|js|jsx|css|json|md|html)$
+        exclude: ^frontend/(dist|build|coverage|node_modules)/
