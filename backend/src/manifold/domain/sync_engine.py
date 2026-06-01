@@ -359,21 +359,36 @@ class SyncEngine:
             # --- Determine dedup/upsert key ---
             if tier1_hash is not None:
                 # Identity-scoped Tier 1 path.
-                # Check whether a row already exists so we can count new inserts.
+                # Primary lookup: row already stored with this identity_dedup_hash
+                # (covers the normal cross-connection dedup case).
                 check_result = await session.execute(
                     select(Transaction).where(
                         Transaction.identity_dedup_hash == tier1_hash
                     )
                 )
                 existing_row = check_result.scalar_one_or_none()
+
+                if existing_row is None:
+                    # Secondary lookup: row stored before the account had an identity_id
+                    # (identity_dedup_hash is NULL on that row).  Without this check an
+                    # INSERT would violate uq_transactions_account_provider_txn because
+                    # ON CONFLICT (identity_dedup_hash) never fires for NULL values.
+                    legacy_check_result = await session.execute(
+                        select(Transaction).where(
+                            Transaction.account_id == account.id,
+                            Transaction.provider_transaction_id
+                            == item.provider_transaction_id,
+                        )
+                    )
+                    existing_row = legacy_check_result.scalar_one_or_none()
+
                 if existing_row is None:
                     inserted += 1
-                    # Tier 2 candidate log (miss in Tier 1 — not applicable since we
-                    # just determined there is no existing row; log when there IS an
-                    # existing row in Tier 2 that Tier 1 missed — handled below via
-                    # the legacy fallback path when identity is set but Tier 1 misses).
-                else:
-                    # Tier 1 hit — upsert updates mutable fields on the existing row.
+
+                if existing_row is not None:
+                    # Tier 1 hit (either via identity_dedup_hash or legacy key) —
+                    # update mutable fields in Python to avoid any ON CONFLICT ambiguity
+                    # across the three backends.
                     # Guard: the existing row's account must belong to the same identity.
                     # If not, this is a hash collision or an identity mis-merge — log and skip.
                     if existing_row.account_id != account.id:
@@ -394,33 +409,53 @@ class SyncEngine:
                                     "identity_id": identity_id,
                                 },
                             )
+                            # existing_row was not None so inserted was not incremented above.
                             continue
 
-                await upsert_and_fetch(
-                    session,
-                    Transaction,
-                    {
-                        "account_id": account.id,
-                        "card_id": None,
-                        "provider_transaction_id": item.provider_transaction_id,
-                        "status": "booked",
-                        "amount": item.amount,
-                        "currency": item.currency,
-                        "transaction_type": item.transaction_type,
-                        "transaction_category": item.transaction_category,
-                        "description": item.description,
-                        "merchant_name": item.merchant_name,
-                        "merchant_category": item.merchant_category,
-                        "transaction_date": item.transaction_date,
-                        "settled_date": item.settled_date,
-                        "running_balance": item.running_balance,
-                        "dedup_hash": legacy_dedup_hash,
-                        "identity_dedup_hash": tier1_hash,
-                        "content_hash": content_hash_val,
-                        "raw_payload": item.raw_payload,
-                    },
-                    ["identity_dedup_hash"],
-                )
+                    # Backfill identity hashes and refresh mutable fields on the existing row.
+                    existing_row.identity_dedup_hash = tier1_hash
+                    existing_row.dedup_hash = legacy_dedup_hash
+                    existing_row.content_hash = content_hash_val
+                    existing_row.status = "booked"
+                    existing_row.amount = item.amount
+                    existing_row.currency = item.currency
+                    existing_row.transaction_type = item.transaction_type
+                    existing_row.transaction_category = item.transaction_category
+                    existing_row.description = item.description
+                    existing_row.merchant_name = item.merchant_name
+                    existing_row.merchant_category = item.merchant_category
+                    existing_row.transaction_date = item.transaction_date
+                    existing_row.settled_date = item.settled_date
+                    existing_row.running_balance = item.running_balance
+                    existing_row.raw_payload = item.raw_payload
+                    await session.flush()
+                else:
+                    # Genuinely new row — no existing record under either unique key.
+                    await upsert_and_fetch(
+                        session,
+                        Transaction,
+                        {
+                            "account_id": account.id,
+                            "card_id": None,
+                            "provider_transaction_id": item.provider_transaction_id,
+                            "status": "booked",
+                            "amount": item.amount,
+                            "currency": item.currency,
+                            "transaction_type": item.transaction_type,
+                            "transaction_category": item.transaction_category,
+                            "description": item.description,
+                            "merchant_name": item.merchant_name,
+                            "merchant_category": item.merchant_category,
+                            "transaction_date": item.transaction_date,
+                            "settled_date": item.settled_date,
+                            "running_balance": item.running_balance,
+                            "dedup_hash": legacy_dedup_hash,
+                            "identity_dedup_hash": tier1_hash,
+                            "content_hash": content_hash_val,
+                            "raw_payload": item.raw_payload,
+                        },
+                        ["identity_dedup_hash"],
+                    )
 
             else:
                 # --- Legacy fallback path (account.identity_id is null) ---

@@ -10,6 +10,8 @@ covering:
        (different provider_transaction_id, same content).
   TC5: Different identities, same content → NOT collapsed.
   TC6: New columns present and nullable by default.
+  TC7: Re-sync after identity assigned — no UNIQUE violation, row count stays 1,
+       identity_dedup_hash backfilled.
 """
 
 from __future__ import annotations
@@ -387,3 +389,70 @@ async def test_new_columns_present_and_nullable_by_default(
         assert row.content_hash is None
         # is_cross_connection_duplicate defaults to False
         assert row.is_cross_connection_duplicate is False
+
+
+# ── TC7: Re-sync after identity assigned — no crash, one row, hash backfilled ─
+
+
+@pytest.mark.asyncio
+async def test_resync_after_identity_assigned_backfills_hash_no_duplicate(
+    db_session: AsyncSession,
+) -> None:
+    """TC7: Regression — UNIQUE constraint violation when re-syncing a transaction
+    whose account gains an identity_id after the first sync.
+
+    Trigger scenario:
+      1. Sync txn-0001 with NO identity → stored via legacy path (identity_dedup_hash NULL).
+      2. Account is assigned an identity_id (simulating backfill-identities / merge).
+      3. Re-sync txn-0001 → Tier 1 path now runs but the identity_dedup_hash lookup
+         misses (existing row has NULL).  Without the fix this raises
+         sqlite3.IntegrityError: UNIQUE constraint failed:
+         transactions.account_id, transactions.provider_transaction_id.
+
+    Expected post-fix behaviour:
+      - No exception raised.
+      - Exactly ONE transaction row for this account.
+      - identity_dedup_hash is now populated on that row.
+    """
+    with _enc.user_dek_context(_TEST_DEK):
+        user = await _make_user(db_session)
+        conn = await _make_connection(db_session, user)
+
+        # Step 1: account has NO identity — legacy path.
+        account = await _make_account(db_session, user, conn, identity=None)
+        assert account.identity_id is None
+
+        txn = _make_txn_item("TXN-BACKFILL-0001")
+        inserted_1 = await _do_sync_transactions(db_session, conn, account, [txn])
+        assert inserted_1 == 1
+
+        # Confirm legacy row has no identity_dedup_hash.
+        result = await db_session.execute(
+            select(Transaction).where(Transaction.account_id == account.id)
+        )
+        legacy_row = result.scalar_one()
+        assert legacy_row.identity_dedup_hash is None
+
+        # Step 2: assign identity_id to the account (simulating backfill-identities).
+        identity = await _make_identity(db_session, user)
+        account.identity_id = identity.id
+        await db_session.flush()
+
+        # Step 3: re-sync the same transaction — must NOT raise, must NOT insert a duplicate.
+        inserted_2 = await _do_sync_transactions(db_session, conn, account, [txn])
+        assert inserted_2 == 0, "Re-sync of existing row must not count as a new insert"
+
+        # Exactly ONE row remains.
+        result2 = await db_session.execute(
+            select(Transaction).where(Transaction.account_id == account.id)
+        )
+        rows = result2.scalars().all()
+        assert len(rows) == 1, f"Expected 1 row after re-sync, got {len(rows)}"
+
+        # identity_dedup_hash must now be populated (backfilled by the re-sync).
+        expected_hash = compute_tier1_hash(
+            str(identity.id), "TXN-BACKFILL-0001", secret_key=SECRET_KEY
+        )
+        assert rows[0].identity_dedup_hash == expected_hash, (
+            "identity_dedup_hash must be backfilled on the existing row after re-sync"
+        )
