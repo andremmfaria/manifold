@@ -1,0 +1,245 @@
+{
+  "accounts": [
+    {
+      "id": "biz-current-001",
+      "type": "current",
+      "currency": "GBP",
+      "name": "Oakfield Trading - Business Current",
+      "iban": "GB55MANI60161399001001",
+      "sort_code": "60-16-13",
+      "account_number": "99001001"
+    },
+    {
+      "id": "biz-savings-002",
+      "type": "savings",
+      "currency": "GBP",
+      "name": "Oakfield Trading - Tax Reserve",
+      "iban": "GB61MANI60161399001002",
+      "sort_code": "60-16-13",
+      "account_number": "99001002"
+    }
+  ],
+  "balances": [
+    {
+      "id": "biz-current-001",
+      "balance": 18423.5,
+      "available": 18423.5,
+      "currency": "GBP"
+    },
+    {
+      "id": "biz-savings-002",
+      "balance": 24150.0,
+      "available": 24150.0,
+      "currency": "GBP"
+    }
+  ],
+  "transactions": [
+    {
+      "txn_id": "biz-txn-0001",
+      "account_id": "biz-current-001",
+      "amount": 8400.0,
+      "currency": "GBP",
+      "description": "INV-2026-0041 HARTLEY SOLUTIONS LTD",
+      "posted_at": "2026-01-05T09:10:00Z",
+      "balance": 8400.0
+    },
+    {
+      "txn_id": "biz-txn-0002",
+      "account_id": "biz-current-001",
+      "amount": -2800.0,
+      "currency": "GBP",
+      "description": "PAYROLL JAN - STAFF WAGES",
+      "posted_at": "2026-01-28T09:00:00Z",
+      "balance": 5600.0
+    },
+    {
+      "txn_id": "biz-txn-0003",
+      "account_id": "biz-current-001",
+      "amount": -1260.0,
+      "currency": "GBP",
+      "description": "VAT PAYMENT HMRC Q4 2025",
+      "posted_at": "2026-01-31T10:00:00Z",
+      "balance": 4340.0
+    },
+    {
+      "txn_id": "biz-txn-0004",
+      "account_id": "biz-current-001",
+      "amount": 12500.0,
+      "currency": "GBP",
+      "description": "INV-2026-0042 MERIDIAN GROUP PLC",
+      "posted_at": "2026-02-03T11:25:00Z",
+      "balance": 16840.0
+    },
+    {
+      "txn_id": "biz-txn-0005",
+      "account_id": "biz-current-001",
+      "amount": -480.0,
+      "currency": "GBP",
+      "description": "SOFTWAREHOUSE SAAS SUBSCRIPTION",
+      "posted_at": "2026-02-05T03:00:00Z",
+      "balance": 16360.0
+    },
+    {
+      "txn_id": "biz-txn-0006",
+      "account_id": "biz-current-001",
+      "amount": -3200.0,
+      "currency": "GBP",
+      "description": "SUPPLIER PMT - ACORN MATERIALS LTD",
+      "posted_at": "2026-02-10T09:30:00Z",
+      "balance": 13160.0
+    },
+    {
+      "txn_id": "biz-txn-0007",
+      "account_id": "biz-current-001",
+      "amount": -2800.0,
+      "currency": "GBP",
+      "description": "PAYROLL FEB - STAFF WAGES",
+      "posted_at": "2026-02-27T09:00:00Z",
+      "balance": 10360.0
+    },
+    {
+      "txn_id": "biz-txn-0008",
+      "account_id": "biz-current-001",
+      "amount": 6750.0,
+      "currency": "GBP",
+      "description": "INV-2026-0043 BRENTWOOD RETAIL LTD",
+      "posted_at": "2026-03-04T14:00:00Z",
+      "balance": 17110.0
+    },
+    {
+      "txn_id": "biz-txn-0009",
+      "account_id": "biz-current-001",
+      "amount": -950.0,
+      "currency": "GBP",
+      "description": "OFFICE RENT Q1 - KEYSTONE PROPERTY",
+      "posted_at": "2026-03-06T08:00:00Z",
+      "balance": 16160.0
+    },
+    {
+      "txn_id": "biz-txn-0010",
+      "account_id": "biz-current-001",
+      "amount": -120.0,
+      "currency": "GBP",
+      "description": "COMPANIES HOUSE ANNUAL FEE",
+      "posted_at": "2026-03-15T09:00:00Z",
+      "balance": 16040.0
+    },
+    {
+      "txn_id": "biz-txn-0011",
+      "account_id": "biz-current-001",
+      "amount": -2800.0,
+      "currency": "GBP",
+      "description": "PAYROLL MAR - STAFF WAGES",
+      "posted_at": "2026-03-27T09:00:00Z",
+      "balance": 13240.0
+    },
+    {
+      "txn_id": "biz-txn-0012",
+      "account_id": "biz-current-001",
+      "amount": -4000.0,
+      "currency": "GBP",
+      "description": "TAX RESERVE TRANSFER",
+      "posted_at": "2026-03-31T10:00:00Z",
+      "balance": 9240.0
+    },
+    {
+      "txn_id": "biz-txn-0013",
+      "account_id": "biz-current-001",
+      "amount": 9600.0,
+      "currency": "GBP",
+      "description": "INV-2026-0044 HARTLEY SOLUTIONS LTD",
+      "posted_at": "2026-04-07T10:10:00Z",
+      "balance": 18840.0
+    },
+    {
+      "txn_id": "biz-txn-0014",
+      "account_id": "biz-current-001",
+      "amount": -1890.0,
+      "currency": "GBP",
+      "description": "VAT PAYMENT HMRC Q1 2026",
+      "posted_at": "2026-04-30T10:00:00Z",
+      "balance": 16950.0
+    },
+    {
+      "txn_id": "biz-txn-0015",
+      "account_id": "biz-current-001",
+      "amount": -2800.0,
+      "currency": "GBP",
+      "description": "PAYROLL APR - STAFF WAGES",
+      "posted_at": "2026-04-28T09:00:00Z",
+      "balance": 14150.0
+    },
+    {
+      "txn_id": "biz-txn-0016",
+      "account_id": "biz-current-001",
+      "amount": 7200.0,
+      "currency": "GBP",
+      "description": "INV-2026-0045 MERIDIAN GROUP PLC",
+      "posted_at": "2026-05-06T11:00:00Z",
+      "balance": 21350.0
+    },
+    {
+      "txn_id": "biz-txn-0017",
+      "account_id": "biz-current-001",
+      "amount": -560.0,
+      "currency": "GBP",
+      "description": "SUPPLIER PMT - DELTA LOGISTICS LTD",
+      "posted_at": "2026-05-12T09:00:00Z",
+      "balance": 20790.0
+    },
+    {
+      "txn_id": "biz-txn-0018",
+      "account_id": "biz-current-001",
+      "amount": -366.5,
+      "currency": "GBP",
+      "description": "BANK SERVICE CHARGE MAY",
+      "posted_at": "2026-05-15T08:00:00Z",
+      "balance": 20423.5
+    },
+    {
+      "txn_id": "biz-txn-0019",
+      "account_id": "biz-current-001",
+      "amount": -2000.0,
+      "currency": "GBP",
+      "description": "TAX RESERVE TRANSFER",
+      "posted_at": "2026-05-29T10:00:00Z",
+      "balance": 18423.5
+    },
+    {
+      "txn_id": "biz-txn-0020",
+      "account_id": "biz-savings-002",
+      "amount": 20000.0,
+      "currency": "GBP",
+      "description": "INITIAL TAX RESERVE DEPOSIT",
+      "posted_at": "2026-01-02T09:00:00Z",
+      "balance": 20000.0
+    },
+    {
+      "txn_id": "biz-txn-0021",
+      "account_id": "biz-savings-002",
+      "amount": 4000.0,
+      "currency": "GBP",
+      "description": "TAX RESERVE TRANSFER MAR",
+      "posted_at": "2026-03-31T10:00:00Z",
+      "balance": 24000.0
+    },
+    {
+      "txn_id": "biz-txn-0022",
+      "account_id": "biz-savings-002",
+      "amount": 2000.0,
+      "currency": "GBP",
+      "description": "TAX RESERVE TRANSFER MAY",
+      "posted_at": "2026-05-29T10:00:00Z",
+      "balance": 26000.0
+    },
+    {
+      "txn_id": "biz-txn-0023",
+      "account_id": "biz-savings-002",
+      "amount": -1850.0,
+      "currency": "GBP",
+      "description": "CORPORATION TAX INSTALMENT HMRC",
+      "posted_at": "2026-05-31T10:00:00Z",
+      "balance": 24150.0
+    }
+  ]
+}

@@ -1,0 +1,269 @@
+{
+  "accounts": [
+    {
+      "id": "acc-current-001",
+      "type": "current",
+      "currency": "GBP",
+      "name": "Everyday Current",
+      "iban": "GB29MANI60161331926819",
+      "sort_code": "60-16-13",
+      "account_number": "31926819"
+    },
+    {
+      "id": "acc-savings-002",
+      "type": "savings",
+      "currency": "GBP",
+      "name": "Rainy Day Savings",
+      "iban": "GB42MANI60161331926820",
+      "sort_code": "60-16-13",
+      "account_number": "31926820"
+    },
+    {
+      "id": "acc-credit-003",
+      "type": "credit",
+      "currency": "GBP",
+      "name": "Platinum Credit Card",
+      "iban": null,
+      "sort_code": null,
+      "account_number": "44551290"
+    }
+  ],
+  "balances": [
+    {
+      "id": "acc-current-001",
+      "balance": 1943.07,
+      "available": 1743.07,
+      "currency": "GBP"
+    },
+    {
+      "id": "acc-savings-002",
+      "balance": 15331.04,
+      "available": 15331.04,
+      "currency": "GBP"
+    },
+    {
+      "id": "acc-credit-003",
+      "balance": -618.73,
+      "available": 4381.27,
+      "currency": "GBP"
+    }
+  ],
+  "transactions": [
+    {
+      "txn_id": "txn-0001",
+      "account_id": "acc-current-001",
+      "amount": 2750.0,
+      "currency": "GBP",
+      "description": "ACME LTD SALARY",
+      "posted_at": "2026-05-01T08:00:00Z",
+      "balance": 3187.42
+    },
+    {
+      "txn_id": "txn-0002",
+      "account_id": "acc-current-001",
+      "amount": -899.0,
+      "currency": "GBP",
+      "description": "RENT - GREENFIELD LETTINGS",
+      "posted_at": "2026-05-02T06:30:00Z",
+      "balance": 2288.42
+    },
+    {
+      "txn_id": "txn-0003",
+      "account_id": "acc-current-001",
+      "amount": -54.2,
+      "currency": "GBP",
+      "description": "TESCO STORES 3914",
+      "posted_at": "2026-05-04T18:12:00Z",
+      "balance": 2234.22
+    },
+    {
+      "txn_id": "txn-0004",
+      "account_id": "acc-current-001",
+      "amount": -12.99,
+      "currency": "GBP",
+      "description": "NETFLIX.COM",
+      "posted_at": "2026-05-06T03:00:00Z",
+      "balance": 2221.23
+    },
+    {
+      "txn_id": "txn-0005",
+      "account_id": "acc-current-001",
+      "amount": -500.0,
+      "currency": "GBP",
+      "description": "TRANSFER TO SAVINGS",
+      "posted_at": "2026-05-10T09:45:00Z",
+      "balance": 1721.23
+    },
+    {
+      "txn_id": "txn-0006",
+      "account_id": "acc-current-001",
+      "amount": 762.34,
+      "currency": "GBP",
+      "description": "HMRC TAX REFUND",
+      "posted_at": "2026-05-18T11:20:00Z",
+      "balance": 2483.57
+    },
+    {
+      "txn_id": "txn-0012",
+      "account_id": "acc-current-001",
+      "amount": -48.75,
+      "currency": "GBP",
+      "description": "SAINSBURYS SUPERMARKETS",
+      "posted_at": "2026-05-20T17:45:00Z",
+      "balance": 2434.82
+    },
+    {
+      "txn_id": "txn-0013",
+      "account_id": "acc-current-001",
+      "amount": -32.0,
+      "currency": "GBP",
+      "description": "BRITISH GAS ENERGY",
+      "posted_at": "2026-05-21T09:00:00Z",
+      "balance": 2402.82
+    },
+    {
+      "txn_id": "txn-0014",
+      "account_id": "acc-current-001",
+      "amount": -18.5,
+      "currency": "GBP",
+      "description": "TFL TRAVEL CHARGE",
+      "posted_at": "2026-05-22T08:00:00Z",
+      "balance": 2384.32
+    },
+    {
+      "txn_id": "txn-0015",
+      "account_id": "acc-current-001",
+      "amount": -9.99,
+      "currency": "GBP",
+      "description": "SPOTIFY AB",
+      "posted_at": "2026-05-22T03:00:00Z",
+      "balance": 2374.33
+    },
+    {
+      "txn_id": "txn-0016",
+      "account_id": "acc-current-001",
+      "amount": -200.0,
+      "currency": "GBP",
+      "description": "ATM WITHDRAWAL LLOYDS 00241",
+      "posted_at": "2026-05-23T13:15:00Z",
+      "balance": 2174.33
+    },
+    {
+      "txn_id": "txn-0017",
+      "account_id": "acc-current-001",
+      "amount": -63.4,
+      "currency": "GBP",
+      "description": "WAITROSE 0412",
+      "posted_at": "2026-05-25T19:30:00Z",
+      "balance": 2110.93
+    },
+    {
+      "txn_id": "txn-0018",
+      "account_id": "acc-current-001",
+      "amount": -24.99,
+      "currency": "GBP",
+      "description": "AMAZON PRIME MEMBERSHIP",
+      "posted_at": "2026-05-26T03:00:00Z",
+      "balance": 2085.94
+    },
+    {
+      "txn_id": "txn-0019",
+      "account_id": "acc-current-001",
+      "amount": -42.87,
+      "currency": "GBP",
+      "description": "WAHACA RESTAURANT LONDON",
+      "posted_at": "2026-05-27T20:12:00Z",
+      "balance": 2043.07
+    },
+    {
+      "txn_id": "txn-0020",
+      "account_id": "acc-current-001",
+      "amount": -100.0,
+      "currency": "GBP",
+      "description": "TRANSFER TO SAVINGS",
+      "posted_at": "2026-05-28T09:00:00Z",
+      "balance": 1943.07
+    },
+    {
+      "txn_id": "txn-0007",
+      "account_id": "acc-savings-002",
+      "amount": 500.0,
+      "currency": "GBP",
+      "description": "TRANSFER FROM CURRENT",
+      "posted_at": "2026-05-10T09:45:00Z",
+      "balance": 15200.0
+    },
+    {
+      "txn_id": "txn-0021",
+      "account_id": "acc-savings-002",
+      "amount": 100.0,
+      "currency": "GBP",
+      "description": "TRANSFER FROM CURRENT",
+      "posted_at": "2026-05-28T09:00:00Z",
+      "balance": 15300.0
+    },
+    {
+      "txn_id": "txn-0008",
+      "account_id": "acc-savings-002",
+      "amount": 31.04,
+      "currency": "GBP",
+      "description": "INTEREST PAYMENT",
+      "posted_at": "2026-05-31T00:05:00Z",
+      "balance": 15331.04
+    },
+    {
+      "txn_id": "txn-0009",
+      "account_id": "acc-credit-003",
+      "amount": -129.99,
+      "currency": "GBP",
+      "description": "AMAZON UK MARKETPLACE",
+      "posted_at": "2026-05-07T14:33:00Z",
+      "balance": -612.19
+    },
+    {
+      "txn_id": "txn-0010",
+      "account_id": "acc-credit-003",
+      "amount": -64.5,
+      "currency": "GBP",
+      "description": "SHELL FORECOURT 0421",
+      "posted_at": "2026-05-12T17:08:00Z",
+      "balance": -742.18
+    },
+    {
+      "txn_id": "txn-0011",
+      "account_id": "acc-credit-003",
+      "amount": 250.0,
+      "currency": "GBP",
+      "description": "PAYMENT RECEIVED - THANK YOU",
+      "posted_at": "2026-05-20T10:00:00Z",
+      "balance": -492.18
+    },
+    {
+      "txn_id": "txn-0022",
+      "account_id": "acc-credit-003",
+      "amount": -38.9,
+      "currency": "GBP",
+      "description": "PRET A MANGER",
+      "posted_at": "2026-05-21T12:30:00Z",
+      "balance": -531.08
+    },
+    {
+      "txn_id": "txn-0023",
+      "account_id": "acc-credit-003",
+      "amount": -55.0,
+      "currency": "GBP",
+      "description": "NATIONAL RAIL TICKETS",
+      "posted_at": "2026-05-23T07:45:00Z",
+      "balance": -586.08
+    },
+    {
+      "txn_id": "txn-0024",
+      "account_id": "acc-credit-003",
+      "amount": -32.65,
+      "currency": "GBP",
+      "description": "BOOTS PHARMACY 0047",
+      "posted_at": "2026-05-25T11:10:00Z",
+      "balance": -618.73
+    }
+  ]
+}

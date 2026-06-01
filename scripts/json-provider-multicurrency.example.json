@@ -1,0 +1,305 @@
+{
+  "accounts": [
+    {
+      "id": "mc-gbp-001",
+      "type": "current",
+      "currency": "GBP",
+      "name": "Sterling Current Account",
+      "iban": "GB29MANI60161388001001",
+      "sort_code": "60-16-13",
+      "account_number": "88001001"
+    },
+    {
+      "id": "mc-eur-002",
+      "type": "current",
+      "currency": "EUR",
+      "name": "Euro Current Account",
+      "iban": "GB42MANI60161388001002",
+      "sort_code": "60-16-13",
+      "account_number": "88001002"
+    },
+    {
+      "id": "mc-usd-003",
+      "type": "current",
+      "currency": "USD",
+      "name": "US Dollar Account",
+      "iban": null,
+      "sort_code": null,
+      "account_number": "88001003"
+    }
+  ],
+  "balances": [
+    {
+      "id": "mc-gbp-001",
+      "balance": 4821.34,
+      "available": 4821.34,
+      "currency": "GBP"
+    },
+    {
+      "id": "mc-eur-002",
+      "balance": 3104.5,
+      "available": 3104.5,
+      "currency": "EUR"
+    },
+    {
+      "id": "mc-usd-003",
+      "balance": 6280.0,
+      "available": 6280.0,
+      "currency": "USD"
+    }
+  ],
+  "transactions": [
+    {
+      "txn_id": "mc-txn-0001",
+      "account_id": "mc-gbp-001",
+      "amount": 3500.0,
+      "currency": "GBP",
+      "description": "SALARY PAYMENT - GLOBAL FINTECH LTD",
+      "posted_at": "2026-01-30T08:00:00Z",
+      "balance": 3500.0
+    },
+    {
+      "txn_id": "mc-txn-0002",
+      "account_id": "mc-gbp-001",
+      "amount": -850.0,
+      "currency": "GBP",
+      "description": "RENT - HARBOUR VIEW LETTINGS",
+      "posted_at": "2026-02-01T07:00:00Z",
+      "balance": 2650.0
+    },
+    {
+      "txn_id": "mc-txn-0003",
+      "account_id": "mc-gbp-001",
+      "amount": -1200.0,
+      "currency": "GBP",
+      "description": "FX TRANSFER TO EUR ACCOUNT",
+      "posted_at": "2026-02-10T10:30:00Z",
+      "balance": 1450.0
+    },
+    {
+      "txn_id": "mc-txn-0004",
+      "account_id": "mc-gbp-001",
+      "amount": 3500.0,
+      "currency": "GBP",
+      "description": "SALARY PAYMENT - GLOBAL FINTECH LTD",
+      "posted_at": "2026-02-27T08:00:00Z",
+      "balance": 4950.0
+    },
+    {
+      "txn_id": "mc-txn-0005",
+      "account_id": "mc-gbp-001",
+      "amount": -62.4,
+      "currency": "GBP",
+      "description": "TESCO EXTRA STRATFORD",
+      "posted_at": "2026-03-03T19:10:00Z",
+      "balance": 4887.6
+    },
+    {
+      "txn_id": "mc-txn-0006",
+      "account_id": "mc-gbp-001",
+      "amount": -45.0,
+      "currency": "GBP",
+      "description": "TFL TRAVEL MONTHLY CAP",
+      "posted_at": "2026-03-08T08:00:00Z",
+      "balance": 4842.6
+    },
+    {
+      "txn_id": "mc-txn-0007",
+      "account_id": "mc-gbp-001",
+      "amount": -800.0,
+      "currency": "GBP",
+      "description": "FX TRANSFER TO USD ACCOUNT",
+      "posted_at": "2026-03-15T11:00:00Z",
+      "balance": 4042.6
+    },
+    {
+      "txn_id": "mc-txn-0008",
+      "account_id": "mc-gbp-001",
+      "amount": -14.99,
+      "currency": "GBP",
+      "description": "APPLE ONE SUBSCRIPTION",
+      "posted_at": "2026-03-20T03:00:00Z",
+      "balance": 4027.61
+    },
+    {
+      "txn_id": "mc-txn-0009",
+      "account_id": "mc-gbp-001",
+      "amount": 38.73,
+      "currency": "GBP",
+      "description": "CASHBACK REWARD - CARD BENEFIT",
+      "posted_at": "2026-04-01T09:00:00Z",
+      "balance": 4066.34
+    },
+    {
+      "txn_id": "mc-txn-0010",
+      "account_id": "mc-gbp-001",
+      "amount": -57.8,
+      "currency": "GBP",
+      "description": "SAINSBURYS LOCAL",
+      "posted_at": "2026-04-14T18:45:00Z",
+      "balance": 4008.54
+    },
+    {
+      "txn_id": "mc-txn-0011",
+      "account_id": "mc-gbp-001",
+      "amount": 3500.0,
+      "currency": "GBP",
+      "description": "SALARY PAYMENT - GLOBAL FINTECH LTD",
+      "posted_at": "2026-04-30T08:00:00Z",
+      "balance": 7508.54
+    },
+    {
+      "txn_id": "mc-txn-0012",
+      "account_id": "mc-gbp-001",
+      "amount": -850.0,
+      "currency": "GBP",
+      "description": "RENT - HARBOUR VIEW LETTINGS",
+      "posted_at": "2026-05-01T07:00:00Z",
+      "balance": 6658.54
+    },
+    {
+      "txn_id": "mc-txn-0013",
+      "account_id": "mc-gbp-001",
+      "amount": -1837.2,
+      "currency": "GBP",
+      "description": "FX TRANSFER TO EUR ACCOUNT",
+      "posted_at": "2026-05-05T10:00:00Z",
+      "balance": 4821.34
+    },
+    {
+      "txn_id": "mc-txn-0014",
+      "account_id": "mc-eur-002",
+      "amount": 1400.0,
+      "currency": "EUR",
+      "description": "FX TRANSFER FROM GBP REF MC-TXN-0003",
+      "posted_at": "2026-02-10T10:35:00Z",
+      "balance": 1400.0
+    },
+    {
+      "txn_id": "mc-txn-0015",
+      "account_id": "mc-eur-002",
+      "amount": -320.0,
+      "currency": "EUR",
+      "description": "AIRBNB AMSTERDAM 3 NIGHTS",
+      "posted_at": "2026-02-20T14:00:00Z",
+      "balance": 1080.0
+    },
+    {
+      "txn_id": "mc-txn-0016",
+      "account_id": "mc-eur-002",
+      "amount": -88.5,
+      "currency": "EUR",
+      "description": "LUFTHANSA TICKET FRA-LHR",
+      "posted_at": "2026-02-21T07:30:00Z",
+      "balance": 991.5
+    },
+    {
+      "txn_id": "mc-txn-0017",
+      "account_id": "mc-eur-002",
+      "amount": -245.0,
+      "currency": "EUR",
+      "description": "INVOICE FREELANCE EU CLIENT",
+      "posted_at": "2026-03-10T09:00:00Z",
+      "balance": 746.5
+    },
+    {
+      "txn_id": "mc-txn-0018",
+      "account_id": "mc-eur-002",
+      "amount": 1500.0,
+      "currency": "EUR",
+      "description": "CONTRACTOR PAYMENT - SCHMIDT GMBH",
+      "posted_at": "2026-03-18T11:00:00Z",
+      "balance": 2246.5
+    },
+    {
+      "txn_id": "mc-txn-0019",
+      "account_id": "mc-eur-002",
+      "amount": -62.0,
+      "currency": "EUR",
+      "description": "LIDL SUPERMARKT BERLIN",
+      "posted_at": "2026-04-02T17:00:00Z",
+      "balance": 2184.5
+    },
+    {
+      "txn_id": "mc-txn-0020",
+      "account_id": "mc-eur-002",
+      "amount": 2150.0,
+      "currency": "EUR",
+      "description": "FX TRANSFER FROM GBP REF MC-TXN-0013",
+      "posted_at": "2026-05-05T10:05:00Z",
+      "balance": 4334.5
+    },
+    {
+      "txn_id": "mc-txn-0021",
+      "account_id": "mc-eur-002",
+      "amount": -1230.0,
+      "currency": "EUR",
+      "description": "IBERIA FLIGHTS MAD-LHR X2",
+      "posted_at": "2026-05-10T08:00:00Z",
+      "balance": 3104.5
+    },
+    {
+      "txn_id": "mc-txn-0022",
+      "account_id": "mc-usd-003",
+      "amount": 1000.0,
+      "currency": "USD",
+      "description": "FX TRANSFER FROM GBP REF MC-TXN-0007",
+      "posted_at": "2026-03-15T11:05:00Z",
+      "balance": 1000.0
+    },
+    {
+      "txn_id": "mc-txn-0023",
+      "account_id": "mc-usd-003",
+      "amount": 4800.0,
+      "currency": "USD",
+      "description": "CONSULTING FEE - NOVA CAPITAL INC",
+      "posted_at": "2026-03-20T15:00:00Z",
+      "balance": 5800.0
+    },
+    {
+      "txn_id": "mc-txn-0024",
+      "account_id": "mc-usd-003",
+      "amount": -380.0,
+      "currency": "USD",
+      "description": "AWS CLOUD SERVICES MARCH",
+      "posted_at": "2026-03-31T03:00:00Z",
+      "balance": 5420.0
+    },
+    {
+      "txn_id": "mc-txn-0025",
+      "account_id": "mc-usd-003",
+      "amount": -215.0,
+      "currency": "USD",
+      "description": "GITHUB ENTERPRISE ANNUAL",
+      "posted_at": "2026-04-05T03:00:00Z",
+      "balance": 5205.0
+    },
+    {
+      "txn_id": "mc-txn-0026",
+      "account_id": "mc-usd-003",
+      "amount": 2400.0,
+      "currency": "USD",
+      "description": "CONSULTING FEE - NOVA CAPITAL INC",
+      "posted_at": "2026-04-20T15:00:00Z",
+      "balance": 7605.0
+    },
+    {
+      "txn_id": "mc-txn-0027",
+      "account_id": "mc-usd-003",
+      "amount": -395.0,
+      "currency": "USD",
+      "description": "AWS CLOUD SERVICES APRIL",
+      "posted_at": "2026-04-30T03:00:00Z",
+      "balance": 7210.0
+    },
+    {
+      "txn_id": "mc-txn-0028",
+      "account_id": "mc-usd-003",
+      "amount": -930.0,
+      "currency": "USD",
+      "description": "UNITED AIRLINES NYC-LHR",
+      "posted_at": "2026-05-08T10:00:00Z",
+      "balance": 6280.0
+    }
+  ]
+}
