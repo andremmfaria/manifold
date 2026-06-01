@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from manifold.api._crypto import parse_uuid, scope_to_uuids, with_user_dek
 from manifold.api.deps import get_current_user, get_session
 from manifold.database import db_session
+from manifold.domain.connections import delete_connection_cascade
 from manifold.domain.ownership import get_accessible_scope
 from manifold.domain.sync_engine import SyncEngine
 from manifold.models.oauth_state import OAuthState
@@ -190,7 +191,7 @@ async def delete_connection(
     connection = await _load_connection_or_404(session, connection_id)
     if str(connection.user_id) != str(current_user.id):
         raise HTTPException(status_code=403, detail={"error": "forbidden"})
-    await session.delete(connection)
+    await delete_connection_cascade(session, connection)
     await session.commit()
     return Response(status_code=204)
 
