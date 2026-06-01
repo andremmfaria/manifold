@@ -12,8 +12,15 @@ import { rootRoute } from '../__root'
 export const notifiersNewRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/notifiers/new',
-  beforeLoad: ({ context, location }: { context: { auth: AuthContextValue }; location: { href: string } }) => {
-    if (!context.auth.isAuthenticated) throw redirect({ to: '/login', search: { redirect: location.href } })
+  beforeLoad: ({
+    context,
+    location,
+  }: {
+    context: { auth: AuthContextValue }
+    location: { href: string }
+  }) => {
+    if (!context.auth.isAuthenticated)
+      throw redirect({ to: '/login', search: { redirect: location.href } })
   },
   component: NewNotifierPage,
 })
@@ -24,9 +31,7 @@ function NewNotifierPage() {
 
   const [name, setName] = useState('')
   const [type, setType] = useState('email')
-  const [config, setConfig] = useState(
-    '{\n  "smtp_host": "smtp.example.com",\n  "smtp_port": 587,\n  "from_address": "alarms@example.com",\n  "to_address": "you@example.com"\n}',
-  )
+  const [config, setConfig] = useState('{\n  "to_address": "you@example.com"\n}')
   const [error, setError] = useState('')
 
   const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -35,9 +40,7 @@ function NewNotifierPage() {
 
     // Provide sensible default config based on type
     if (newType === 'email') {
-      setConfig(
-        '{\n  "smtp_host": "smtp.example.com",\n  "smtp_port": 587,\n  "from_address": "alarms@example.com",\n  "to_address": "you@example.com"\n}',
-      )
+      setConfig('{\n  "to_address": "you@example.com"\n}')
     } else if (newType === 'webhook') {
       setConfig(
         '{\n  "url": "https://example.com/webhook",\n  "method": "POST",\n  "headers": {}\n}',

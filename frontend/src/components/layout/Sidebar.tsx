@@ -14,6 +14,7 @@ import {
   Users,
   MonitorSmartphone,
   PanelLeftClose,
+  Mail,
 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/features/auth/useAuth'
@@ -125,10 +126,16 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
           </>
         )}
         {isSuperadmin && (
-          <NavLink
-            item={{ to: '/settings/users', label: 'Users', icon: Users }}
-            collapsed={collapsed}
-          />
+          <>
+            <NavLink
+              item={{ to: '/settings/users', label: 'Users', icon: Users }}
+              collapsed={collapsed}
+            />
+            <NavLink
+              item={{ to: '/settings/email', label: 'Email', icon: Mail }}
+              collapsed={collapsed}
+            />
+          </>
         )}
         <NavLink
           item={{

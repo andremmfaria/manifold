@@ -233,7 +233,14 @@ class NotifierDispatcher:
             if attempt == 1:
                 delivery.first_attempted_at = attempt_time
             try:
-                delivered = await notifier.send(delivery_payload, config)
+                send_config = config
+                if getattr(notifier, "notifier_type", None) == "email":
+                    send_config = {
+                        **config,
+                        "_session": self._session,
+                        "_user_id": str(delivery_user_id) if delivery_user_id else None,
+                    }
+                delivered = await notifier.send(delivery_payload, send_config)
                 if delivered:
                     delivery.status = "delivered"
                     delivery.delivered_at = datetime.now(UTC)

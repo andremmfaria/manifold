@@ -19,6 +19,8 @@ from manifold.api.cards import router as cards_router
 from manifold.api.connections import router as connections_router
 from manifold.api.dashboard import router as dashboard_router
 from manifold.api.direct_debits import router as direct_debits_router
+from manifold.api.email_settings import router as email_settings_router
+from manifold.api.email_webhooks import router as email_webhooks_router
 from manifold.api.events import router as events_router
 from manifold.api.identities import router as identities_router
 from manifold.api.notification_deliveries import router as notification_deliveries_router
@@ -33,6 +35,7 @@ from manifold.api.users import router as users_router
 from manifold.config import settings
 from manifold.database import AsyncSessionLocal, db_session, engine
 from manifold.domain.users import create_user_record
+from manifold.email.adapters._ses_session import set_aiobotocore_session
 from manifold.exceptions import (
     AuthorizationError,
     ConflictError,
@@ -55,6 +58,9 @@ async def lifespan(_app: FastAPI):
     configure_logging()
     register_providers()
     register_notifiers()
+    from aiobotocore.session import get_session as _aioboto_get_session  # noqa: PLC0415
+
+    set_aiobotocore_session(_aioboto_get_session())
     stale_cutoff = datetime.now(UTC) - timedelta(hours=2)
     async with db_session() as session:
         await session.execute(
@@ -103,6 +109,7 @@ async def lifespan(_app: FastAPI):
     try:
         yield
     finally:
+        set_aiobotocore_session(None)
         if not broker.is_worker_process:
             try:
                 await broker.shutdown()
@@ -180,6 +187,16 @@ def create_app() -> FastAPI:
         tags=["notifications"],
     )
     app.include_router(admin_router, prefix="/api/v1/admin", tags=["admin"])
+    app.include_router(
+        email_settings_router,
+        prefix="/api/v1/email-settings",
+        tags=["email-settings"],
+    )
+    app.include_router(
+        email_webhooks_router,
+        prefix="/api/v1/email",
+        tags=["email-webhooks"],
+    )
     return app
 
 

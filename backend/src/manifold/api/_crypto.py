@@ -59,5 +59,14 @@ async def with_user_dek(  # noqa: UP047
         return result
 
 
+async def with_master_dek(fn: Callable[[], T | Awaitable[T]]) -> T:  # noqa: UP047
+    dek = EncryptionService().dek_master_key
+    with dek_context(dek):
+        result = fn()
+        if inspect.isawaitable(result):
+            return await result
+        return result
+
+
 def scope_to_uuids(scope: set[str]) -> list[str]:
     return [str(item) for item in scope]

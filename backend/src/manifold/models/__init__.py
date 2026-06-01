@@ -15,6 +15,9 @@ from manifold.models.balance import Balance
 from manifold.models.base import Base
 from manifold.models.card import Card
 from manifold.models.direct_debit import DirectDebit
+from manifold.models.email_settings import InstanceEmailSettings
+from manifold.models.email_suppression import EmailSuppression
+from manifold.models.email_webhook_event import EmailWebhookEvent
 from manifold.models.event import Event
 from manifold.models.notification_delivery import NotificationDelivery
 from manifold.models.notifier import NotifierConfig
@@ -44,7 +47,10 @@ __all__ = [
     "Base",
     "Card",
     "DirectDebit",
+    "EmailSuppression",
+    "EmailWebhookEvent",
     "Event",
+    "InstanceEmailSettings",
     "NotificationDelivery",
     "NotifierConfig",
     "OAuthState",
