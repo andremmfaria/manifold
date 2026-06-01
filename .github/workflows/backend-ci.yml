@@ -41,6 +41,8 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
+      - name: Set setuptools-scm version from VERSION file
+        run: echo "SETUPTOOLS_SCM_PRETEND_VERSION=$(cat "$GITHUB_WORKSPACE/VERSION")" >> "$GITHUB_ENV"
       - uses: astral-sh/setup-uv@v3
         with:
           version: "latest"

@@ -1,13 +1,13 @@
 name: Docker Build
+# PR validation only — builds images without pushing. All push builds/pushes
+# (and image publishing) are handled by release.yml.
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 
 permissions:
   contents: read
-  packages: write
+  packages: read
 
 jobs:
   build-backend:

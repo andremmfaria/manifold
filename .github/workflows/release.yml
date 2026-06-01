@@ -1,8 +1,7 @@
 name: Release
 on:
   push:
-    tags:
-      - "v*.*.*"
+    branches: ["**"]
 
 permissions:
   contents: write
@@ -16,15 +15,43 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify and extract version
+      # ── Resolve version + naming from VERSION file and branch ─────
+      # Three forms are derived:
+      #   tag  – git tag / GitHub release name (v0.1.0 or v0.1.0-<branch>)
+      #   rel  – release-asset filenames + docker image tag (0.1.0 / 0.1.0-<branch>)
+      #   py   – PEP 440 version for setuptools-scm / wheel (0.1.0 / 0.1.0+<branch>)
+      - name: Resolve version and naming
         id: ver
         run: |
-          FILE_VERSION="$(cat VERSION)"
-          TAG_VERSION="${GITHUB_REF_NAME#v}"
-          if [ "$FILE_VERSION" != "$TAG_VERSION" ]; then
-            echo "::error::VERSION file ($FILE_VERSION) != git tag ($TAG_VERSION)"; exit 1
+          RAW="$(cat VERSION)"
+          BRANCH="${GITHUB_REF_NAME}"
+          DEFAULT="${{ github.event.repository.default_branch }}"
+          if [ "$BRANCH" = "$DEFAULT" ]; then
+            TAG="v${RAW}"; REL="${RAW}"; PY="${RAW}"
+            PRERELEASE="false"; LATEST="true"
+          else
+            # git/docker-safe slug (hyphenated); PEP 440 local segment (dot-separated)
+            SLUG="$(printf '%s' "$BRANCH" | sed -E 's/[^a-zA-Z0-9.-]+/-/g; s/^-+//; s/-+$//')"
+            LOCAL="$(printf '%s' "$BRANCH" | sed -E 's/[^a-zA-Z0-9]+/./g; s/^\.+//; s/\.+$//')"
+            TAG="v${RAW}-${SLUG}"; REL="${RAW}-${SLUG}"; PY="${RAW}+${LOCAL}"
+            PRERELEASE="true"; LATEST="false"
           fi
-          echo "version=$FILE_VERSION" >> "$GITHUB_OUTPUT"
+          {
+            echo "tag=$TAG"
+            echo "rel=$REL"
+            echo "py=$PY"
+            echo "prerelease=$PRERELEASE"
+            echo "latest=$LATEST"
+          } >> "$GITHUB_OUTPUT"
+          echo "Resolved tag=$TAG rel=$REL py=$PY prerelease=$PRERELEASE latest=$LATEST"
+
+      # ── Force-move the tag to HEAD on every push ──────────────────
+      - name: Move version tag to HEAD
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -f "${{ steps.ver.outputs.tag }}"
+          git push -f origin "refs/tags/${{ steps.ver.outputs.tag }}"
 
       # ── Build frontend ────────────────────────────────────────────
       - uses: actions/setup-node@v4
@@ -37,16 +64,34 @@ jobs:
         env:
           VITE_API_BASE_URL: /api
       - run: |
-          cd frontend && tar -czf ../manifold-frontend-${{ steps.ver.outputs.version }}.tar.gz dist/
+          cd frontend && tar -czf ../manifold-frontend-${{ steps.ver.outputs.rel }}.tar.gz dist/
 
       # ── Build backend wheel ───────────────────────────────────────
       - uses: astral-sh/setup-uv@v3
       - run: uv build
         working-directory: backend
         env:
-          SETUPTOOLS_SCM_PRETEND_VERSION: ${{ steps.ver.outputs.version }}
+          SETUPTOOLS_SCM_PRETEND_VERSION: ${{ steps.ver.outputs.py }}
       - run: |
-          mv backend/dist/manifold-*.whl ./manifold-backend-${{ steps.ver.outputs.version }}.whl
+          mv backend/dist/manifold-*.whl ./manifold-backend-${{ steps.ver.outputs.rel }}.whl
+
+      # ── Compute docker tags (add :latest only on the default branch)
+      - name: Compute docker tags
+        id: dtags
+        run: |
+          BE="ghcr.io/${{ github.repository }}/backend"
+          FE="ghcr.io/${{ github.repository }}/frontend"
+          REL="${{ steps.ver.outputs.rel }}"
+          BE_TAGS="$BE:$REL"
+          FE_TAGS="$FE:$REL"
+          if [ "${{ steps.ver.outputs.latest }}" = "true" ]; then
+            BE_TAGS="$BE_TAGS"$'\n'"$BE:latest"
+            FE_TAGS="$FE_TAGS"$'\n'"$FE:latest"
+          fi
+          {
+            echo "backend<<EOF"; printf '%s\n' "$BE_TAGS"; echo "EOF"
+            echo "frontend<<EOF"; printf '%s\n' "$FE_TAGS"; echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       # ── Build and push Docker images ──────────────────────────────
       - uses: docker/setup-buildx-action@v3
@@ -61,10 +106,12 @@ jobs:
           context: ./backend
           push: true
           build-args: |
-            APP_VERSION=${{ steps.ver.outputs.version }}
-          tags: |
-            ghcr.io/${{ github.repository }}/backend:${{ steps.ver.outputs.version }}
-            ghcr.io/${{ github.repository }}/backend:latest
+            APP_VERSION=${{ steps.ver.outputs.py }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ steps.dtags.outputs.backend }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
 
       - uses: docker/build-push-action@v5
         with:
@@ -72,21 +119,28 @@ jobs:
           push: true
           build-args: |
             VITE_API_BASE_URL=/api
-            APP_VERSION=${{ steps.ver.outputs.version }}
-          tags: |
-            ghcr.io/${{ github.repository }}/frontend:${{ steps.ver.outputs.version }}
-            ghcr.io/${{ github.repository }}/frontend:latest
+            APP_VERSION=${{ steps.ver.outputs.py }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ steps.dtags.outputs.frontend }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
 
-      # ── Create GitHub Release ─────────────────────────────────────
+      # ── Create / update the GitHub Release ────────────────────────
       - uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: ${{ steps.ver.outputs.tag }}
+          prerelease: ${{ steps.ver.outputs.prerelease }}
+          make_latest: ${{ steps.ver.outputs.latest }}
           files: |
-            manifold-frontend-${{ steps.ver.outputs.version }}.tar.gz
-            manifold-backend-${{ steps.ver.outputs.version }}.whl
+            manifold-frontend-${{ steps.ver.outputs.rel }}.tar.gz
+            manifold-backend-${{ steps.ver.outputs.rel }}.whl
           generate_release_notes: true
           body: |
             ## Docker images
             ```
-            docker pull ghcr.io/${{ github.repository }}/backend:${{ steps.ver.outputs.version }}
-            docker pull ghcr.io/${{ github.repository }}/frontend:${{ steps.ver.outputs.version }}
+            docker pull ghcr.io/${{ github.repository }}/backend:${{ steps.ver.outputs.rel }}
+            docker pull ghcr.io/${{ github.repository }}/frontend:${{ steps.ver.outputs.rel }}
             ```
