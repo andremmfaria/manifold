@@ -1,4 +1,7 @@
 from manifold.models.account import Account
+from manifold.models.account_identifier import AccountIdentifier
+from manifold.models.account_identity import AccountIdentity
+from manifold.models.account_identity_assertion import AccountIdentityAssertion
 from manifold.models.alarm import (
     AlarmAccountAssignment,
     AlarmDefinition,
@@ -25,6 +28,9 @@ from manifold.models.transaction import Transaction
 from manifold.models.user import AccountAccess, RefreshToken, User, UserSession
 
 __all__ = [
+    "AccountIdentifier",
+    "AccountIdentity",
+    "AccountIdentityAssertion",
     "AlarmAccountAssignment",
     "AlarmDefinition",
     "AlarmDefinitionVersion",

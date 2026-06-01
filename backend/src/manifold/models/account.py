@@ -30,6 +30,11 @@ class Account(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     account_number: Mapped[str | None] = mapped_column(EncryptedText(), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     raw_payload: Mapped[dict | None] = mapped_column(EncryptedJSON(), nullable=True)
+    # Nullable FK to account_identities; populated by the identity matching engine (Phase 3).
+    # uq_accounts_provider_account is intentionally preserved — this is an additive soft link.
+    identity_id: Mapped[str | None] = mapped_column(
+        ForeignKey("account_identities.id"), nullable=True, index=True
+    )
 
 
 __all__ = ["Account"]
