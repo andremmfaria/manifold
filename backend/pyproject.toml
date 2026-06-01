@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "manifold"
-version = "0.1.0"
+dynamic = ["version"]
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115.0",
@@ -78,4 +78,5 @@ dev = [
     "ruff>=0.8.0",
     "mypy>=1.13.0",
     "types-passlib",
+    "pre-commit>=4.6.0",
 ]

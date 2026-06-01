@@ -2,6 +2,9 @@ FROM python:3.12-slim AS builder
 WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 
+ARG APP_VERSION=0.0.0
+ENV SETUPTOOLS_SCM_PRETEND_VERSION=${APP_VERSION}
+
 RUN pip install uv
 COPY . .
 RUN uv sync --frozen --no-dev --extra all-backends || uv sync --no-dev --extra all-backends
@@ -9,6 +12,9 @@ RUN uv sync --frozen --no-dev --extra all-backends || uv sync --no-dev --extra a
 FROM python:3.12-slim AS final
 WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+
+ARG APP_VERSION=0.0.0
+ENV MANIFOLD_VERSION=${APP_VERSION}
 
 RUN pip install uv
 RUN apt-get update && apt-get install -y --no-install-recommends supervisor && rm -rf /var/lib/apt/lists/*
