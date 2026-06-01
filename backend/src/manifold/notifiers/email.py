@@ -88,9 +88,9 @@ class EmailNotifier(BaseNotifier):
         prepared = self.prepare(payload, config)
 
         # --- master-DEK block: load instance email settings + check suppression ---
-        async def _load_settings_and_check_suppression() -> (
-            tuple[bool, str, dict[str, Any], str | None, str | None]
-        ):
+        async def _load_settings_and_check_suppression() -> tuple[
+            bool, str, dict[str, Any], str | None, str | None
+        ]:
             """Returns (suppressed, provider, transport_config, from_address, from_name)."""
             addr = to_address.strip().lower()
             master_key = EncryptionService().dek_master_key
@@ -121,8 +121,8 @@ class EmailNotifier(BaseNotifier):
 
             return suppressed, _provider, _transport_config, _from_address, _from_name
 
-        result: tuple[bool, str, dict[str, Any], str | None, str | None] = (
-            await with_master_dek(_load_settings_and_check_suppression)
+        result: tuple[bool, str, dict[str, Any], str | None, str | None] = await with_master_dek(
+            _load_settings_and_check_suppression
         )
         suppressed, provider, transport_config, global_from_address, global_from_name = result
 

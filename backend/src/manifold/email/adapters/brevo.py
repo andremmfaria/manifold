@@ -72,9 +72,7 @@ class BrevoTransport:
             if not provided:
                 return False
 
-            expected = hmac.new(
-                secret.encode(), body, hashlib.sha256
-            ).hexdigest()
+            expected = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
             return hmac.compare_digest(provided, expected)
         except Exception:  # noqa: BLE001
             return False

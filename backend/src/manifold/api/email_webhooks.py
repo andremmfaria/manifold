@@ -80,10 +80,7 @@ async def ingest_email_webhook(
                 )
 
         event_type: str = (
-            payload.get("Type")
-            or payload.get("event")
-            or payload.get("type")
-            or "unknown"
+            payload.get("Type") or payload.get("event") or payload.get("type") or "unknown"
         )
         session.add(
             EmailWebhookEvent(

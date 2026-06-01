@@ -98,9 +98,7 @@ async def merge_identities(
         if owner_user_id is None:
             owner_user_id = str(row.user_id)
         elif owner_user_id != str(row.user_id):
-            raise HTTPException(
-                status_code=422, detail={"error": "accounts_must_share_owner"}
-            )
+            raise HTTPException(status_code=422, detail={"error": "accounts_must_share_owner"})
 
     if owner_user_id is None:
         raise HTTPException(status_code=404, detail={"error": "not_found"})
@@ -174,6 +172,7 @@ async def get_suggestions(
     Requires Phase 5 for read-time aggregation; returns aggregated=False until
     IDENTITY_AGGREGATION_ENABLED is True.
     """
+
     # Suggestions are personal (not scope-expanded) — only the user's own accounts.
     async def _get() -> list[dict]:
         return await suggest_merges(session, str(current_user.id))

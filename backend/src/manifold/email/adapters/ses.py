@@ -10,7 +10,7 @@ from typing import Any
 import httpx
 from botocore.config import Config
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.x509 import load_pem_x509_certificate
 
 from manifold.email.base import SuppressionEvent
@@ -235,6 +235,10 @@ async def _verify_sns_signature(payload: dict) -> bool:
         pem = await _fetch_cert(cert_url)
         cert = load_pem_x509_certificate(pem)
         public_key = cert.public_key()
+        if not isinstance(public_key, rsa.RSAPublicKey):
+            # SNS signing certificates are always RSA.
+            logger.debug("SNS signing cert is not RSA; rejecting")
+            return False
 
         msg_type = payload.get("Type", "")
         if msg_type == "Notification":

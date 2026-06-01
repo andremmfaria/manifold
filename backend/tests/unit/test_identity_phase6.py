@@ -207,12 +207,12 @@ async def test_merge_two_zero_identifier_accounts(db_session: AsyncSession):
     await db_session.flush()
 
     # Re-query identity_id directly (non-encrypted column; avoids DEK context).
-    a_iid = (await db_session.execute(
-        select(Account.identity_id).where(Account.id == acct_a.id)
-    )).scalar_one()
-    b_iid = (await db_session.execute(
-        select(Account.identity_id).where(Account.id == acct_b.id)
-    )).scalar_one()
+    a_iid = (
+        await db_session.execute(select(Account.identity_id).where(Account.id == acct_a.id))
+    ).scalar_one()
+    b_iid = (
+        await db_session.execute(select(Account.identity_id).where(Account.id == acct_b.id))
+    ).scalar_one()
 
     assert a_iid is not None
     assert b_iid is not None
@@ -375,15 +375,15 @@ async def test_unmerge_bridge_account_retained_resurrected_identity(db_session: 
     def _iid(acct: Account):
         return str(acct.identity_id) if acct.identity_id else None
 
-    acct_a_iid = (await db_session.execute(
-        select(Account.identity_id).where(Account.id == acct_a.id)
-    )).scalar_one()
-    acct_b_iid = (await db_session.execute(
-        select(Account.identity_id).where(Account.id == acct_b.id)
-    )).scalar_one()
-    acct_bridge_iid = (await db_session.execute(
-        select(Account.identity_id).where(Account.id == acct_bridge.id)
-    )).scalar_one()
+    acct_a_iid = (
+        await db_session.execute(select(Account.identity_id).where(Account.id == acct_a.id))
+    ).scalar_one()
+    acct_b_iid = (
+        await db_session.execute(select(Account.identity_id).where(Account.id == acct_b.id))
+    ).scalar_one()
+    acct_bridge_iid = (
+        await db_session.execute(select(Account.identity_id).where(Account.id == acct_bridge.id))
+    ).scalar_one()
 
     assert str(acct_a_iid) == identity_a_id
     assert str(acct_b_iid) == identity_a_id, (
@@ -423,17 +423,16 @@ async def test_unmerge_bridge_account_retained_resurrected_identity(db_session: 
     # Caveat must be a non-empty string about reversibility.
     assert isinstance(caveat, str) and len(caveat) > 0
 
-    acct_b_iid_post = (await db_session.execute(
-        select(Account.identity_id).where(Account.id == acct_b.id)
-    )).scalar_one()
-    acct_bridge_iid_post = (await db_session.execute(
-        select(Account.identity_id).where(Account.id == acct_bridge.id)
-    )).scalar_one()
+    acct_b_iid_post = (
+        await db_session.execute(select(Account.identity_id).where(Account.id == acct_b.id))
+    ).scalar_one()
+    acct_bridge_iid_post = (
+        await db_session.execute(select(Account.identity_id).where(Account.id == acct_bridge.id))
+    ).scalar_one()
 
     # acct_b must be on the RESURRECTED original B identity.
     assert str(acct_b_iid_post) == identity_b_id, (
-        f"Expected acct_b on resurrected identity_b ({identity_b_id}), "
-        f"got {acct_b_iid_post}"
+        f"Expected acct_b on resurrected identity_b ({identity_b_id}), got {acct_b_iid_post}"
     )
 
     # Identity B must be resurrected (merged_into cleared).
@@ -461,9 +460,7 @@ async def test_unmerge_bridge_account_retained_resurrected_identity(db_session: 
     )
 
     # Bridge account STAYS with A (it straddles both groups).
-    assert str(acct_bridge_iid_post) == identity_a_id, (
-        "Bridge account must remain with identity A"
-    )
+    assert str(acct_bridge_iid_post) == identity_a_id, "Bridge account must remain with identity A"
 
     # do_not_merge written between acct_b and acct_bridge.
     a_can = min(str(acct_b.id), str(acct_bridge.id))
@@ -486,12 +483,12 @@ async def test_unmerge_bridge_account_retained_resurrected_identity(db_session: 
     await _resolve(db_session, acct_bridge, data_bridge, user)
     await db_session.flush()
 
-    acct_b_iid_final = (await db_session.execute(
-        select(Account.identity_id).where(Account.id == acct_b.id)
-    )).scalar_one()
-    acct_bridge_iid_final = (await db_session.execute(
-        select(Account.identity_id).where(Account.id == acct_bridge.id)
-    )).scalar_one()
+    acct_b_iid_final = (
+        await db_session.execute(select(Account.identity_id).where(Account.id == acct_b.id))
+    ).scalar_one()
+    acct_bridge_iid_final = (
+        await db_session.execute(select(Account.identity_id).where(Account.id == acct_bridge.id))
+    ).scalar_one()
 
     # acct_b must STILL be on identity B (not re-merged into A).
     assert str(acct_b_iid_final) == identity_b_id, (
@@ -535,8 +532,10 @@ async def test_suggestions_suppress_do_not_merge(db_session: AsyncSession):
         suggestions_before = await suggest_merges(db_session, user.id)
 
     has_pair = any(
-        (s["account_a_id"] in (str(acct_a.id), str(acct_b.id)) and
-         s["account_b_id"] in (str(acct_a.id), str(acct_b.id)))
+        (
+            s["account_a_id"] in (str(acct_a.id), str(acct_b.id))
+            and s["account_b_id"] in (str(acct_a.id), str(acct_b.id))
+        )
         for s in suggestions_before
     )
     assert has_pair, "Expected suggestion before do_not_merge"
@@ -549,8 +548,10 @@ async def test_suggestions_suppress_do_not_merge(db_session: AsyncSession):
         suggestions_after = await suggest_merges(db_session, user.id)
 
     has_pair_after = any(
-        (s["account_a_id"] in (str(acct_a.id), str(acct_b.id)) and
-         s["account_b_id"] in (str(acct_a.id), str(acct_b.id)))
+        (
+            s["account_a_id"] in (str(acct_a.id), str(acct_b.id))
+            and s["account_b_id"] in (str(acct_a.id), str(acct_b.id))
+        )
         for s in suggestions_after
     )
     assert not has_pair_after, "do_not_merge pair must be suppressed from suggestions"
@@ -567,12 +568,22 @@ async def test_suggestions_skip_already_merged(db_session: AsyncSession):
     conn = await _make_connection(db_session, user)
 
     acct_a = await _make_account_row(
-        db_session, user, conn.id, provider_account_id="mg-a",
-        display_name="Test Bank", account_type="TRANSACTION", currency="GBP",
+        db_session,
+        user,
+        conn.id,
+        provider_account_id="mg-a",
+        display_name="Test Bank",
+        account_type="TRANSACTION",
+        currency="GBP",
     )
     acct_b = await _make_account_row(
-        db_session, user, conn.id, provider_account_id="mg-b",
-        display_name="Test Bank", account_type="TRANSACTION", currency="GBP",
+        db_session,
+        user,
+        conn.id,
+        provider_account_id="mg-b",
+        display_name="Test Bank",
+        account_type="TRANSACTION",
+        currency="GBP",
     )
 
     svc = IdentityMergeService()
@@ -584,8 +595,10 @@ async def test_suggestions_skip_already_merged(db_session: AsyncSession):
         suggestions = await suggest_merges(db_session, user.id)
 
     has_pair = any(
-        (s["account_a_id"] in (str(acct_a.id), str(acct_b.id)) and
-         s["account_b_id"] in (str(acct_a.id), str(acct_b.id)))
+        (
+            s["account_a_id"] in (str(acct_a.id), str(acct_b.id))
+            and s["account_b_id"] in (str(acct_a.id), str(acct_b.id))
+        )
         for s in suggestions
     )
     assert not has_pair, "Already-merged pair must not appear in suggestions"
@@ -613,35 +626,31 @@ async def test_unmerge_native_group_mints_fresh_identity(db_session: AsyncSessio
 
     svc = IdentityMergeService()
     with _dek_context(user):
-        survivor_id = await svc.merge(
-            db_session, user.id, [str(acct_a.id), str(acct_b.id)]
-        )
+        survivor_id = await svc.merge(db_session, user.id, [str(acct_a.id), str(acct_b.id)])
     await db_session.flush()
 
     # Both should be on survivor (re-query to avoid DEK context).
-    a_iid_pre = (await db_session.execute(
-        select(Account.identity_id).where(Account.id == acct_a.id)
-    )).scalar_one()
-    b_iid_pre = (await db_session.execute(
-        select(Account.identity_id).where(Account.id == acct_b.id)
-    )).scalar_one()
+    a_iid_pre = (
+        await db_session.execute(select(Account.identity_id).where(Account.id == acct_a.id))
+    ).scalar_one()
+    b_iid_pre = (
+        await db_session.execute(select(Account.identity_id).where(Account.id == acct_b.id))
+    ).scalar_one()
     assert str(a_iid_pre) == survivor_id
     assert str(b_iid_pre) == survivor_id
 
     # Unmerge acct_b.
     unmerge_svc = IdentityUnmergeService()
     with _dek_context(user):
-        caveat = await unmerge_svc.unmerge(
-            db_session, user.id, str(acct_b.id), secret_key=SECRET
-        )
+        caveat = await unmerge_svc.unmerge(db_session, user.id, str(acct_b.id), secret_key=SECRET)
     await db_session.flush()
 
-    a_iid_post = (await db_session.execute(
-        select(Account.identity_id).where(Account.id == acct_a.id)
-    )).scalar_one()
-    b_iid_post = (await db_session.execute(
-        select(Account.identity_id).where(Account.id == acct_b.id)
-    )).scalar_one()
+    a_iid_post = (
+        await db_session.execute(select(Account.identity_id).where(Account.id == acct_a.id))
+    ).scalar_one()
+    b_iid_post = (
+        await db_session.execute(select(Account.identity_id).where(Account.id == acct_b.id))
+    ).scalar_one()
 
     assert isinstance(caveat, str)
     # acct_b gets a fresh identity (not the survivor).

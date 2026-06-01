@@ -64,9 +64,7 @@ def normalize_iban(raw: str | None) -> str | None:
     # Rearrange: move first 4 chars to end, then convert letters to digits
     # (A=10, B=11, … Z=35) and check that the resulting integer mod 97 == 1.
     rearranged = candidate[4:] + candidate[:4]
-    numeric_str = "".join(
-        str(ord(c) - ord("A") + 10) if c.isalpha() else c for c in rearranged
-    )
+    numeric_str = "".join(str(ord(c) - ord("A") + 10) if c.isalpha() else c for c in rearranged)
     if int(numeric_str) % 97 != 1:
         logger.debug("iban_invalid_mod97_skipped", raw=raw, candidate=candidate)
         return None
@@ -269,9 +267,7 @@ async def _merge_identities(
 
         # --- Step 3: re-point account rows ---
         await session.execute(
-            update(Account)
-            .where(Account.identity_id == loser_id)
-            .values(identity_id=survivor_id)
+            update(Account).where(Account.identity_id == loser_id).values(identity_id=survivor_id)
         )
 
         # --- Step 5: tombstone the loser ---
@@ -593,9 +589,7 @@ async def resolve_account_identity(
     account_ids_per_identity: dict[str, list[str]] = {}
     for iid in live_identity_ids:
         result = await session.execute(
-            select(Account.id).where(
-                Account.identity_id == iid, Account.user_id == user_id
-            )
+            select(Account.id).where(Account.identity_id == iid, Account.user_id == user_id)
         )
         account_ids_per_identity[iid] = [str(r) for r in result.scalars().all()]
 
@@ -652,12 +646,12 @@ async def resolve_account_identity(
     oldest_identity_id: str | None = None
 
     for iid in live_identity_ids:
-        result = await session.execute(
+        acct_result = await session.execute(
             select(Account)
             .where(Account.identity_id == iid, Account.user_id == user_id)
             .order_by(Account.created_at.asc(), Account.id.asc())
         )
-        candidate = result.scalars().first()
+        candidate = acct_result.scalars().first()
         if candidate is not None:
             if (
                 oldest_account is None
@@ -1252,6 +1246,7 @@ def _name_similarity(a: str | None, b: str | None) -> float:
     b = b.lower().strip()
     if a == b:
         return 1.0
+
     # Jaccard over trigrams.
     def trigrams(s: str) -> set[str]:
         return {s[i : i + 3] for i in range(len(s) - 2)} if len(s) >= 3 else {s}
@@ -1286,10 +1281,12 @@ async def suggest_merges(
 
     # Load all accounts + their connection provider_type for this user.
     acct_result = await session.execute(
-        select(Account, ProviderConnection.provider_type).join(
+        select(Account, ProviderConnection.provider_type)
+        .join(
             ProviderConnection,
             Account.provider_connection_id == ProviderConnection.id,
-        ).where(Account.user_id == user_id, Account.is_active == True)  # noqa: E712
+        )
+        .where(Account.user_id == user_id, Account.is_active == True)  # noqa: E712
     )
     rows = acct_result.all()
 

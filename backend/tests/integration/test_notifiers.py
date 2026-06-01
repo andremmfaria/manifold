@@ -13,7 +13,6 @@ from manifold.models.email_suppression import EmailSuppression
 from manifold.models.notifier import NotifierConfig
 from manifold.models.provider_connection import ProviderConnection
 from manifold.notifiers.base import NotificationPayload, NotificationType
-from manifold.notifiers.dispatcher import NotifierDispatcher
 from manifold.notifiers.email import EmailNotifier
 from manifold.notifiers.webhook import WebhookNotifier
 from manifold.security.encryption import EncryptionService
@@ -237,7 +236,7 @@ async def test_email_notifier_config_stores_only_routing_keys(client, test_user,
 async def test_email_notifier_dispatch_attempts_send(
     client, test_user, db_session: AsyncSession, monkeypatch
 ):
-    """Dispatch to an email notifier calls transport.send; delivery payload has routing keys only."""
+    """Dispatch to email notifier calls transport.send; payload has routing keys only."""
     user, password = test_user
     await _login(client, user.username, password)
 
@@ -294,7 +293,6 @@ async def test_email_notifier_dispatch_attempts_send(
     # checking the notifier directly — no HTTP round-trip needed here.
     notifier_instance = EmailNotifier()
     test_config = {"to_address": "t@example.com"}
-    from manifold.notifiers.base import NotificationPayload, NotificationType
 
     sample_payload = NotificationPayload(
         type=NotificationType.TEST,

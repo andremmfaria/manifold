@@ -362,9 +362,7 @@ class SyncEngine:
                 # Primary lookup: row already stored with this identity_dedup_hash
                 # (covers the normal cross-connection dedup case).
                 check_result = await session.execute(
-                    select(Transaction).where(
-                        Transaction.identity_dedup_hash == tier1_hash
-                    )
+                    select(Transaction).where(Transaction.identity_dedup_hash == tier1_hash)
                 )
                 existing_row = check_result.scalar_one_or_none()
 
@@ -376,8 +374,7 @@ class SyncEngine:
                     legacy_check_result = await session.execute(
                         select(Transaction).where(
                             Transaction.account_id == account.id,
-                            Transaction.provider_transaction_id
-                            == item.provider_transaction_id,
+                            Transaction.provider_transaction_id == item.provider_transaction_id,
                         )
                     )
                     existing_row = legacy_check_result.scalar_one_or_none()

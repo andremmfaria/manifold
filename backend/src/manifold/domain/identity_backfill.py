@@ -88,9 +88,7 @@ async def _run_backfill(session: AsyncSession) -> dict[str, int]:
 
     # Fetch all users that have at least one account without an identity_id.
     user_ids_result = await session.execute(
-        select(Account.user_id)
-        .where(Account.identity_id.is_(None))
-        .distinct()
+        select(Account.user_id).where(Account.identity_id.is_(None)).distinct()
     )
     user_ids: list[str] = [str(r) for r in user_ids_result.scalars().all()]
 

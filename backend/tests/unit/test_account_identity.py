@@ -4,6 +4,7 @@ Golden vectors are computed from first principles so the test itself acts as
 the spec-compliance record.  If a vector changes unexpectedly the test fails
 loudly, preventing silent regression.
 """
+
 from __future__ import annotations
 
 from manifold.domain.account_identity import (
@@ -254,15 +255,11 @@ class TestComputeIdentifierHmac:
         secret = "golden-secret"
         secret_bytes = secret.encode("utf-8")
         info = b"manifold-fingerprint"
-        key = HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=info).derive(
-            secret_bytes
-        )
+        key = HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=info).derive(secret_bytes)
         preimage = b"user-golden:iban:GB29NWBK60161331926819"
         expected = stdlib_hmac.new(key, preimage, "sha256").hexdigest()
 
-        result = compute_identifier_hmac(
-            "user-golden", "iban", "GB29NWBK60161331926819", secret
-        )
+        result = compute_identifier_hmac("user-golden", "iban", "GB29NWBK60161331926819", secret)
         assert result == expected
         # Sanity: it really is 64 hex chars.
         assert len(result) == 64

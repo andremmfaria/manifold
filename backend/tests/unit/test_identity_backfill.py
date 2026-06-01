@@ -168,9 +168,7 @@ async def test_backfill_rerun_is_noop(db_session: AsyncSession):
     conn = await _make_connection(db_session, user)
 
     await _make_account(db_session, user, conn.id, iban=VALID_IBAN_A)
-    await _make_account(
-        db_session, user, conn.id, sort_code=SORT_CODE, account_number=ACCOUNT_NUM
-    )
+    await _make_account(db_session, user, conn.id, sort_code=SORT_CODE, account_number=ACCOUNT_NUM)
 
     # First run.
     with _dek_ctx(user):
@@ -219,15 +217,16 @@ async def test_backfill_order_independent(db_session: AsyncSession):
 
     # Three accounts; the IBAN links acct_1 and acct_2; acct_3 is SCAN-only
     # and separate.
-    acct_1 = await _make_account(
-        db_session, user, conn_a.id, iban=VALID_IBAN_A, created_at=t0
-    )
+    acct_1 = await _make_account(db_session, user, conn_a.id, iban=VALID_IBAN_A, created_at=t0)
     acct_2 = await _make_account(
         db_session, user, conn_b.id, iban=VALID_IBAN_A, created_at=t0 + timedelta(hours=1)
     )
     acct_3 = await _make_account(
-        db_session, user, conn_c.id,
-        sort_code=SORT_CODE, account_number=ACCOUNT_NUM,
+        db_session,
+        user,
+        conn_c.id,
+        sort_code=SORT_CODE,
+        account_number=ACCOUNT_NUM,
         created_at=t0 + timedelta(hours=2),
     )
     all_accounts = [acct_1, acct_2, acct_3]
@@ -259,6 +258,7 @@ async def test_backfill_order_independent(db_session: AsyncSession):
         for acct in order:
             with _dek_ctx(user):
                 from manifold.domain.identity_backfill import _account_to_dto
+
                 dto = _account_to_dto(acct)
                 rows = extract_identifiers(dto, user.id, "json", secret_key=cfg.secret_key)
                 await resolve_account_identity(db_session, acct, rows, user_id=user.id)
@@ -270,9 +270,11 @@ async def test_backfill_order_independent(db_session: AsyncSession):
             result = await db_session.execute(
                 select(Account.identity_id).where(Account.id == acct.id)
             )
+
             # Build a lightweight stand-in to avoid encrypted-column access.
             class _Stub:
                 pass
+
             s = _Stub()
             s.id = acct.id
             s.identity_id = result.scalar_one_or_none()
@@ -342,19 +344,28 @@ async def test_scan_iban_bridge_collapses_three_to_one_identity(db_session: Asyn
 
     # acct_scan is oldest → will be master.
     await _make_account(
-        db_session, user, conn_scan.id,
-        sort_code=SORT_CODE, account_number=ACCOUNT_NUM,
+        db_session,
+        user,
+        conn_scan.id,
+        sort_code=SORT_CODE,
+        account_number=ACCOUNT_NUM,
         created_at=t0,
     )
     await _make_account(
-        db_session, user, conn_iban.id,
+        db_session,
+        user,
+        conn_iban.id,
         iban=VALID_IBAN_A,
         created_at=t0 + timedelta(hours=1),
     )
     # Bridge — carries both identifiers → merges the two identities.
     await _make_account(
-        db_session, user, conn_bridge.id,
-        iban=VALID_IBAN_A, sort_code=SORT_CODE, account_number=ACCOUNT_NUM,
+        db_session,
+        user,
+        conn_bridge.id,
+        iban=VALID_IBAN_A,
+        sort_code=SORT_CODE,
+        account_number=ACCOUNT_NUM,
         created_at=t0 + timedelta(hours=2),
     )
 
@@ -367,9 +378,7 @@ async def test_scan_iban_bridge_collapses_three_to_one_identity(db_session: Asyn
     assert live == 1, f"Expected 1 live identity after bridge, got {live}"
 
     # All 3 accounts share the same identity_id.
-    result = await db_session.execute(
-        select(Account.identity_id).where(Account.user_id == user.id)
-    )
+    result = await db_session.execute(select(Account.identity_id).where(Account.user_id == user.id))
     identity_ids = {row for row in result.scalars().all()}
     assert None not in identity_ids, "Some accounts still have identity_id=NULL after backfill"
     assert len(identity_ids) == 1, f"Expected 1 distinct identity_id, got {identity_ids}"
@@ -389,9 +398,13 @@ async def test_zero_identifier_account_no_crash(db_session: AsyncSession):
     conn = await _make_connection(db_session, user)
 
     acct = await _make_account(
-        db_session, user, conn.id,
+        db_session,
+        user,
+        conn.id,
         # No identifiers at all — mirrors zero-identifier.json fixture shape.
-        iban=None, sort_code=None, account_number=None,
+        iban=None,
+        sort_code=None,
+        account_number=None,
     )
 
     # Must not raise.
@@ -401,9 +414,7 @@ async def test_zero_identifier_account_no_crash(db_session: AsyncSession):
         await db_session.flush()
 
     # Per spec: zero identifiers → identity_id stays NULL (no match possible).
-    result = await db_session.execute(
-        select(Account.identity_id).where(Account.id == acct.id)
-    )
+    result = await db_session.execute(select(Account.identity_id).where(Account.id == acct.id))
     identity_id = result.scalar_one_or_none()
     assert identity_id is None, (
         f"Zero-identifier account should remain unassigned; got identity_id={identity_id}"
@@ -424,12 +435,14 @@ async def test_zero_identifier_mixed_with_identifier_accounts(db_session: AsyncS
     conn_b = await _make_connection(db_session, user)
 
     acct_zero = await _make_account(
-        db_session, user, conn_a.id,
-        iban=None, sort_code=None, account_number=None,
+        db_session,
+        user,
+        conn_a.id,
+        iban=None,
+        sort_code=None,
+        account_number=None,
     )
-    acct_iban = await _make_account(
-        db_session, user, conn_b.id, iban=VALID_IBAN_A
-    )
+    acct_iban = await _make_account(db_session, user, conn_b.id, iban=VALID_IBAN_A)
 
     with _dek_ctx(user):
         totals: dict[str, int] = {}

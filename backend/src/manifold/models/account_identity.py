@@ -21,9 +21,7 @@ class AccountIdentity(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     # Canonical display/metadata source; oldest member account by created_at.
     # Nullable until the first account is bound.
-    master_account_id: Mapped[str | None] = mapped_column(
-        ForeignKey("accounts.id"), nullable=True
-    )
+    master_account_id: Mapped[str | None] = mapped_column(ForeignKey("accounts.id"), nullable=True)
     # auto = formed by the sync engine; manual = formed by explicit user merge (§13).
     origin: Mapped[str] = mapped_column(
         Text,

@@ -110,9 +110,7 @@ async def _run_webhook_test(
     # Assert suppression row exists
     async def _check() -> tuple[bool, bool]:
         supp = await db_session.execute(
-            select(EmailSuppression).where(
-                EmailSuppression.address_hmac == expected_hmac
-            )
+            select(EmailSuppression).where(EmailSuppression.address_hmac == expected_hmac)
         )
         audit = await db_session.execute(select(EmailWebhookEvent))
         return supp.scalar_one_or_none() is not None, audit.scalars().first() is not None
@@ -157,9 +155,7 @@ async def _run_reject_test(
 
     async def _check() -> bool:
         supp = await db_session.execute(
-            select(EmailSuppression).where(
-                EmailSuppression.address_hmac == expected_hmac
-            )
+            select(EmailSuppression).where(EmailSuppression.address_hmac == expected_hmac)
         )
         return supp.scalar_one_or_none() is None
 
@@ -213,10 +209,8 @@ async def test_ses_webhook_invalid_signature_returns_401(
 async def test_ses_subscription_confirmation_no_suppression(
     client, superadmin_user, db_session, monkeypatch
 ):
-    """SubscriptionConfirmation: verify_webhook True + parse_webhook [] → 200, audit row, no suppression."""
-    await _setup_email_settings(
-        client, superadmin_user, "ses", {"region": "us-east-1"}
-    )
+    """SubscriptionConfirmation: verify True + parse [] -> 200, audit row, no suppression."""
+    await _setup_email_settings(client, superadmin_user, "ses", {"region": "us-east-1"})
 
     from manifold.email.adapters.ses import SESTransport
 
@@ -240,9 +234,7 @@ async def test_ses_subscription_confirmation_no_suppression(
     assert response.status_code == 200
 
     async def _check() -> tuple[int, bool]:
-        supp_count_result = await db_session.execute(
-            select(EmailSuppression)
-        )
+        supp_count_result = await db_session.execute(select(EmailSuppression))
         supp_count = len(supp_count_result.scalars().all())
         audit_result = await db_session.execute(select(EmailWebhookEvent))
         audit_exists = audit_result.scalars().first() is not None
@@ -273,7 +265,9 @@ async def test_resend_webhook_valid_inserts_suppression(
         transport_class="ResendTransport",
         bounce_address="resend-bounce@x.com",
         monkeypatch=monkeypatch,
-        raw_body=json.dumps({"type": "email.bounced", "data": {"to": "resend-bounce@x.com"}}).encode(),
+        raw_body=json.dumps(
+            {"type": "email.bounced", "data": {"to": "resend-bounce@x.com"}}
+        ).encode(),
     )
 
 

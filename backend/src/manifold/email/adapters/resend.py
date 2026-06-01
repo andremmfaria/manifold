@@ -64,7 +64,7 @@ class ResendTransport:
             # Svix secret: strip optional "whsec_" prefix then base64-decode
             raw_secret = secret
             if raw_secret.startswith("whsec_"):
-                raw_secret = raw_secret[len("whsec_"):]
+                raw_secret = raw_secret[len("whsec_") :]
             key_bytes = base64.b64decode(raw_secret)
 
             # Signed payload: "{svix_id}.{svix_timestamp}.{body}"
@@ -91,8 +91,7 @@ class ResendTransport:
         addresses: list[str] = [raw_to] if isinstance(raw_to, str) else list(raw_to)
 
         return [
-            SuppressionEvent(address=addr, reason=reason, provider="resend")
-            for addr in addresses
+            SuppressionEvent(address=addr, reason=reason, provider="resend") for addr in addresses
         ]
 
 

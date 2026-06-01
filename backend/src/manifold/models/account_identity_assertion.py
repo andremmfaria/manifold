@@ -28,12 +28,8 @@ class AccountIdentityAssertion(UUIDPrimaryKeyMixin, Base):
 
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     kind: Mapped[str] = mapped_column(Text, nullable=False)
-    account_a_id: Mapped[str] = mapped_column(
-        ForeignKey("accounts.id"), nullable=False, index=True
-    )
-    account_b_id: Mapped[str] = mapped_column(
-        ForeignKey("accounts.id"), nullable=False, index=True
-    )
+    account_a_id: Mapped[str] = mapped_column(ForeignKey("accounts.id"), nullable=False, index=True)
+    account_b_id: Mapped[str] = mapped_column(ForeignKey("accounts.id"), nullable=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 

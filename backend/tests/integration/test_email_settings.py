@@ -4,12 +4,9 @@ import hashlib
 import hmac
 
 import pytest
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from manifold.api._crypto import with_master_dek
 from manifold.models.email_settings import InstanceEmailSettings
-from manifold.models.email_suppression import EmailSuppression
 from manifold.security.encryption import EncryptionService
 
 
@@ -227,9 +224,7 @@ async def test_suppression_hmac_equals_expected(client, superadmin_user):
     assert response.status_code in (200, 201)
 
     master_key = EncryptionService().dek_master_key
-    expected_digest = hmac.new(
-        master_key, "user@example.com".encode(), hashlib.sha256
-    ).hexdigest()
+    expected_digest = hmac.new(master_key, b"user@example.com", hashlib.sha256).hexdigest()
 
     assert response.json()["address_hmac"] == expected_digest
 
@@ -266,9 +261,7 @@ async def test_delete_suppression(client, superadmin_user):
     )
     suppression_id = create_resp.json()["id"]
 
-    delete_resp = await client.delete(
-        f"/api/v1/email-settings/suppressions/{suppression_id}"
-    )
+    delete_resp = await client.delete(f"/api/v1/email-settings/suppressions/{suppression_id}")
     assert delete_resp.status_code == 204
 
     list_resp = await client.get("/api/v1/email-settings/suppressions")

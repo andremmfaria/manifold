@@ -36,8 +36,8 @@ logger = logging.getLogger(__name__)
 _LABEL_TXN_DEDUP = b"manifold-txn-dedup"
 _LABEL_TXN_CONTENT = b"manifold-txn-content"
 
-_MIN_DESCRIPTION_LENGTH = 4   # reject descriptions shorter than this after normalization
-_DESCRIPTION_TRUNCATE = 128   # truncate normalized description to this length
+_MIN_DESCRIPTION_LENGTH = 4  # reject descriptions shorter than this after normalization
+_DESCRIPTION_TRUNCATE = 128  # truncate normalized description to this length
 
 # Patterns stripped from the tail of a normalized description before hashing.
 # These vary per bank and add no discriminating signal.

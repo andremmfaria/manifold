@@ -16,6 +16,7 @@ Covered paths (§9 Phase 3 acceptance):
   - created_at immutable after re-sync
   - zero-identifier account → no identity assigned, no crash
 """
+
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
@@ -299,8 +300,12 @@ async def test_multi_identity_merge_bridge_account(db_session: AsyncSession):
 
     # Older account → will be master.
     acct_scan = await _make_account_row(
-        db_session, user, conn_a.id, sort_code=SORT_CODE, account_number=ACCOUNT_NUM,
-        created_at=earlier
+        db_session,
+        user,
+        conn_a.id,
+        sort_code=SORT_CODE,
+        account_number=ACCOUNT_NUM,
+        created_at=earlier,
     )
     acct_iban = await _make_account_row(
         db_session, user, conn_b.id, iban=VALID_IBAN_A, created_at=later
@@ -319,8 +324,12 @@ async def test_multi_identity_merge_bridge_account(db_session: AsyncSession):
 
     # Bridge account: exposes both identifiers.
     acct_bridge = await _make_account_row(
-        db_session, user, conn_bridge.id,
-        iban=VALID_IBAN_A, sort_code=SORT_CODE, account_number=ACCOUNT_NUM,
+        db_session,
+        user,
+        conn_bridge.id,
+        iban=VALID_IBAN_A,
+        sort_code=SORT_CODE,
+        account_number=ACCOUNT_NUM,
     )
     data_bridge = _make_account_data(
         iban=VALID_IBAN_A, sort_code=SORT_CODE, account_number=ACCOUNT_NUM
@@ -362,9 +371,7 @@ async def test_multi_identity_merge_bridge_account(db_session: AsyncSession):
     # Event has encrypted payload — need DEK context to read it.
     with _dek_context(db_session, user):
         event_result = await db_session.execute(
-            select(Event).where(
-                Event.event_type == "identity_merged", Event.user_id == user.id
-            )
+            select(Event).where(Event.event_type == "identity_merged", Event.user_id == user.id)
         )
         events = event_result.scalars().all()
     assert len(events) >= 1
@@ -392,7 +399,8 @@ async def test_cross_identity_accrete_conflict_triggers_merge(db_session: AsyncS
 
     # Sync each with their initial identifier.
     await _resolve(
-        db_session, acct_a,
+        db_session,
+        acct_a,
         _make_account_data(sort_code=SORT_CODE, account_number=ACCOUNT_NUM),
         user,
     )
@@ -411,9 +419,9 @@ async def test_cross_identity_accrete_conflict_triggers_merge(db_session: AsyncS
 
     # After merge, both accounts share one identity.
     # Re-query identity_id directly (avoid refresh() which needs DEK context).
-    acct_a_identity = (await db_session.execute(
-        select(Account.identity_id).where(Account.id == acct_a.id)
-    )).scalar_one()
+    acct_a_identity = (
+        await db_session.execute(select(Account.identity_id).where(Account.id == acct_a.id))
+    ).scalar_one()
     assert acct_a_identity == acct_b.identity_id
     assert acct_a_identity is not None
 
@@ -446,7 +454,8 @@ async def test_disjoint_no_bridge_stays_two_identities(db_session: AsyncSession)
     acct_b = await _make_account_row(db_session, user, conn_b.id, iban=VALID_IBAN_B)
 
     await _resolve(
-        db_session, acct_a,
+        db_session,
+        acct_a,
         _make_account_data(sort_code=SORT_CODE, account_number=ACCOUNT_NUM),
         user,
     )
@@ -498,7 +507,8 @@ async def test_retire_dont_delete_on_merge_collision(db_session: AsyncSession):
 
     await _resolve(db_session, acct_a, _make_account_data(iban=VALID_IBAN_A), user)
     await _resolve(
-        db_session, acct_b,
+        db_session,
+        acct_b,
         _make_account_data(sort_code=SORT_CODE, account_number=ACCOUNT_NUM),
         user,
     )
@@ -508,20 +518,24 @@ async def test_retire_dont_delete_on_merge_collision(db_session: AsyncSession):
     assert identity_a != identity_b
 
     # Get identity_b's SCAN row and identity_a's IBAN row for post-merge checks.
-    scan_row_id = (await db_session.execute(
-        select(AccountIdentifier.id).where(
-            AccountIdentifier.identity_id == identity_b,
-            AccountIdentifier.id_type == "scan",
-            AccountIdentifier.retired_at.is_(None),
+    scan_row_id = (
+        await db_session.execute(
+            select(AccountIdentifier.id).where(
+                AccountIdentifier.identity_id == identity_b,
+                AccountIdentifier.id_type == "scan",
+                AccountIdentifier.retired_at.is_(None),
+            )
         )
-    )).scalar_one()
-    iban_a_row_id = (await db_session.execute(
-        select(AccountIdentifier.id).where(
-            AccountIdentifier.identity_id == identity_a,
-            AccountIdentifier.id_type == "iban",
-            AccountIdentifier.retired_at.is_(None),
+    ).scalar_one()
+    iban_a_row_id = (
+        await db_session.execute(
+            select(AccountIdentifier.id).where(
+                AccountIdentifier.identity_id == identity_a,
+                AccountIdentifier.id_type == "iban",
+                AccountIdentifier.retired_at.is_(None),
+            )
         )
-    )).scalar_one()
+    ).scalar_one()
 
     # Merge identity_b (loser) → identity_a (survivor).
     with _dek_context(db_session, user):
@@ -531,24 +545,28 @@ async def test_retire_dont_delete_on_merge_collision(db_session: AsyncSession):
     await db_session.flush()
 
     # (a) SCAN row re-pointed to survivor, NOT deleted, provenance stamped.
-    scan_after = (await db_session.execute(
-        select(AccountIdentifier).where(AccountIdentifier.id == scan_row_id)
-    )).scalar_one()
+    scan_after = (
+        await db_session.execute(
+            select(AccountIdentifier).where(AccountIdentifier.id == scan_row_id)
+        )
+    ).scalar_one()
     assert scan_after is not None, "loser SCAN row must NOT be hard-deleted"
     assert scan_after.identity_id == identity_a, "SCAN row must be re-pointed to survivor"
     assert scan_after.merged_from_identity == identity_b, "provenance must be stamped"
 
     # (b) Survivor's IBAN row is unaffected.
-    iban_a_after = (await db_session.execute(
-        select(AccountIdentifier).where(AccountIdentifier.id == iban_a_row_id)
-    )).scalar_one()
+    iban_a_after = (
+        await db_session.execute(
+            select(AccountIdentifier).where(AccountIdentifier.id == iban_a_row_id)
+        )
+    ).scalar_one()
     assert iban_a_after.retired_at is None, "survivor IBAN row must remain active"
     assert iban_a_after.identity_id == identity_a, "survivor IBAN row identity unchanged"
 
     # (c) Loser identity tombstoned (merged_into / merged_at set).
-    loser_identity = (await db_session.execute(
-        select(AccountIdentity).where(AccountIdentity.id == identity_b)
-    )).scalar_one()
+    loser_identity = (
+        await db_session.execute(select(AccountIdentity).where(AccountIdentity.id == identity_b))
+    ).scalar_one()
     assert loser_identity.merged_into == identity_a
     assert loser_identity.merged_at is not None
 
@@ -574,7 +592,8 @@ async def test_do_not_merge_suppresses_bridge_merge(db_session: AsyncSession):
     acct_iban = await _make_account_row(db_session, user, conn_b.id, iban=VALID_IBAN_A)
 
     await _resolve(
-        db_session, acct_scan,
+        db_session,
+        acct_scan,
         _make_account_data(sort_code=SORT_CODE, account_number=ACCOUNT_NUM),
         user,
     )
@@ -600,8 +619,12 @@ async def test_do_not_merge_suppresses_bridge_merge(db_session: AsyncSession):
 
     # Sync bridge account with both identifiers.
     acct_bridge = await _make_account_row(
-        db_session, user, conn_bridge.id,
-        iban=VALID_IBAN_A, sort_code=SORT_CODE, account_number=ACCOUNT_NUM,
+        db_session,
+        user,
+        conn_bridge.id,
+        iban=VALID_IBAN_A,
+        sort_code=SORT_CODE,
+        account_number=ACCOUNT_NUM,
     )
     data_bridge = _make_account_data(
         iban=VALID_IBAN_A, sort_code=SORT_CODE, account_number=ACCOUNT_NUM
@@ -610,12 +633,12 @@ async def test_do_not_merge_suppresses_bridge_merge(db_session: AsyncSession):
 
     # Identities must remain separate (merge suppressed).
     # Re-query identity_id directly (avoid refresh() which needs DEK context).
-    scan_identity_after = (await db_session.execute(
-        select(Account.identity_id).where(Account.id == acct_scan.id)
-    )).scalar_one()
-    iban_identity_after = (await db_session.execute(
-        select(Account.identity_id).where(Account.id == acct_iban.id)
-    )).scalar_one()
+    scan_identity_after = (
+        await db_session.execute(select(Account.identity_id).where(Account.id == acct_scan.id))
+    ).scalar_one()
+    iban_identity_after = (
+        await db_session.execute(select(Account.identity_id).where(Account.id == acct_iban.id))
+    ).scalar_one()
     assert scan_identity_after == identity_scan
     assert iban_identity_after == identity_iban
 
