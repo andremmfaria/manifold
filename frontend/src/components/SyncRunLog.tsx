@@ -20,9 +20,11 @@ export function SyncRunLog({ connectionId }: SyncRunLogProps) {
   const { data, isLoading, error } = useQuery({
     queryKey: ['connections', connectionId, 'sync-runs'],
     queryFn: () =>
-      client.get<{ items: SyncRun[] }>(`/api/v1/connections/${connectionId}/sync-runs`, {
-        params: { limit: 10 },
-      }).then(res => res.data),
+      client
+        .get<{ items: SyncRun[] }>(`/api/v1/connections/${connectionId}/sync-runs`, {
+          params: { limit: 10 },
+        })
+        .then((res) => res.data),
   })
 
   if (isLoading) {
@@ -56,7 +58,9 @@ export function SyncRunLog({ connectionId }: SyncRunLogProps) {
                 {new Date(run.started_at).toLocaleString()}
               </span>
               <span className="text-gray-500 text-xs">
-                {run.completed_at ? `Completed ${new Date(run.completed_at).toLocaleTimeString()}` : 'In progress'}
+                {run.completed_at
+                  ? `Completed ${new Date(run.completed_at).toLocaleTimeString()}`
+                  : 'In progress'}
               </span>
             </div>
           </div>

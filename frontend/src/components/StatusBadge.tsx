@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils'
 
 interface StatusBadgeProps {
   status: string
@@ -26,9 +26,9 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
+        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
         color,
-        className
+        className,
       )}
     >
       {status.charAt(0).toUpperCase() + status.slice(1)}

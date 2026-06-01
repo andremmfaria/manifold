@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils'
 
 interface ObservabilityTagProps {
   sourceType: 'observed' | 'inferred' | 'predicted' | string
@@ -8,7 +8,7 @@ interface ObservabilityTagProps {
 export function ObservabilityTag({ sourceType, className }: ObservabilityTagProps) {
   let color = 'bg-gray-100 text-gray-600'
   let label = sourceType
-  
+
   if (sourceType.toLowerCase() === 'observed') {
     color = 'bg-green-100 text-green-800'
     label = 'Observed'
@@ -23,9 +23,9 @@ export function ObservabilityTag({ sourceType, className }: ObservabilityTagProp
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded border border-border px-2 py-0.5 text-xs font-semibold",
+        'inline-flex items-center rounded border border-border px-2 py-0.5 text-xs font-semibold',
         color,
-        className
+        className,
       )}
     >
       {label}
