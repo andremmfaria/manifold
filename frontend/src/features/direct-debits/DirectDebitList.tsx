@@ -1,20 +1,52 @@
+import { Badge } from '@/components/ui/badge'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+
 export function DirectDebitList({ items }: { items: any[] }) {
+  if (items.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground py-8 text-center">
+        No direct debits found for this account.
+      </p>
+    )
+  }
+
   return (
-    <div className="rounded-xl border border-border bg-white p-4">
-      <ul className="space-y-3">
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Name</TableHead>
+          <TableHead>Reference</TableHead>
+          <TableHead>Amount</TableHead>
+          <TableHead>Status</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
         {items.map((item) => (
-          <li key={item.id} className="flex items-center justify-between gap-3 border-b pb-3 last:border-b-0">
-            <div>
-              <p className="font-medium">{item.name}</p>
-              <p className="text-sm text-slate-500">{item.reference || 'No reference'}</p>
-            </div>
-            <div className="text-right text-sm">
-              <p>{item.amount || '—'} {item.currency || ''}</p>
-              <p className="text-slate-500">{item.status || 'unknown'}</p>
-            </div>
-          </li>
+          <TableRow key={item.id}>
+            <TableCell className="font-medium text-foreground">{item.name}</TableCell>
+            <TableCell className="text-muted-foreground">{item.reference || '—'}</TableCell>
+            <TableCell className="text-foreground">
+              {item.amount ? `${item.amount} ${item.currency || ''}`.trim() : '—'}
+            </TableCell>
+            <TableCell>
+              {item.status ? (
+                <Badge variant="secondary" className="capitalize">
+                  {item.status}
+                </Badge>
+              ) : (
+                <span className="text-muted-foreground text-xs">unknown</span>
+              )}
+            </TableCell>
+          </TableRow>
         ))}
-      </ul>
-    </div>
+      </TableBody>
+    </Table>
   )
 }

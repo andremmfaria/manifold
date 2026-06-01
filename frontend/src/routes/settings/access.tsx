@@ -5,6 +5,17 @@ import type { AuthContextValue } from '@/features/auth/AuthProvider'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { client } from '@/api/client'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 
 export const settingsAccessRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -42,67 +53,69 @@ function AccessPage() {
     <AppShell>
       <div className="p-6 max-w-4xl mx-auto space-y-8">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Access Management</h2>
-          <p className="text-slate-500">Manage who has access to your data.</p>
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">Access Management</h2>
+          <p className="mt-1 text-muted-foreground">Manage who has access to your data.</p>
         </div>
 
         {error && (
-          <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
+          <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive">
             Failed to load access grants
           </div>
         )}
 
-        <div className="bg-white border border-border rounded-lg overflow-hidden shadow-xs">
-          <div className="p-4 border-b border-border bg-slate-50 flex items-center justify-between">
-            <span className="font-medium text-sm text-slate-700">Active Grants</span>
-          </div>
-          
-          {isLoading ? (
-            <div className="p-4 space-y-3">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-            </div>
-          ) : grants && grants.length > 0 ? (
-            <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50/50 text-slate-500 border-b border-border">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Grantee</th>
-                  <th className="px-4 py-3 font-medium">Access Level</th>
-                  <th className="px-4 py-3 font-medium">Granted At</th>
-                  <th className="px-4 py-3 font-medium text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {grants.map(grant => (
-                  <tr key={grant.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-4 py-3 font-medium text-slate-900">{grant.grantee_username}</td>
-                    <td className="px-4 py-3">
-                      <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
-                        {grant.access_level}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-slate-500">
-                      {new Date(grant.granted_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => revokeGrant.mutate(grant.id)}
-                        disabled={revokeGrant.isPending}
-                        className="text-red-600 hover:text-red-800 font-medium text-sm disabled:opacity-50 transition-colors"
-                      >
-                        Revoke
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <div className="p-8 text-center text-slate-500 text-sm">
-              <p>You haven't granted access to anyone.</p>
-            </div>
-          )}
-        </div>
+        <Card>
+          <CardHeader className="border-b">
+            <CardTitle>Active Grants</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {isLoading ? (
+              <div className="p-4 space-y-3">
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+              </div>
+            ) : grants && grants.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Grantee</TableHead>
+                    <TableHead>Access Level</TableHead>
+                    <TableHead>Granted At</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {grants.map(grant => (
+                    <TableRow key={grant.id}>
+                      <TableCell className="font-medium text-foreground">{grant.grantee_username}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="capitalize">
+                          {grant.access_level}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {new Date(grant.granted_at).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => revokeGrant.mutate(grant.id)}
+                          disabled={revokeGrant.isPending}
+                        >
+                          Revoke
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="p-8 text-center text-muted-foreground text-sm">
+                You haven&apos;t granted access to anyone.
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </AppShell>
   )

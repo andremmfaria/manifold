@@ -5,8 +5,27 @@ import type { AuthContextValue } from '@/features/auth/AuthProvider'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { client } from '@/api/client'
 import { useState } from 'react'
-import { StatusBadge } from '@/components/StatusBadge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 
 export const settingsUsersRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -80,179 +99,183 @@ function UsersPage() {
     <AppShell>
       <div className="p-6 max-w-4xl mx-auto space-y-8">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Users</h2>
-          <p className="text-slate-500">Manage system users (Superadmin only).</p>
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">Users</h2>
+          <p className="mt-1 text-muted-foreground">Manage system users (Superadmin only).</p>
         </div>
 
         {error && (
-          <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
+          <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive">
             Failed to load users
           </div>
         )}
 
-        <div className="bg-white border border-border rounded-lg overflow-hidden">
-          <div className="p-4 border-b border-border bg-slate-50 font-medium text-sm text-slate-700">
-            User List
-          </div>
-          {isLoading ? (
-            <div className="p-4 space-y-3">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          ) : (
-            <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50 text-slate-500 border-b border-border">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Username</th>
-                  <th className="px-4 py-3 font-medium">Role</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Created</th>
-                  <th className="px-4 py-3 font-medium text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {users?.map(user => (
-                  <tr key={user.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 font-medium text-slate-900">{user.username}</td>
-                    <td className="px-4 py-3">
-                      <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-800">
-                        {user.role}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={user.is_active ? 'active' : 'inactive'} />
-                    </td>
-                    <td className="px-4 py-3 text-slate-500 text-xs">
-                      {new Date(user.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      {user.is_active && (
-                        <button
-                          onClick={() => deactivateUser.mutate(user.id)}
-                          disabled={deactivateUser.isPending}
-                          className="text-red-600 hover:text-red-800 font-medium text-xs disabled:opacity-50"
-                        >
-                          Deactivate
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-                {(!users || users.length === 0) && (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
-                      No users found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          )}
-        </div>
-
-        <div className="bg-white border border-border rounded-lg overflow-hidden">
-          <div className="p-4 border-b border-border bg-slate-50 font-medium text-sm text-slate-700">
-            Create User
-          </div>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              createUser.mutate()
-            }}
-            className="p-4 space-y-4"
-          >
-            {createUser.isError && (
-              <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
-                Failed to create user
+        <Card>
+          <CardHeader className="border-b">
+            <CardTitle>User List</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {isLoading ? (
+              <div className="p-4 space-y-3">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
               </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Username</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {users?.map(user => (
+                    <TableRow key={user.id}>
+                      <TableCell className="font-medium text-foreground">{user.username}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="capitalize">
+                          {user.role}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={user.is_active ? 'default' : 'outline'}>
+                          {user.is_active ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-xs">
+                        {new Date(user.created_at).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {user.is_active && (
+                          <Button
+                            variant="destructive"
+                            size="xs"
+                            onClick={() => deactivateUser.mutate(user.id)}
+                            disabled={deactivateUser.isPending}
+                          >
+                            Deactivate
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {(!users || users.length === 0) && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                        No users found.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             )}
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-700">Username</label>
-                <input
-                  type="text"
-                  required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-700">Password</label>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-700">First name</label>
-                <input
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-700">Last name</label>
-                <input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-700">Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-700">Role</label>
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
-                >
-                  <option value="user">User</option>
-                  <option value="admin">Admin</option>
-                  <option value="superadmin">Superadmin</option>
-                </select>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2 pt-2">
-              <input
-                type="checkbox"
-                id="must-change-password"
-                checked={mustChangePassword}
-                onChange={(e) => setMustChangePassword(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-              />
-              <label htmlFor="must-change-password" className="text-sm text-slate-700">
-                Must change password on first login
-              </label>
-            </div>
+          </CardContent>
+        </Card>
 
-            <div className="pt-2">
-              <button
-                type="submit"
-                disabled={createUser.isPending}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
-              >
-                {createUser.isPending ? 'Creating...' : 'Create User'}
-              </button>
-            </div>
-          </form>
-        </div>
+        <Card>
+          <CardHeader className="border-b">
+            <CardTitle>Create User</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                createUser.mutate()
+              }}
+              className="space-y-4"
+            >
+              {createUser.isError && (
+                <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
+                  Failed to create user
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    type="text"
+                    required
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="first-name">First name</Label>
+                  <Input
+                    id="first-name"
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="last-name">Last name</Label>
+                  <Input
+                    id="last-name"
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="role">Role</Label>
+                  <Select value={role} onValueChange={setRole}>
+                    <SelectTrigger id="role" className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="user">User</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="superadmin">Superadmin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="must-change-password"
+                  checked={mustChangePassword}
+                  onChange={(e) => setMustChangePassword(e.target.checked)}
+                  className="h-4 w-4 rounded border-input accent-primary"
+                />
+                <Label htmlFor="must-change-password" className="font-normal cursor-pointer">
+                  Must change password on first login
+                </Label>
+              </div>
+
+              <div className="pt-2">
+                <Button type="submit" disabled={createUser.isPending}>
+                  {createUser.isPending ? 'Creating...' : 'Create User'}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </AppShell>
   )

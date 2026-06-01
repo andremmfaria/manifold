@@ -5,6 +5,9 @@ import type { AuthContextValue } from '@/features/auth/AuthProvider'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { client } from '@/api/client'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { Monitor, Smartphone, Globe } from 'lucide-react'
 
 export const settingsSessionsRoute = createRoute({
@@ -28,12 +31,12 @@ interface Session {
 function getDeviceIcon(userAgent: string) {
   const ua = userAgent.toLowerCase()
   if (ua.includes('mobile') || ua.includes('android') || ua.includes('iphone')) {
-    return <Smartphone className="h-5 w-5 text-slate-400" />
+    return <Smartphone className="h-5 w-5 text-muted-foreground" />
   }
   if (ua.includes('mac') || ua.includes('windows') || ua.includes('linux')) {
-    return <Monitor className="h-5 w-5 text-slate-400" />
+    return <Monitor className="h-5 w-5 text-muted-foreground" />
   }
-  return <Globe className="h-5 w-5 text-slate-400" />
+  return <Globe className="h-5 w-5 text-muted-foreground" />
 }
 
 function parseUserAgent(userAgent: string) {
@@ -86,90 +89,95 @@ function SessionsPage() {
       <div className="p-6 max-w-4xl mx-auto space-y-8">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight">Active Sessions</h2>
-            <p className="text-slate-500">Manage the devices that are currently logged in to your account.</p>
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground">Active Sessions</h2>
+            <p className="mt-1 text-muted-foreground">Manage the devices that are currently logged in to your account.</p>
           </div>
           {activeSessions.length > 0 && (
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => revokeOthers.mutate()}
               disabled={revokeOthers.isPending}
-              className="rounded-md bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-xs ring-1 ring-inset ring-slate-300 hover:bg-slate-50 disabled:opacity-50 transition-colors"
             >
               Sign out of all other devices
-            </button>
+            </Button>
           )}
         </div>
 
         {error && (
-          <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
+          <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive">
             Failed to load sessions
           </div>
         )}
 
         {isLoading ? (
           <div className="space-y-4">
-            <Skeleton className="h-24 w-full rounded-lg" />
-            <Skeleton className="h-24 w-full rounded-lg" />
+            <Skeleton className="h-24 w-full rounded-xl" />
+            <Skeleton className="h-24 w-full rounded-xl" />
           </div>
         ) : (
           <div className="space-y-4">
             {currentSession && (
-              <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-4 shadow-xs">
-                <div className="flex items-start justify-between">
+              <Card className="border-primary/30 bg-primary/5 dark:bg-primary/10">
+                <CardContent className="pt-4">
                   <div className="flex items-start gap-4">
-                    <div className="rounded-full bg-blue-100 p-2.5">
+                    <div className="rounded-full bg-primary/10 p-2.5 shrink-0">
                       {getDeviceIcon(currentSession.user_agent)}
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium text-slate-900">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-medium text-foreground">
                           {parseUserAgent(currentSession.user_agent)}
                         </p>
-                        <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                        <Badge variant="default" className="text-xs">
                           Current Device
-                        </span>
+                        </Badge>
                       </div>
-                      <p className="mt-1 text-sm text-slate-500 font-mono">
+                      <p className="mt-1 text-sm text-muted-foreground font-mono truncate">
                         {currentSession.user_agent}
                       </p>
-                      <p className="mt-1 text-xs text-slate-500">
+                      <p className="mt-1 text-xs text-muted-foreground">
                         Signed in: {new Date(currentSession.created_at).toLocaleString()}
                       </p>
                     </div>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             )}
 
             {activeSessions.map((session) => (
-              <div key={session.id} className="rounded-lg border border-border bg-white p-4 shadow-xs transition-shadow hover:border-slate-300">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-4">
-                    <div className="rounded-full bg-slate-100 p-2.5">
-                      {getDeviceIcon(session.user_agent)}
-                    </div>
-                    <div>
-                      <p className="font-medium text-slate-900">
-                        {parseUserAgent(session.user_agent)}
-                      </p>
-                      <p className="mt-1 text-sm text-slate-500 font-mono">
-                        {session.user_agent}
-                      </p>
-                      <div className="mt-2 flex items-center gap-4 text-xs text-slate-500">
-                        <span>Signed in: {new Date(session.created_at).toLocaleDateString()}</span>
-                        <span>Last active: {new Date(session.last_seen_at).toLocaleString()}</span>
+              <Card key={session.id}>
+                <CardContent className="pt-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-4 min-w-0">
+                      <div className="rounded-full bg-muted p-2.5 shrink-0">
+                        {getDeviceIcon(session.user_agent)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-medium text-foreground">
+                          {parseUserAgent(session.user_agent)}
+                        </p>
+                        <p className="mt-1 text-sm text-muted-foreground font-mono truncate">
+                          {session.user_agent}
+                        </p>
+                        <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
+                          <span>Signed in: {new Date(session.created_at).toLocaleDateString()}</span>
+                          <span>Last active: {new Date(session.last_seen_at).toLocaleString()}</span>
+                        </div>
                       </div>
                     </div>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => revokeSession.mutate(session.id)}
+                      disabled={revokeSession.isPending}
+                      className="shrink-0"
+                    >
+                      Sign out
+                    </Button>
                   </div>
-                  <button
-                    onClick={() => revokeSession.mutate(session.id)}
-                    disabled={revokeSession.isPending}
-                    className="text-sm font-medium text-red-600 hover:text-red-700 disabled:opacity-50 transition-colors px-3 py-2 -mr-3 -mt-2"
-                  >
-                    Sign out
-                  </button>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}
