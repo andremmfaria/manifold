@@ -4,6 +4,7 @@ import sys
 import click
 
 from manifold.config import settings
+from manifold.domain.identity_backfill import backfill_identities
 from manifold.domain.users import create_user_record
 
 
@@ -27,6 +28,22 @@ def create_user(username: str, password: str, role: str, must_change_password: b
         )
     )
     click.echo(f"Created user '{username}' with role '{role}'.")
+
+
+@cli.command("backfill-identities")
+def backfill_identities_cmd() -> None:
+    """Assign identity_id to existing accounts that have none (Phase 4 backfill).
+
+    Idempotent — safe to run multiple times. A second run with no new data is a
+    no-op and exits cleanly.
+    """
+    counts = asyncio.run(backfill_identities())
+    click.echo(
+        f"Backfill complete: "
+        f"users={counts['users_processed']} "
+        f"processed={counts['accounts_processed']} "
+        f"skipped={counts['accounts_skipped']}"
+    )
 
 
 @cli.command("check-config")
