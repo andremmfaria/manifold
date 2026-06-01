@@ -141,7 +141,13 @@ async def test_revoke_other_sessions_keeps_current(client, test_user):
     user, password = test_user
 
     await _login(client, user.username, password)
-    other_client = client.__class__(transport=client._transport, base_url="http://testserver")
+    # Use a distinct User-Agent so the second login is treated as a different browser and
+    # creates a second session rather than deduplicating onto the first.
+    other_client = client.__class__(
+        transport=client._transport,
+        base_url="http://testserver",
+        headers={"user-agent": "pytest-httpx-other-browser"},
+    )
     async with other_client:
         await _login(other_client, user.username, password)
         response = await client.post("/api/v1/auth/sessions/revoke-others")
@@ -155,3 +161,38 @@ async def test_revoke_other_sessions_keeps_current(client, test_user):
     assert other_sessions.status_code == 200
     assert len(other_sessions.json()) == 1
     assert other_refresh.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_same_browser_login_deduplicates_session(client, test_user, db_session):
+    """Two logins from the same User-Agent reuse one session row; a third from a different
+    User-Agent creates a second distinct session."""
+    user, password = test_user
+
+    # First login — creates a new session.
+    await _login(client, user.username, password)
+    sessions_after_first = (await client.get("/api/v1/auth/sessions")).json()
+    assert len(sessions_after_first) == 1
+    first_session_id = sessions_after_first[0]["id"]
+
+    # Second login with the SAME User-Agent — must reuse the existing session row.
+    await _login(client, user.username, password)
+    sessions_after_second = (await client.get("/api/v1/auth/sessions")).json()
+    assert len(sessions_after_second) == 1, (
+        "Second login from the same browser should not create a new session row"
+    )
+    assert sessions_after_second[0]["id"] == first_session_id, (
+        "The deduped session must be the same row as the first login"
+    )
+
+    # Third login from a DIFFERENT User-Agent — must create a second session row.
+    different_browser = client.__class__(
+        transport=client._transport,
+        base_url="http://testserver",
+        headers={"user-agent": "different-browser/1.0"},
+    )
+    async with different_browser:
+        await _login(different_browser, user.username, password)
+        all_sessions = (await different_browser.get("/api/v1/auth/sessions")).json()
+
+    assert len(all_sessions) == 2, "A different User-Agent must create a second active session"

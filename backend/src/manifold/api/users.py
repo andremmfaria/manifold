@@ -9,6 +9,7 @@ from manifold.schemas.users import (
     AccessGrantCreateRequest,
     AccessGrantResponse,
     UserCreateRequest,
+    UserLookupResponse,
     UserResponse,
     UserUpdateRequest,
 )
@@ -56,6 +57,30 @@ async def create_user(
         session=session,
     )
     return _serialize_user(user)
+
+
+@router.get(
+    "/by-username/{username}",
+    operation_id="lookupUserByUsername",
+    response_model=UserLookupResponse,
+)
+async def lookup_user_by_username(
+    username: str,
+    _: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> UserLookupResponse:
+    # Available to any authenticated user so they can resolve a username to an id when
+    # granting account access (the list-users endpoint is superadmin-only).
+    result = await session.execute(select(User).where(User.username == username))
+    user = result.scalar_one_or_none()
+    if user is None or not user.is_active:
+        raise HTTPException(status_code=404, detail={"error": "not_found"})
+    return UserLookupResponse(
+        id=str(user.id),
+        username=user.username,
+        first_name=user.first_name,
+        last_name=user.last_name,
+    )
 
 
 @router.get("/{user_id}", operation_id="getUser", response_model=UserResponse)
@@ -122,19 +147,21 @@ async def list_access_grants(
     session: AsyncSession = Depends(get_session),
 ) -> list[AccessGrantResponse]:
     result = await session.execute(
-        select(AccountAccess).where(AccountAccess.owner_user_id == current_user.id)
+        select(AccountAccess, User.username)
+        .join(User, User.id == AccountAccess.grantee_user_id)
+        .where(AccountAccess.owner_user_id == current_user.id)
     )
-    grants = result.scalars().all()
     return [
         AccessGrantResponse(
             id=str(item.id),
             owner_user_id=str(item.owner_user_id),
             grantee_user_id=str(item.grantee_user_id),
+            grantee_username=grantee_username,
             role=item.role,
             granted_at=item.granted_at.isoformat(),
             granted_by=str(item.granted_by) if item.granted_by else None,
         )
-        for item in grants
+        for item, grantee_username in result.all()
     ]
 
 
@@ -151,6 +178,9 @@ async def create_access_grant(
 ) -> AccessGrantResponse:
     if payload.grantee_user_id == str(current_user.id):
         raise HTTPException(status_code=422, detail={"error": "self_grant_forbidden"})
+    grantee = await session.get(User, payload.grantee_user_id)
+    if grantee is None or not grantee.is_active:
+        raise HTTPException(status_code=404, detail={"error": "grantee_not_found"})
     grant = AccountAccess(
         owner_user_id=current_user.id,
         grantee_user_id=payload.grantee_user_id,
@@ -164,6 +194,7 @@ async def create_access_grant(
         id=str(grant.id),
         owner_user_id=str(grant.owner_user_id),
         grantee_user_id=str(grant.grantee_user_id),
+        grantee_username=grantee.username,
         role=grant.role,
         granted_at=grant.granted_at.isoformat(),
         granted_by=str(grant.granted_by) if grant.granted_by else None,

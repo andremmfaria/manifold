@@ -31,6 +31,13 @@ class UserResponse(BaseModel):
     created_at: str
 
 
+class UserLookupResponse(BaseModel):
+    id: str
+    username: str
+    first_name: str | None = None
+    last_name: str | None = None
+
+
 class AccessGrantCreateRequest(BaseModel):
     grantee_user_id: str
     role: str
@@ -40,6 +47,7 @@ class AccessGrantResponse(BaseModel):
     id: str
     owner_user_id: str
     grantee_user_id: str
+    grantee_username: str
     role: str
     granted_at: str
     granted_by: str | None = None

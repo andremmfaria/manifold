@@ -106,6 +106,21 @@ async def test_user_cannot_self_grant_access(client, test_user):
 
 
 @pytest.mark.asyncio
+async def test_user_can_lookup_by_username(client, test_user, another_user):
+    user, password = test_user
+    grantee, _ = another_user
+    await _login(client, user.username, password)
+
+    found = await client.get(f"/api/v1/users/by-username/{grantee.username}")
+    assert found.status_code == 200
+    assert found.json()["id"] == str(grantee.id)
+    assert found.json()["username"] == grantee.username
+
+    missing = await client.get("/api/v1/users/by-username/does-not-exist")
+    assert missing.status_code == 404
+
+
+@pytest.mark.asyncio
 async def test_delete_last_superadmin_conflicts(client, superadmin_user):
     admin, password = superadmin_user
     await _login(client, admin.username, password)

@@ -5,7 +5,7 @@ from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response
 from jose import jwt
-from sqlalchemy import or_, select
+from sqlalchemy import or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from manifold.api.deps import (
@@ -96,6 +96,31 @@ async def _create_refresh_token(
     return raw_token
 
 
+async def _find_active_session_for_browser(
+    session: AsyncSession,
+    user_id: str,
+    user_agent: str | None,
+) -> UserSession | None:
+    """Return the active (non-revoked) session matching this user + user-agent, if any.
+
+    Dedupe key = (user_id, user_agent). user_agent is the most stable browser identity we
+    capture at login time. We deliberately exclude device_label and IP from the key: labels
+    can change between logins and IPs change on roaming devices, while user-agent stays
+    constant for a given browser installation. If user_agent is None we skip deduplication
+    (can't reliably identify the browser) and always create a new session.
+    """
+    if user_agent is None:
+        return None
+    result = await session.execute(
+        select(UserSession).where(
+            UserSession.user_id == user_id,
+            UserSession.user_agent == user_agent,
+            UserSession.revoked_at.is_(None),
+        )
+    )
+    return result.scalars().first()
+
+
 @router.post("/login", operation_id="login", response_model=TokenResponse)
 async def login(
     payload: LoginRequest,
@@ -118,17 +143,43 @@ async def login(
     if not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=401, detail={"error": "invalid_credentials"})
 
-    device_cookie = secrets.token_urlsafe(32)
-    user_session = UserSession(
-        user_id=user.id,
-        device_cookie_hash=EncryptionService().hash_token(device_cookie),
-        device_label=request.headers.get("x-device-label"),
-        user_agent=request.headers.get("user-agent"),
-        ip_first=request.client.host if request.client else None,
-        ip_last=request.client.host if request.client else None,
+    incoming_user_agent = request.headers.get("user-agent")
+    existing_session = await _find_active_session_for_browser(
+        session, str(user.id), incoming_user_agent
     )
-    session.add(user_session)
-    await session.flush()
+
+    device_cookie = secrets.token_urlsafe(32)
+    if existing_session is not None:
+        # Reuse the existing session row for this browser: rotate the device cookie and
+        # revoke all old refresh tokens so prior sessions are invalidated, then issue a
+        # fresh refresh token tied to the same session id.
+        existing_session.device_cookie_hash = EncryptionService().hash_token(device_cookie)
+        existing_session.last_seen_at = _utc_now()
+        existing_session.ip_last = request.client.host if request.client else None
+        if request.headers.get("x-device-label"):
+            existing_session.device_label = request.headers.get("x-device-label")
+        await session.execute(
+            update(RefreshToken)
+            .where(
+                RefreshToken.session_id == existing_session.id,
+                RefreshToken.revoked_at.is_(None),
+            )
+            .values(revoked_at=_utc_now())
+        )
+        await session.flush()
+        user_session = existing_session
+    else:
+        user_session = UserSession(
+            user_id=user.id,
+            device_cookie_hash=EncryptionService().hash_token(device_cookie),
+            device_label=request.headers.get("x-device-label"),
+            user_agent=incoming_user_agent,
+            ip_first=request.client.host if request.client else None,
+            ip_last=request.client.host if request.client else None,
+        )
+        session.add(user_session)
+        await session.flush()
+
     refresh_token = await _create_refresh_token(session, user, user_session)
     access_token, expires_in = _issue_access_token(user)
     await session.commit()
