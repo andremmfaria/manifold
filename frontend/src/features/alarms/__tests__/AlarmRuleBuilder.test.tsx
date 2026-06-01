@@ -25,6 +25,6 @@ describe('AlarmRuleBuilder', () => {
     expect(queryBuilder.props.fields.map((field) => field.label)).toEqual(
       expect.arrayContaining(['Balance', 'Currency']),
     )
-    expect(queryBuilder.props.controlClassnames.queryBuilder).toBe('text-sm')
+    expect(queryBuilder.props.controlClassnames.queryBuilder).toBe('text-sm text-foreground')
   })
 })

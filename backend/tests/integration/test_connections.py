@@ -3,6 +3,7 @@ from __future__ import annotations
 from decimal import Decimal
 
 import pytest
+from sqlalchemy import select
 
 from manifold.models.account import Account
 from manifold.models.alarm import AlarmAccountAssignment, AlarmDefinition
@@ -17,7 +18,6 @@ from manifold.models.standing_order import StandingOrder
 from manifold.models.sync_run import SyncRun
 from manifold.models.transaction import Transaction
 from manifold.security.encryption import EncryptionService
-from sqlalchemy import select
 
 
 async def _login(client, username: str, password: str):
@@ -168,9 +168,23 @@ async def _build_connection_with_data(db_session, user):
 
         await db_session.commit()
 
-        return connection, account, card, txn, pending, balance, card_balance, \
-               direct_debit, standing_order, recurrence, event, \
-               sync_run_account, sync_run_conn, alarm, assignment
+        return (
+            connection,
+            account,
+            card,
+            txn,
+            pending,
+            balance,
+            card_balance,
+            direct_debit,
+            standing_order,
+            recurrence,
+            event,
+            sync_run_account,
+            sync_run_conn,
+            alarm,
+            assignment,
+        )
 
 
 async def _build_unrelated_connection(db_session, user):
@@ -220,9 +234,21 @@ async def test_delete_connection_cascades_all_children(client, test_user, db_ses
     await _login(client, user.username, password)
 
     (
-        connection, account, card, txn, pending, balance, card_balance,
-        direct_debit, standing_order, recurrence, event,
-        sync_run_account, sync_run_conn, alarm, assignment,
+        connection,
+        account,
+        card,
+        txn,
+        pending,
+        balance,
+        card_balance,
+        direct_debit,
+        standing_order,
+        recurrence,
+        event,
+        sync_run_account,
+        sync_run_conn,
+        alarm,
+        assignment,
     ) = await _build_connection_with_data(db_session, user)
 
     # Capture all IDs as plain strings BEFORE the HTTP call — after expire_all()
@@ -289,9 +315,7 @@ async def test_delete_connection_cascades_all_children(client, test_user, db_ses
 
 
 @pytest.mark.asyncio
-async def test_delete_connection_does_not_touch_unrelated_connection(
-    client, test_user, db_session
-):
+async def test_delete_connection_does_not_touch_unrelated_connection(client, test_user, db_session):
     """Deleting one connection must not affect a second connection's data."""
     user, password = test_user
     await _login(client, user.username, password)
@@ -353,7 +377,5 @@ async def test_delete_connection_404_for_missing_id(client, test_user):
     user, password = test_user
     await _login(client, user.username, password)
 
-    response = await client.delete(
-        "/api/v1/connections/00000000-0000-0000-0000-000000000000"
-    )
+    response = await client.delete("/api/v1/connections/00000000-0000-0000-0000-000000000000")
     assert response.status_code == 404

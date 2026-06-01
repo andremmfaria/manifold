@@ -61,32 +61,22 @@ async def delete_connection_cascade(
     if account_ids:
         # 1. AlarmAccountAssignment — links alarms to accounts being removed.
         await session.execute(
-            delete(AlarmAccountAssignment).where(
-                AlarmAccountAssignment.account_id.in_(account_ids)
-            )
+            delete(AlarmAccountAssignment).where(AlarmAccountAssignment.account_id.in_(account_ids))
         )
 
         # 2. Balance by account_id.
-        await session.execute(
-            delete(Balance).where(Balance.account_id.in_(account_ids))
-        )
+        await session.execute(delete(Balance).where(Balance.account_id.in_(account_ids)))
 
         # 3. Transaction by account_id (covers transactions referencing cards of these accounts).
-        await session.execute(
-            delete(Transaction).where(Transaction.account_id.in_(account_ids))
-        )
+        await session.execute(delete(Transaction).where(Transaction.account_id.in_(account_ids)))
 
         # 4. PendingTransaction by account_id.
         await session.execute(
-            delete(PendingTransaction).where(
-                PendingTransaction.account_id.in_(account_ids)
-            )
+            delete(PendingTransaction).where(PendingTransaction.account_id.in_(account_ids))
         )
 
         # 5. DirectDebit by account_id.
-        await session.execute(
-            delete(DirectDebit).where(DirectDebit.account_id.in_(account_ids))
-        )
+        await session.execute(delete(DirectDebit).where(DirectDebit.account_id.in_(account_ids)))
 
         # 6. StandingOrder by account_id.
         await session.execute(
@@ -95,47 +85,31 @@ async def delete_connection_cascade(
 
         # 7. RecurrenceProfile by account_id.
         await session.execute(
-            delete(RecurrenceProfile).where(
-                RecurrenceProfile.account_id.in_(account_ids)
-            )
+            delete(RecurrenceProfile).where(RecurrenceProfile.account_id.in_(account_ids))
         )
 
         # 8. Event by account_id (nullable — only rows scoped to these accounts).
-        await session.execute(
-            delete(Event).where(Event.account_id.in_(account_ids))
-        )
+        await session.execute(delete(Event).where(Event.account_id.in_(account_ids)))
 
         # 9. SyncRun rows scoped to individual accounts.
-        await session.execute(
-            delete(SyncRun).where(SyncRun.account_id.in_(account_ids))
-        )
+        await session.execute(delete(SyncRun).where(SyncRun.account_id.in_(account_ids)))
 
     # 2b. Balance by card_id for cards with no account_id (connection-level cards).
     # Cards without an account_id won't have been covered by the account_ids pass above.
     if card_ids:
-        await session.execute(
-            delete(Balance).where(Balance.card_id.in_(card_ids))
-        )
+        await session.execute(delete(Balance).where(Balance.card_id.in_(card_ids)))
 
     # 10. Card by provider_connection_id (covers all cards regardless of account linkage).
-    await session.execute(
-        delete(Card).where(Card.provider_connection_id == connection_id)
-    )
+    await session.execute(delete(Card).where(Card.provider_connection_id == connection_id))
 
     # 11. Account by provider_connection_id.
-    await session.execute(
-        delete(Account).where(Account.provider_connection_id == connection_id)
-    )
+    await session.execute(delete(Account).where(Account.provider_connection_id == connection_id))
 
     # 12. SyncRun by provider_connection_id (connection-level / pre-account sync runs).
-    await session.execute(
-        delete(SyncRun).where(SyncRun.provider_connection_id == connection_id)
-    )
+    await session.execute(delete(SyncRun).where(SyncRun.provider_connection_id == connection_id))
 
     # 13. OAuthState — has ondelete=CASCADE on the FK but delete explicitly for clarity.
-    await session.execute(
-        delete(OAuthState).where(OAuthState.connection_id == connection_id)
-    )
+    await session.execute(delete(OAuthState).where(OAuthState.connection_id == connection_id))
 
     # 14. Finally remove the connection itself.
     await session.delete(connection)
