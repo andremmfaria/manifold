@@ -7,6 +7,8 @@ COPY . .
 # so baseURL must stay '' (a non-empty value would double the prefix → /api/api/v1).
 ARG VITE_API_BASE_URL=
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
+ARG APP_VERSION=0.0.0
+ENV VITE_APP_VERSION=${APP_VERSION}
 RUN npm run build
 
 FROM nginx:alpine AS final

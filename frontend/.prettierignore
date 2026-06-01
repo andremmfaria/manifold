@@ -1,0 +1,13 @@
+# Build output & deps
+dist
+build
+coverage
+node_modules
+
+# Lockfiles & generated artifacts
+package-lock.json
+pnpm-lock.yaml
+*.snap
+
+# Static assets
+public
