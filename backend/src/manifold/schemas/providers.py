@@ -11,6 +11,7 @@ class ProviderTypeResponse(SchemaModel):
     type: str
     provider_type: str
     display_name: str
+    auth_kind: str
     supports_pending: bool
     supports_direct_debits: bool
     supports_cards: bool

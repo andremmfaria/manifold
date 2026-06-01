@@ -21,6 +21,7 @@ from manifold.providers.types import (
 class JsonProvider(BaseProvider):
     provider_type = "json"
     display_name = "JSON File"
+    auth_kind = "file"
 
     def __init__(self) -> None:
         self.auth = build_auth(None)

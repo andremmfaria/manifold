@@ -33,6 +33,7 @@ async def list_providers(
                 type=provider.provider_type,
                 provider_type=provider.provider_type,
                 display_name=provider.display_name,
+                auth_kind=provider.auth_kind,
                 supports_pending=provider.supports_pending,
                 supports_direct_debits=provider.supports_direct_debits,
                 supports_cards=provider.supports_cards,

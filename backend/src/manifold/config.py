@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     redis_url: str = "redis://manifold-redis:6379/0"
     taskiq_result_ttl: int = 3600
 
-    sync_cron: str = "0 * * * *"
+    sync_cron: str = "*/5 * * * *"
     alarm_eval_cron: str = "*/5 * * * *"
     recurrence_detect_cron: str = "0 3 * * *"
     cleanup_cron: str = "0 4 * * *"

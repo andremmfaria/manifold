@@ -25,6 +25,7 @@ from manifold.security.encryption import EncryptionService
 from manifold.tasks._locks import acquire_lock, release_lock
 
 from ._upsert import insert_row, upsert_and_fetch
+from .sync_schedule import interval_to_minutes
 
 
 class SyncEngine:
@@ -132,10 +133,12 @@ class SyncEngine:
                 select(
                     ProviderConnection.__table__.c.id,
                     ProviderConnection.__table__.c.user_id,
+                    ProviderConnection.__table__.c.last_sync_at,
                 ).where(ProviderConnection.__table__.c.status.in_(["active", "inactive"]))
             )
             engine = SyncEngine(session)
-            for connection_id, _owner_user_id in result.all():
+            now = datetime.now(UTC)
+            for connection_id, _owner_user_id, last_sync_at in result.all():
                 lock_key = f"sync:{connection_id}"
                 if not await acquire_lock(lock_key):
                     continue
@@ -144,6 +147,16 @@ class SyncEngine:
                         session,
                         connection_id,
                     )
+                    sync_interval = str((connection.config or {}).get("sync_interval") or "")
+                    interval_mins = interval_to_minutes(sync_interval)
+                    # manual connections (interval_mins is None) are never auto-synced
+                    if interval_mins is None:
+                        continue
+                    # skip if synced more recently than the interval
+                    if last_sync_at is not None:
+                        elapsed = (now - last_sync_at).total_seconds() / 60
+                        if elapsed < interval_mins:
+                            continue
                     runs.append(await engine.sync_connection(connection))
                 finally:
                     await release_lock(lock_key)

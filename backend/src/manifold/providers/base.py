@@ -19,6 +19,7 @@ class BaseProvider(ABC):
     provider_type: str
     display_name: str
     auth: BaseProviderAuth
+    auth_kind: str = "oauth"
     supports_pending: bool = False
     supports_direct_debits: bool = False
     supports_cards: bool = False
