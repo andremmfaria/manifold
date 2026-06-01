@@ -36,6 +36,13 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { connectionsApi, type SyncRun } from "@/api/connections";
 import { rootRoute } from "../__root";
+import {
+  AuthCredentialFields,
+  buildCredentials,
+  EMPTY_CREDENTIALS,
+  type AuthMode,
+  type CredentialState,
+} from "@/features/connections/AuthCredentialFields";
 
 export const connectionDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -171,8 +178,9 @@ function ConnectionDetailPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [editName, setEditName] = useState("");
   const [editSource, setEditSource] = useState("");
-  const [editAuthMode, setEditAuthMode] = useState("none");
+  const [editAuthMode, setEditAuthMode] = useState<AuthMode>("none");
   const [editSyncInterval, setEditSyncInterval] = useState("1h");
+  const [editCredentials, setEditCredentials] = useState<CredentialState>(EMPTY_CREDENTIALS);
   const [editError, setEditError] = useState<string | null>(null);
 
   const [syncingNow, setSyncingNow] = useState(false);
@@ -189,8 +197,9 @@ function ConnectionDetailPage() {
     setEditSource(
       (cfg.url as string | undefined) ?? (cfg.path as string | undefined) ?? "",
     );
-    setEditAuthMode((cfg.auth_mode as string | undefined) ?? "none");
+    setEditAuthMode(((cfg.auth_mode as string | undefined) ?? "none") as AuthMode);
     setEditSyncInterval((cfg.sync_interval as string | undefined) ?? "1h");
+    setEditCredentials(EMPTY_CREDENTIALS);
     setEditError(null);
     setEditOpen(true);
   };
@@ -199,7 +208,7 @@ function ConnectionDetailPage() {
     if (!connection) return;
     setEditError(null);
 
-    const payload: { display_name?: string | null; config?: Record<string, unknown> } = {};
+    const payload: { display_name?: string | null; config?: Record<string, unknown>; credentials?: Record<string, string> } = {};
     if (editName !== (connection.display_name ?? "")) {
       payload.display_name = editName || null;
     }
@@ -220,6 +229,12 @@ function ConnectionDetailPage() {
         newConfig.path = editSource;
       }
       payload.config = newConfig;
+
+      // Only send credentials when the user typed something — omitting preserves existing secrets.
+      const creds = buildCredentials(editAuthMode, editCredentials);
+      if (creds) {
+        payload.credentials = creds;
+      }
     }
 
     update.mutate(
@@ -417,7 +432,10 @@ function ConnectionDetailPage() {
                         <Label htmlFor="edit-auth-mode">Auth mode</Label>
                         <Select
                           value={editAuthMode}
-                          onValueChange={setEditAuthMode}
+                          onValueChange={(v) => {
+                            setEditAuthMode(v as AuthMode);
+                            setEditCredentials(EMPTY_CREDENTIALS);
+                          }}
                         >
                           <SelectTrigger id="edit-auth-mode" className="w-full">
                             <SelectValue />
@@ -431,6 +449,16 @@ function ConnectionDetailPage() {
                           </SelectContent>
                         </Select>
                       </div>
+
+                      <AuthCredentialFields
+                        authMode={editAuthMode}
+                        credentials={editCredentials}
+                        onChange={(patch) =>
+                          setEditCredentials((c) => ({ ...c, ...patch }))
+                        }
+                        isEdit
+                        idPrefix="edit"
+                      />
 
                       <div className="space-y-1.5">
                         <Label htmlFor="edit-sync-interval">Sync frequency</Label>

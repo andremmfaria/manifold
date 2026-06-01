@@ -33,6 +33,13 @@ import {
 } from '@/components/ui/dialog'
 import { providersApi, type Provider } from '@/api/providers'
 import { connectionsApi } from '@/api/connections'
+import {
+  AuthCredentialFields,
+  buildCredentials,
+  EMPTY_CREDENTIALS,
+  type AuthMode,
+  type CredentialState,
+} from '@/features/connections/AuthCredentialFields'
 
 export const connectRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -49,7 +56,7 @@ type SyncResult = {
 
 type FileFormState = {
   source: string
-  authMode: string
+  authMode: AuthMode
   syncInterval: string
 }
 
@@ -80,6 +87,7 @@ function ConnectPage() {
     authMode: 'none',
     syncInterval: '1h',
   })
+  const [fileCredentials, setFileCredentials] = useState<CredentialState>(EMPTY_CREDENTIALS)
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null)
   const [createdConnectionId, setCreatedConnectionId] = useState<string | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
@@ -94,6 +102,7 @@ function ConnectPage() {
       // Open the JSON config dialog instead of redirecting
       setFileDialogProvider(provider)
       setFileForm({ source: '', authMode: 'none', syncInterval: '1h' })
+      setFileCredentials(EMPTY_CREDENTIALS)
       setSyncResult(null)
       setCreatedConnectionId(null)
       setFormError(null)
@@ -140,10 +149,12 @@ function ConnectPage() {
         config.path = fileForm.source
       }
 
+      const credentials = buildCredentials(fileForm.authMode, fileCredentials)
       const connection = await connectionsApi.create({
         provider_type: fileDialogProvider.provider_type,
         display_name: fileDialogProvider.display_name,
         config,
+        ...(credentials ? { credentials } : {}),
       })
       setCreatedConnectionId(connection.id)
 
@@ -332,7 +343,10 @@ function ConnectPage() {
                   <Label htmlFor="auth-mode">Auth mode</Label>
                   <Select
                     value={fileForm.authMode}
-                    onValueChange={(v) => setFileForm((f) => ({ ...f, authMode: v }))}
+                    onValueChange={(v) => {
+                      setFileForm((f) => ({ ...f, authMode: v as AuthMode }))
+                      setFileCredentials(EMPTY_CREDENTIALS)
+                    }}
                   >
                     <SelectTrigger id="auth-mode" className="w-full">
                       <SelectValue />
@@ -346,6 +360,13 @@ function ConnectPage() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                <AuthCredentialFields
+                  authMode={fileForm.authMode}
+                  credentials={fileCredentials}
+                  onChange={(patch) => setFileCredentials((c) => ({ ...c, ...patch }))}
+                  idPrefix="connect"
+                />
 
                 <div className="space-y-1.5">
                   <Label htmlFor="sync-interval">Sync frequency</Label>

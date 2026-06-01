@@ -24,6 +24,7 @@ export type ConnectionCreatePayload = {
 export type ConnectionUpdatePayload = {
   display_name?: string | null;
   config?: Record<string, unknown>;
+  credentials?: Record<string, string>;
 };
 
 export type SyncRun = {
