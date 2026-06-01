@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 from datetime import UTC, datetime
 
 from sqlalchemy import delete, select
@@ -28,6 +29,9 @@ from manifold.tasks._locks import acquire_lock, release_lock
 from ._upsert import insert_row, upsert_and_fetch
 from .account_identity import extract_identifiers, resolve_account_identity
 from .sync_schedule import interval_to_minutes
+from .transaction_fingerprint import compute_content_hash, compute_tier1_hash
+
+logger = logging.getLogger(__name__)
 
 
 class SyncEngine:
@@ -301,39 +305,162 @@ class SyncEngine:
     async def _sync_transactions(
         self, session: AsyncSession, connection_id: str, account: Account, transactions: list
     ) -> int:
+        """Sync a list of provider transactions for *account*.
+
+        Dedup strategy (Phase 5):
+
+        Tier 1 — identity-scoped key (primary, always active when identity_id is set):
+            HMAC(manifold-txn-dedup, identity_id + ':' + normalized_provider_transaction_id)
+            Upsert conflict key: identity_dedup_hash.
+            Prevents the same physical transaction from being double-inserted when two
+            connections both fetch it under the same identity.
+
+        Fallback — connection-scoped key (when account.identity_id is null):
+            MD5(connection_id:provider_transaction_id) — existing behavior, unchanged.
+            Upsert conflict key: dedup_hash.
+            Preserves full backward compatibility for accounts not yet matched to an identity.
+
+        Tier 2 — content-hash fallback (DISABLED BY DEFAULT):
+            Computed and stored in content_hash for future use, but NOT used as a match
+            key unless the identity pair has explicitly opted in (Phase 6 / §3.3 Option C).
+            When Tier 2 would have matched, a DEBUG log is emitted to measure opportunity.
+
+        Both legacy dedup_hash and identity_dedup_hash are written on every upsert
+        so the uq_transactions_dedup_hash constraint remains satisfied during transition.
+        """
         inserted = 0
+        identity_id: str | None = str(account.identity_id) if account.identity_id else None
+
         for item in transactions:
-            dedup_hash = hashlib.md5(
+            # --- Compute hashes ---
+            legacy_dedup_hash = hashlib.md5(
                 f"{connection_id}:{item.provider_transaction_id}".encode(), usedforsecurity=False
             ).hexdigest()
-            existing = await session.execute(
-                select(Transaction).where(Transaction.dedup_hash == dedup_hash)
-            )
-            if existing.scalar_one_or_none() is None:
-                inserted += 1
-            await upsert_and_fetch(
-                session,
-                Transaction,
-                {
-                    "account_id": account.id,
-                    "card_id": None,
-                    "provider_transaction_id": item.provider_transaction_id,
-                    "status": "booked",
-                    "amount": item.amount,
-                    "currency": item.currency,
-                    "transaction_type": item.transaction_type,
-                    "transaction_category": item.transaction_category,
-                    "description": item.description,
-                    "merchant_name": item.merchant_name,
-                    "merchant_category": item.merchant_category,
-                    "transaction_date": item.transaction_date,
-                    "settled_date": item.settled_date,
-                    "running_balance": item.running_balance,
-                    "dedup_hash": dedup_hash,
-                    "raw_payload": item.raw_payload,
-                },
-                ["dedup_hash"],
-            )
+
+            tier1_hash: str | None = None
+            content_hash_val: str | None = None
+
+            if identity_id:
+                tier1_hash = compute_tier1_hash(
+                    identity_id,
+                    item.provider_transaction_id,
+                    secret_key=settings.secret_key,
+                )
+                # Tier 2: compute content hash from already-decrypted plaintext values.
+                # The DEK context is active (sync_connection sets it before calling us).
+                content_hash_val = compute_content_hash(
+                    identity_id,
+                    item.amount,
+                    item.transaction_date,
+                    item.description,
+                    secret_key=settings.secret_key,
+                )
+
+            # --- Determine dedup/upsert key ---
+            if tier1_hash is not None:
+                # Identity-scoped Tier 1 path.
+                # Check whether a row already exists so we can count new inserts.
+                check_result = await session.execute(
+                    select(Transaction).where(
+                        Transaction.identity_dedup_hash == tier1_hash
+                    )
+                )
+                existing_row = check_result.scalar_one_or_none()
+                if existing_row is None:
+                    inserted += 1
+                    # Tier 2 candidate log (miss in Tier 1 — not applicable since we
+                    # just determined there is no existing row; log when there IS an
+                    # existing row in Tier 2 that Tier 1 missed — handled below via
+                    # the legacy fallback path when identity is set but Tier 1 misses).
+                else:
+                    # Tier 1 hit — upsert updates mutable fields on the existing row.
+                    # Guard: the existing row's account must belong to the same identity.
+                    # If not, this is a hash collision or an identity mis-merge — log and skip.
+                    if existing_row.account_id != account.id:
+                        existing_account_result = await session.execute(
+                            select(Account).where(Account.id == existing_row.account_id)
+                        )
+                        existing_account = existing_account_result.scalar_one_or_none()
+                        if (
+                            existing_account is None
+                            or str(existing_account.identity_id) != identity_id
+                        ):
+                            logger.warning(
+                                "tier1_identity_mismatch_skipped",
+                                extra={
+                                    "tier1_hash": tier1_hash,
+                                    "incoming_account_id": str(account.id),
+                                    "existing_account_id": str(existing_row.account_id),
+                                    "identity_id": identity_id,
+                                },
+                            )
+                            continue
+
+                await upsert_and_fetch(
+                    session,
+                    Transaction,
+                    {
+                        "account_id": account.id,
+                        "card_id": None,
+                        "provider_transaction_id": item.provider_transaction_id,
+                        "status": "booked",
+                        "amount": item.amount,
+                        "currency": item.currency,
+                        "transaction_type": item.transaction_type,
+                        "transaction_category": item.transaction_category,
+                        "description": item.description,
+                        "merchant_name": item.merchant_name,
+                        "merchant_category": item.merchant_category,
+                        "transaction_date": item.transaction_date,
+                        "settled_date": item.settled_date,
+                        "running_balance": item.running_balance,
+                        "dedup_hash": legacy_dedup_hash,
+                        "identity_dedup_hash": tier1_hash,
+                        "content_hash": content_hash_val,
+                        "raw_payload": item.raw_payload,
+                    },
+                    ["identity_dedup_hash"],
+                )
+
+            else:
+                # --- Legacy fallback path (account.identity_id is null) ---
+                # Behavior identical to pre-Phase 5 sync so existing accounts are unaffected.
+                check_result = await session.execute(
+                    select(Transaction).where(Transaction.dedup_hash == legacy_dedup_hash)
+                )
+                if check_result.scalar_one_or_none() is None:
+                    inserted += 1
+
+                    # Tier 2 opportunity log: if there is an identity and content_hash matches
+                    # an existing row, Tier 2 would have collapsed this.  Not applicable here
+                    # (no identity_id) — no log needed.
+
+                await upsert_and_fetch(
+                    session,
+                    Transaction,
+                    {
+                        "account_id": account.id,
+                        "card_id": None,
+                        "provider_transaction_id": item.provider_transaction_id,
+                        "status": "booked",
+                        "amount": item.amount,
+                        "currency": item.currency,
+                        "transaction_type": item.transaction_type,
+                        "transaction_category": item.transaction_category,
+                        "description": item.description,
+                        "merchant_name": item.merchant_name,
+                        "merchant_category": item.merchant_category,
+                        "transaction_date": item.transaction_date,
+                        "settled_date": item.settled_date,
+                        "running_balance": item.running_balance,
+                        "dedup_hash": legacy_dedup_hash,
+                        "identity_dedup_hash": None,
+                        "content_hash": None,
+                        "raw_payload": item.raw_payload,
+                    },
+                    ["dedup_hash"],
+                )
+
             await insert_row(
                 session,
                 Event,
