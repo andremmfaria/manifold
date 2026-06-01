@@ -26,12 +26,17 @@ def _forbid_superadmin(current_user: User) -> None:
         raise HTTPException(status_code=403, detail={"error": "forbidden"})
 
 
-def _serialize_recent_event(item: Event) -> dict:
+def _serialize_recent_event(item: Event, account: Account | None = None) -> dict:
     return {
         "event_type": item.event_type,
         "source_type": item.source_type,
         "account_id": str(item.account_id) if item.account_id else None,
         "occurred_at": item.occurred_at.isoformat(),
+        "connection_id": (
+            str(account.provider_connection_id)
+            if account and account.provider_connection_id
+            else None
+        ),
     }
 
 
@@ -95,7 +100,8 @@ async def get_dashboard_summary(
             item = await session.get(Event, eid)
             if item is None:
                 raise HTTPException(status_code=404, detail={"error": "not_found"})
-            return _serialize_recent_event(item)
+            account = await session.get(Account, item.account_id) if item.account_id else None
+            return _serialize_recent_event(item, account)
 
         recent_events.append(await with_user_dek(session, str(owner_user_id), _serialize))
 

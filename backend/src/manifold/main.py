@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 
@@ -149,7 +150,7 @@ def create_app() -> FastAPI:
 
     @app.get("/health", operation_id="health", response_model=HealthResponse)
     async def health() -> HealthResponse:
-        return {"status": "ok"}
+        return {"status": "ok", "version": os.environ.get("MANIFOLD_VERSION", "0.0.0")}
 
     app.include_router(auth_router, prefix="/api/v1/auth", tags=["auth"])
     app.include_router(users_router, prefix="/api/v1/users", tags=["users"])

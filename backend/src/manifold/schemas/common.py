@@ -17,3 +17,4 @@ class DeletedResponse(SchemaModel):
 
 class HealthResponse(SchemaModel):
     status: str
+    version: str

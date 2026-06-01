@@ -25,6 +25,7 @@ class RecentEventItem(SchemaModel):
     source_type: str | None = None
     account_id: str | None = None
     occurred_at: datetime | None = None
+    connection_id: str | None = None
 
 
 class DashboardSummaryResponse(SchemaModel):

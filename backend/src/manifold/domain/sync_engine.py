@@ -154,6 +154,9 @@ class SyncEngine:
                         continue
                     # skip if synced more recently than the interval
                     if last_sync_at is not None:
+                        # DB drivers may return naive datetimes; coerce to UTC-aware
+                        if last_sync_at.tzinfo is None:
+                            last_sync_at = last_sync_at.replace(tzinfo=UTC)
                         elapsed = (now - last_sync_at).total_seconds() / 60
                         if elapsed < interval_mins:
                             continue
