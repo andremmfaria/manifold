@@ -1,0 +1,863 @@
+{
+  "accounts": [
+    {
+      "id": "acc-cre-0001",
+      "type": "credit",
+      "currency": "GBP",
+      "name": "NOVA CAPITAL INC Credit 1",
+      "iban": null,
+      "sort_code": null,
+      "account_number": "86635501"
+    },
+    {
+      "id": "acc-sav-0002",
+      "type": "savings",
+      "currency": "GBP",
+      "name": "MERIDIAN GROUP PLC Savings 2",
+      "iban": "GB30MANI30999995211335",
+      "sort_code": "30-99-99",
+      "account_number": "95211335"
+    },
+    {
+      "id": "acc-sav-0003",
+      "type": "savings",
+      "currency": "GBP",
+      "name": "GLOBAL FINTECH LTD Savings 3",
+      "iban": "GB30MANI30999998084092",
+      "sort_code": "30-99-99",
+      "account_number": "98084092"
+    }
+  ],
+  "balances": [
+    {
+      "id": "acc-cre-0001",
+      "balance": -7724.97,
+      "available": -7724.97,
+      "currency": "GBP"
+    },
+    {
+      "id": "acc-sav-0002",
+      "balance": 9549.48,
+      "available": 8746.64,
+      "currency": "GBP"
+    },
+    {
+      "id": "acc-sav-0003",
+      "balance": 5953.66,
+      "available": 5751.29,
+      "currency": "GBP"
+    }
+  ],
+  "transactions": [
+    {
+      "txn_id": "txn-000019",
+      "account_id": "acc-cre-0001",
+      "amount": -115.16,
+      "currency": "GBP",
+      "description": "SØREN'S FISK & CHIPS",
+      "posted_at": "2025-06-27T13:37:12Z",
+      "balance": -5234.92
+    },
+    {
+      "txn_id": "txn-000007",
+      "account_id": "acc-cre-0001",
+      "amount": -381.11,
+      "currency": "GBP",
+      "description": "NAÏVE CAFÉ & CRÊPERIE",
+      "posted_at": "2025-06-29T01:18:16Z",
+      "balance": -1692.26
+    },
+    {
+      "txn_id": "txn-000016",
+      "account_id": "acc-cre-0001",
+      "amount": -526.59,
+      "currency": "GBP",
+      "description": "DIGITALOCEAN LLC",
+      "posted_at": "2025-07-01T10:58:50Z",
+      "balance": -4722.57
+    },
+    {
+      "txn_id": "txn-000008",
+      "account_id": "acc-cre-0001",
+      "amount": -188.78,
+      "currency": "GBP",
+      "description": "BRITISH GAS ENERGY",
+      "posted_at": "2025-08-16T12:22:42Z",
+      "balance": -1881.04
+    },
+    {
+      "txn_id": "txn-000011",
+      "account_id": "acc-cre-0001",
+      "amount": -317.21,
+      "currency": "GBP",
+      "description": "GOOGLE ONE STORAGE",
+      "posted_at": "2025-08-22T23:22:00Z",
+      "balance": -3023.56
+    },
+    {
+      "txn_id": "txn-000025",
+      "account_id": "acc-cre-0001",
+      "amount": -386.28,
+      "currency": "GBP",
+      "description": "INSURANCE PREMIUM KEYSTONE PROPERTY",
+      "posted_at": "2025-08-27T10:02:06Z",
+      "balance": -6684.08
+    },
+    {
+      "txn_id": "txn-000030",
+      "account_id": "acc-cre-0001",
+      "amount": -213.59,
+      "currency": "GBP",
+      "description": "ATM WITHDRAWAL BARCLAYS 1042",
+      "posted_at": "2025-09-03T09:09:48Z",
+      "balance": -7724.97
+    },
+    {
+      "txn_id": "txn-000015",
+      "account_id": "acc-cre-0001",
+      "amount": -189.83,
+      "currency": "GBP",
+      "description": "NETFLIX.COM",
+      "posted_at": "2025-09-10T15:57:37Z",
+      "balance": -4195.98
+    },
+    {
+      "txn_id": "txn-000028",
+      "account_id": "acc-cre-0001",
+      "amount": -22.58,
+      "currency": "GBP",
+      "description": "SØREN'S FISK & CHIPS",
+      "posted_at": "2025-09-15T21:08:25Z",
+      "balance": -7442.9
+    },
+    {
+      "txn_id": "txn-000026",
+      "account_id": "acc-cre-0001",
+      "amount": -231.44,
+      "currency": "GBP",
+      "description": "TRAINLINE.COM",
+      "posted_at": "2025-10-26T15:47:04Z",
+      "balance": -6915.52
+    },
+    {
+      "txn_id": "txn-000001",
+      "account_id": "acc-cre-0001",
+      "amount": 720.14,
+      "currency": "GBP",
+      "description": "CREDIT CARD PAYMENT",
+      "posted_at": "2025-11-13T05:49:55Z",
+      "balance": 720.14
+    },
+    {
+      "txn_id": "txn-000024",
+      "account_id": "acc-cre-0001",
+      "amount": -524.44,
+      "currency": "GBP",
+      "description": "DIGITALOCEAN LLC",
+      "posted_at": "2025-11-17T21:38:00Z",
+      "balance": -6297.8
+    },
+    {
+      "txn_id": "txn-000004",
+      "account_id": "acc-cre-0001",
+      "amount": -407.65,
+      "currency": "GBP",
+      "description": "APPLE ONE SUBSCRIPTION",
+      "posted_at": "2025-11-27T00:12:46Z",
+      "balance": -525.34
+    },
+    {
+      "txn_id": "txn-000020",
+      "account_id": "acc-cre-0001",
+      "amount": -96.09,
+      "currency": "GBP",
+      "description": "IKEA LIMITED",
+      "posted_at": "2025-12-05T23:49:33Z",
+      "balance": -5331.01
+    },
+    {
+      "txn_id": "txn-000029",
+      "account_id": "acc-cre-0001",
+      "amount": -68.48,
+      "currency": "GBP",
+      "description": "BRITISH GAS ENERGY",
+      "posted_at": "2025-12-13T20:12:27Z",
+      "balance": -7511.38
+    },
+    {
+      "txn_id": "txn-000002",
+      "account_id": "acc-cre-0001",
+      "amount": -481.03,
+      "currency": "GBP",
+      "description": "WAHACA RESTAURANT LONDON",
+      "posted_at": "2025-12-14T06:36:15Z",
+      "balance": 239.11
+    },
+    {
+      "txn_id": "txn-000006",
+      "account_id": "acc-cre-0001",
+      "amount": -464.17,
+      "currency": "GBP",
+      "description": "GITHUB ENTERPRISE ANNUAL",
+      "posted_at": "2025-12-30T17:28:12Z",
+      "balance": -1311.15
+    },
+    {
+      "txn_id": "txn-000010",
+      "account_id": "acc-cre-0001",
+      "amount": -509.1,
+      "currency": "GBP",
+      "description": "MÜLLER BÄCKEREI GMBH",
+      "posted_at": "2025-12-31T10:43:45Z",
+      "balance": -2706.35
+    },
+    {
+      "txn_id": "txn-000017",
+      "account_id": "acc-cre-0001",
+      "amount": -258.14,
+      "currency": "GBP",
+      "description": "WAHACA RESTAURANT LONDON",
+      "posted_at": "2026-01-02T08:38:37Z",
+      "balance": -4980.71
+    },
+    {
+      "txn_id": "txn-000023",
+      "account_id": "acc-cre-0001",
+      "amount": -115.51,
+      "currency": "GBP",
+      "description": "SAINSBURYS SUPERMARKETS",
+      "posted_at": "2026-01-31T08:21:05Z",
+      "balance": -5773.36
+    },
+    {
+      "txn_id": "txn-000027",
+      "account_id": "acc-cre-0001",
+      "amount": -504.8,
+      "currency": "GBP",
+      "description": "TESCO STORES 3914",
+      "posted_at": "2026-03-03T02:22:15Z",
+      "balance": -7420.32
+    },
+    {
+      "txn_id": "txn-000021",
+      "account_id": "acc-cre-0001",
+      "amount": -77.97,
+      "currency": "GBP",
+      "description": "RECURRING PMT VERTEX SYSTEMS",
+      "posted_at": "2026-03-04T06:42:08Z",
+      "balance": -5408.98
+    },
+    {
+      "txn_id": "txn-000014",
+      "account_id": "acc-cre-0001",
+      "amount": -257.94,
+      "currency": "GBP",
+      "description": "MORTGAGE PMT REF 937176",
+      "posted_at": "2026-03-11T01:34:04Z",
+      "balance": -4006.15
+    },
+    {
+      "txn_id": "txn-000018",
+      "account_id": "acc-cre-0001",
+      "amount": -139.05,
+      "currency": "GBP",
+      "description": "DD COUNCIL TAX REF 764713",
+      "posted_at": "2026-03-15T19:23:03Z",
+      "balance": -5119.76
+    },
+    {
+      "txn_id": "txn-000022",
+      "account_id": "acc-cre-0001",
+      "amount": -248.87,
+      "currency": "GBP",
+      "description": "INSURANCE PREMIUM OAKFIELD TRADING LTD",
+      "posted_at": "2026-03-24T05:09:23Z",
+      "balance": -5657.85
+    },
+    {
+      "txn_id": "txn-000012",
+      "account_id": "acc-cre-0001",
+      "amount": -273.27,
+      "currency": "GBP",
+      "description": "ATM WITHDRAWAL BARCLAYS 1042",
+      "posted_at": "2026-03-29T02:31:04Z",
+      "balance": -3296.83
+    },
+    {
+      "txn_id": "txn-000009",
+      "account_id": "acc-cre-0001",
+      "amount": -316.21,
+      "currency": "GBP",
+      "description": "RECURRING PMT VERTEX SYSTEMS",
+      "posted_at": "2026-04-05T21:44:03Z",
+      "balance": -2197.25
+    },
+    {
+      "txn_id": "txn-000003",
+      "account_id": "acc-cre-0001",
+      "amount": -356.8,
+      "currency": "GBP",
+      "description": "SAINSBURYS SUPERMARKETS",
+      "posted_at": "2026-04-07T17:08:50Z",
+      "balance": -117.69
+    },
+    {
+      "txn_id": "txn-000013",
+      "account_id": "acc-cre-0001",
+      "amount": -451.38,
+      "currency": "GBP",
+      "description": "GITHUB ENTERPRISE ANNUAL",
+      "posted_at": "2026-05-16T01:19:27Z",
+      "balance": -3748.21
+    },
+    {
+      "txn_id": "txn-000005",
+      "account_id": "acc-cre-0001",
+      "amount": -321.64,
+      "currency": "GBP",
+      "description": "INSURANCE PREMIUM MERIDIAN GROUP PLC",
+      "posted_at": "2026-05-24T23:33:43Z",
+      "balance": -846.98
+    },
+    {
+      "txn_id": "txn-000058",
+      "account_id": "acc-sav-0002",
+      "amount": -581.97,
+      "currency": "GBP",
+      "description": "TRANSFER TO SAVINGS",
+      "posted_at": "2025-06-01T01:07:59Z",
+      "balance": 7952.16
+    },
+    {
+      "txn_id": "txn-000035",
+      "account_id": "acc-sav-0002",
+      "amount": 751.95,
+      "currency": "GBP",
+      "description": "TRANSFER FROM CURRENT",
+      "posted_at": "2025-06-09T02:23:30Z",
+      "balance": 1081.09
+    },
+    {
+      "txn_id": "txn-000057",
+      "account_id": "acc-sav-0002",
+      "amount": 800.97,
+      "currency": "GBP",
+      "description": "FX TRANSFER TO USD ACCOUNT",
+      "posted_at": "2025-06-25T01:07:02Z",
+      "balance": 8534.13
+    },
+    {
+      "txn_id": "txn-000038",
+      "account_id": "acc-sav-0002",
+      "amount": 94.54,
+      "currency": "GBP",
+      "description": "SAVINGS INTEREST APR",
+      "posted_at": "2025-07-02T12:37:06Z",
+      "balance": 2634.11
+    },
+    {
+      "txn_id": "txn-000045",
+      "account_id": "acc-sav-0002",
+      "amount": 143.77,
+      "currency": "GBP",
+      "description": "SAVINGS INTEREST APR",
+      "posted_at": "2025-07-15T16:29:27Z",
+      "balance": 3372.05
+    },
+    {
+      "txn_id": "txn-000054",
+      "account_id": "acc-sav-0002",
+      "amount": 996.78,
+      "currency": "GBP",
+      "description": "INTERNAL TRANSFER REF 395193",
+      "posted_at": "2025-09-27T15:04:25Z",
+      "balance": 7165.11
+    },
+    {
+      "txn_id": "txn-000031",
+      "account_id": "acc-sav-0002",
+      "amount": -303.64,
+      "currency": "GBP",
+      "description": "FX TRANSFER TO USD ACCOUNT",
+      "posted_at": "2025-10-06T12:49:55Z",
+      "balance": -303.64
+    },
+    {
+      "txn_id": "txn-000056",
+      "account_id": "acc-sav-0002",
+      "amount": -16.65,
+      "currency": "GBP",
+      "description": "TRANSFER FROM CURRENT",
+      "posted_at": "2025-10-07T09:09:35Z",
+      "balance": 7733.16
+    },
+    {
+      "txn_id": "txn-000044",
+      "account_id": "acc-sav-0002",
+      "amount": 550.43,
+      "currency": "GBP",
+      "description": "TRANSFER FROM CURRENT",
+      "posted_at": "2025-10-26T01:14:20Z",
+      "balance": 3228.28
+    },
+    {
+      "txn_id": "txn-000047",
+      "account_id": "acc-sav-0002",
+      "amount": 13.38,
+      "currency": "GBP",
+      "description": "INTERNAL TRANSFER REF 140551",
+      "posted_at": "2025-11-08T21:45:36Z",
+      "balance": 4230.94
+    },
+    {
+      "txn_id": "txn-000033",
+      "account_id": "acc-sav-0002",
+      "amount": 977.8,
+      "currency": "GBP",
+      "description": "TRANSFER FROM CURRENT",
+      "posted_at": "2025-12-10T17:32:07Z",
+      "balance": 770.33
+    },
+    {
+      "txn_id": "txn-000053",
+      "account_id": "acc-sav-0002",
+      "amount": 546.9,
+      "currency": "GBP",
+      "description": "TRANSFER TO SAVINGS",
+      "posted_at": "2025-12-12T17:53:47Z",
+      "balance": 6168.33
+    },
+    {
+      "txn_id": "txn-000046",
+      "account_id": "acc-sav-0002",
+      "amount": 845.51,
+      "currency": "GBP",
+      "description": "INTERNAL TRANSFER REF 263491",
+      "posted_at": "2025-12-20T17:56:30Z",
+      "balance": 4217.56
+    },
+    {
+      "txn_id": "txn-000051",
+      "account_id": "acc-sav-0002",
+      "amount": 62.69,
+      "currency": "GBP",
+      "description": "INTEREST PAYMENT",
+      "posted_at": "2025-12-31T20:40:45Z",
+      "balance": 5477.93
+    },
+    {
+      "txn_id": "txn-000042",
+      "account_id": "acc-sav-0002",
+      "amount": 68.1,
+      "currency": "GBP",
+      "description": "TRANSFER FROM CURRENT",
+      "posted_at": "2026-01-01T05:16:27Z",
+      "balance": 2636.89
+    },
+    {
+      "txn_id": "txn-000060",
+      "account_id": "acc-sav-0002",
+      "amount": 982.42,
+      "currency": "GBP",
+      "description": "TRANSFER FROM CURRENT",
+      "posted_at": "2026-01-05T01:38:21Z",
+      "balance": 9549.48
+    },
+    {
+      "txn_id": "txn-000032",
+      "account_id": "acc-sav-0002",
+      "amount": 96.17,
+      "currency": "GBP",
+      "description": "INTEREST PAYMENT",
+      "posted_at": "2026-01-16T12:07:38Z",
+      "balance": -207.47
+    },
+    {
+      "txn_id": "txn-000048",
+      "account_id": "acc-sav-0002",
+      "amount": 801.0,
+      "currency": "GBP",
+      "description": "TRANSFER TO SAVINGS",
+      "posted_at": "2026-01-21T02:50:11Z",
+      "balance": 5031.94
+    },
+    {
+      "txn_id": "txn-000049",
+      "account_id": "acc-sav-0002",
+      "amount": 496.99,
+      "currency": "GBP",
+      "description": "FX TRANSFER TO EUR ACCOUNT",
+      "posted_at": "2026-01-29T00:22:46Z",
+      "balance": 5528.93
+    },
+    {
+      "txn_id": "txn-000040",
+      "account_id": "acc-sav-0002",
+      "amount": -553.83,
+      "currency": "GBP",
+      "description": "FX TRANSFER TO USD ACCOUNT",
+      "posted_at": "2026-02-05T12:41:31Z",
+      "balance": 2240.16
+    },
+    {
+      "txn_id": "txn-000036",
+      "account_id": "acc-sav-0002",
+      "amount": 673.39,
+      "currency": "GBP",
+      "description": "FX TRANSFER TO EUR ACCOUNT",
+      "posted_at": "2026-02-07T13:47:34Z",
+      "balance": 1754.48
+    },
+    {
+      "txn_id": "txn-000043",
+      "account_id": "acc-sav-0002",
+      "amount": 40.96,
+      "currency": "GBP",
+      "description": "SAVINGS INTEREST APR",
+      "posted_at": "2026-02-08T05:35:50Z",
+      "balance": 2677.85
+    },
+    {
+      "txn_id": "txn-000050",
+      "account_id": "acc-sav-0002",
+      "amount": -113.69,
+      "currency": "GBP",
+      "description": "TRANSFER FROM CURRENT",
+      "posted_at": "2026-02-18T00:23:27Z",
+      "balance": 5415.24
+    },
+    {
+      "txn_id": "txn-000059",
+      "account_id": "acc-sav-0002",
+      "amount": 614.9,
+      "currency": "GBP",
+      "description": "INTERNAL TRANSFER REF 726137",
+      "posted_at": "2026-03-08T00:02:39Z",
+      "balance": 8567.06
+    },
+    {
+      "txn_id": "txn-000037",
+      "account_id": "acc-sav-0002",
+      "amount": 785.09,
+      "currency": "GBP",
+      "description": "FX TRANSFER TO EUR ACCOUNT",
+      "posted_at": "2026-03-20T04:20:01Z",
+      "balance": 2539.57
+    },
+    {
+      "txn_id": "txn-000039",
+      "account_id": "acc-sav-0002",
+      "amount": 159.88,
+      "currency": "GBP",
+      "description": "TRANSFER FROM CURRENT",
+      "posted_at": "2026-04-30T13:23:01Z",
+      "balance": 2793.99
+    },
+    {
+      "txn_id": "txn-000055",
+      "account_id": "acc-sav-0002",
+      "amount": 584.7,
+      "currency": "GBP",
+      "description": "INTERNAL TRANSFER REF 125915",
+      "posted_at": "2026-05-07T17:28:40Z",
+      "balance": 7749.81
+    },
+    {
+      "txn_id": "txn-000052",
+      "account_id": "acc-sav-0002",
+      "amount": 143.5,
+      "currency": "GBP",
+      "description": "INTEREST PAYMENT",
+      "posted_at": "2026-05-10T16:34:13Z",
+      "balance": 5621.43
+    },
+    {
+      "txn_id": "txn-000041",
+      "account_id": "acc-sav-0002",
+      "amount": 328.63,
+      "currency": "GBP",
+      "description": "TRANSFER FROM CURRENT",
+      "posted_at": "2026-05-14T10:54:58Z",
+      "balance": 2568.79
+    },
+    {
+      "txn_id": "txn-000034",
+      "account_id": "acc-sav-0002",
+      "amount": -441.19,
+      "currency": "GBP",
+      "description": "FX TRANSFER TO USD ACCOUNT",
+      "posted_at": "2026-05-22T10:19:42Z",
+      "balance": 329.14
+    },
+    {
+      "txn_id": "txn-000068",
+      "account_id": "acc-sav-0003",
+      "amount": 199.64,
+      "currency": "GBP",
+      "description": "INTERNAL TRANSFER REF 229662",
+      "posted_at": "2025-06-22T14:17:15Z",
+      "balance": 1735.23
+    },
+    {
+      "txn_id": "txn-000069",
+      "account_id": "acc-sav-0003",
+      "amount": 93.22,
+      "currency": "GBP",
+      "description": "SAVINGS INTEREST APR",
+      "posted_at": "2025-06-25T10:44:09Z",
+      "balance": 1828.45
+    },
+    {
+      "txn_id": "txn-000064",
+      "account_id": "acc-sav-0003",
+      "amount": 877.95,
+      "currency": "GBP",
+      "description": "TRANSFER FROM CURRENT",
+      "posted_at": "2025-06-28T05:01:44Z",
+      "balance": 1067.19
+    },
+    {
+      "txn_id": "txn-000062",
+      "account_id": "acc-sav-0003",
+      "amount": 136.26,
+      "currency": "GBP",
+      "description": "FX TRANSFER TO USD ACCOUNT",
+      "posted_at": "2025-07-27T18:13:52Z",
+      "balance": 116.59
+    },
+    {
+      "txn_id": "txn-000081",
+      "account_id": "acc-sav-0003",
+      "amount": 271.01,
+      "currency": "GBP",
+      "description": "INTERNAL TRANSFER REF 774476",
+      "posted_at": "2025-09-10T13:59:19Z",
+      "balance": 5428.26
+    },
+    {
+      "txn_id": "txn-000065",
+      "account_id": "acc-sav-0003",
+      "amount": 101.14,
+      "currency": "GBP",
+      "description": "INTEREST PAYMENT",
+      "posted_at": "2025-09-13T08:42:21Z",
+      "balance": 1168.33
+    },
+    {
+      "txn_id": "txn-000075",
+      "account_id": "acc-sav-0003",
+      "amount": 934.97,
+      "currency": "GBP",
+      "description": "TRANSFER TO SAVINGS",
+      "posted_at": "2025-09-13T09:27:25Z",
+      "balance": 3423.15
+    },
+    {
+      "txn_id": "txn-000066",
+      "account_id": "acc-sav-0003",
+      "amount": 763.77,
+      "currency": "GBP",
+      "description": "TRANSFER FROM CURRENT",
+      "posted_at": "2025-09-18T03:03:10Z",
+      "balance": 1932.1
+    },
+    {
+      "txn_id": "txn-000090",
+      "account_id": "acc-sav-0003",
+      "amount": 123.33,
+      "currency": "GBP",
+      "description": "CREDIT INTEREST",
+      "posted_at": "2025-10-02T08:10:44Z",
+      "balance": 5953.66
+    },
+    {
+      "txn_id": "txn-000074",
+      "account_id": "acc-sav-0003",
+      "amount": 758.67,
+      "currency": "GBP",
+      "description": "TRANSFER TO SAVINGS",
+      "posted_at": "2025-10-03T12:11:41Z",
+      "balance": 2488.18
+    },
+    {
+      "txn_id": "txn-000076",
+      "account_id": "acc-sav-0003",
+      "amount": 343.93,
+      "currency": "GBP",
+      "description": "FX TRANSFER TO EUR ACCOUNT",
+      "posted_at": "2025-11-14T07:13:38Z",
+      "balance": 3767.08
+    },
+    {
+      "txn_id": "txn-000086",
+      "account_id": "acc-sav-0003",
+      "amount": 9.38,
+      "currency": "GBP",
+      "description": "INTEREST PAYMENT",
+      "posted_at": "2025-11-25T18:52:26Z",
+      "balance": 5368.22
+    },
+    {
+      "txn_id": "txn-000089",
+      "account_id": "acc-sav-0003",
+      "amount": 104.28,
+      "currency": "GBP",
+      "description": "CREDIT INTEREST",
+      "posted_at": "2025-12-20T18:38:41Z",
+      "balance": 5830.33
+    },
+    {
+      "txn_id": "txn-000082",
+      "account_id": "acc-sav-0003",
+      "amount": 131.19,
+      "currency": "GBP",
+      "description": "TRANSFER TO SAVINGS",
+      "posted_at": "2025-12-21T09:09:31Z",
+      "balance": 5559.45
+    },
+    {
+      "txn_id": "txn-000079",
+      "account_id": "acc-sav-0003",
+      "amount": 562.88,
+      "currency": "GBP",
+      "description": "FX TRANSFER TO USD ACCOUNT",
+      "posted_at": "2025-12-21T21:01:13Z",
+      "balance": 4978.31
+    },
+    {
+      "txn_id": "txn-000073",
+      "account_id": "acc-sav-0003",
+      "amount": 254.96,
+      "currency": "GBP",
+      "description": "INTERNAL TRANSFER REF 404988",
+      "posted_at": "2026-01-02T21:47:55Z",
+      "balance": 1729.51
+    },
+    {
+      "txn_id": "txn-000087",
+      "account_id": "acc-sav-0003",
+      "amount": 708.53,
+      "currency": "GBP",
+      "description": "TRANSFER FROM CURRENT",
+      "posted_at": "2026-01-08T16:11:10Z",
+      "balance": 6076.75
+    },
+    {
+      "txn_id": "txn-000070",
+      "account_id": "acc-sav-0003",
+      "amount": -487.27,
+      "currency": "GBP",
+      "description": "FX TRANSFER TO EUR ACCOUNT",
+      "posted_at": "2026-01-09T05:51:06Z",
+      "balance": 1341.18
+    },
+    {
+      "txn_id": "txn-000078",
+      "account_id": "acc-sav-0003",
+      "amount": 208.11,
+      "currency": "GBP",
+      "description": "FX TRANSFER TO USD ACCOUNT",
+      "posted_at": "2026-01-13T23:34:50Z",
+      "balance": 4415.43
+    },
+    {
+      "txn_id": "txn-000077",
+      "account_id": "acc-sav-0003",
+      "amount": 440.24,
+      "currency": "GBP",
+      "description": "FX TRANSFER TO USD ACCOUNT",
+      "posted_at": "2026-01-20T12:59:40Z",
+      "balance": 4207.32
+    },
+    {
+      "txn_id": "txn-000063",
+      "account_id": "acc-sav-0003",
+      "amount": 72.65,
+      "currency": "GBP",
+      "description": "SAVINGS INTEREST APR",
+      "posted_at": "2026-02-13T08:14:34Z",
+      "balance": 189.24
+    },
+    {
+      "txn_id": "txn-000061",
+      "account_id": "acc-sav-0003",
+      "amount": -19.67,
+      "currency": "GBP",
+      "description": "INTERNAL TRANSFER REF 881702",
+      "posted_at": "2026-02-17T13:47:06Z",
+      "balance": -19.67
+    },
+    {
+      "txn_id": "txn-000083",
+      "account_id": "acc-sav-0003",
+      "amount": 504.52,
+      "currency": "GBP",
+      "description": "FX TRANSFER TO USD ACCOUNT",
+      "posted_at": "2026-02-19T11:43:06Z",
+      "balance": 6063.97
+    },
+    {
+      "txn_id": "txn-000084",
+      "account_id": "acc-sav-0003",
+      "amount": -330.77,
+      "currency": "GBP",
+      "description": "INTERNAL TRANSFER REF 801396",
+      "posted_at": "2026-02-27T10:08:33Z",
+      "balance": 5733.2
+    },
+    {
+      "txn_id": "txn-000072",
+      "account_id": "acc-sav-0003",
+      "amount": 100.88,
+      "currency": "GBP",
+      "description": "TRANSFER TO SAVINGS",
+      "posted_at": "2026-02-28T09:43:21Z",
+      "balance": 1474.55
+    },
+    {
+      "txn_id": "txn-000080",
+      "account_id": "acc-sav-0003",
+      "amount": 178.94,
+      "currency": "GBP",
+      "description": "FX TRANSFER TO EUR ACCOUNT",
+      "posted_at": "2026-03-06T01:07:45Z",
+      "balance": 5157.25
+    },
+    {
+      "txn_id": "txn-000071",
+      "account_id": "acc-sav-0003",
+      "amount": 32.49,
+      "currency": "GBP",
+      "description": "CREDIT INTEREST",
+      "posted_at": "2026-03-06T08:04:55Z",
+      "balance": 1373.67
+    },
+    {
+      "txn_id": "txn-000088",
+      "account_id": "acc-sav-0003",
+      "amount": -350.7,
+      "currency": "GBP",
+      "description": "TRANSFER TO SAVINGS",
+      "posted_at": "2026-03-13T13:15:40Z",
+      "balance": 5726.05
+    },
+    {
+      "txn_id": "txn-000085",
+      "account_id": "acc-sav-0003",
+      "amount": -374.36,
+      "currency": "GBP",
+      "description": "TRANSFER TO SAVINGS",
+      "posted_at": "2026-03-29T09:02:40Z",
+      "balance": 5358.84
+    },
+    {
+      "txn_id": "txn-000067",
+      "account_id": "acc-sav-0003",
+      "amount": -396.51,
+      "currency": "GBP",
+      "description": "TRANSFER FROM CURRENT",
+      "posted_at": "2026-05-06T19:56:12Z",
+      "balance": 1535.59
+    }
+  ]
+}

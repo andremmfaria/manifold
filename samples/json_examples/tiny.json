@@ -1,0 +1,128 @@
+{
+  "accounts": [
+    {
+      "id": "acc-cre-0001",
+      "type": "credit",
+      "currency": "GBP",
+      "name": "NOVA CAPITAL INC Credit 1",
+      "iban": null,
+      "sort_code": null,
+      "account_number": "86635501"
+    },
+    {
+      "id": "acc-sav-0002",
+      "type": "savings",
+      "currency": "GBP",
+      "name": "MERIDIAN GROUP PLC Savings 2",
+      "iban": "GB30MANI30999995211335",
+      "sort_code": "30-99-99",
+      "account_number": "95211335"
+    }
+  ],
+  "balances": [
+    {
+      "id": "acc-cre-0001",
+      "balance": -726.43,
+      "available": -726.43,
+      "currency": "GBP"
+    },
+    {
+      "id": "acc-sav-0002",
+      "balance": 2097.62,
+      "available": 1984.31,
+      "currency": "GBP"
+    }
+  ],
+  "transactions": [
+    {
+      "txn_id": "txn-000001",
+      "account_id": "acc-cre-0001",
+      "amount": -43.89,
+      "currency": "GBP",
+      "description": "DIRECTDEBIT BRENTWOOD RETAIL LTD",
+      "posted_at": "2025-10-31T01:31:21Z",
+      "balance": -43.89
+    },
+    {
+      "txn_id": "txn-000003",
+      "account_id": "acc-cre-0001",
+      "amount": 531.13,
+      "currency": "GBP",
+      "description": "CREDIT CARD PAYMENT",
+      "posted_at": "2025-11-04T15:40:36Z",
+      "balance": -45.79
+    },
+    {
+      "txn_id": "txn-000005",
+      "account_id": "acc-cre-0001",
+      "amount": -106.09,
+      "currency": "GBP",
+      "description": "MORTGAGE PMT REF 579364",
+      "posted_at": "2026-04-06T00:39:00Z",
+      "balance": -726.43
+    },
+    {
+      "txn_id": "txn-000002",
+      "account_id": "acc-cre-0001",
+      "amount": -533.03,
+      "currency": "GBP",
+      "description": "ALDI STORES UK",
+      "posted_at": "2026-04-15T15:01:57Z",
+      "balance": -576.92
+    },
+    {
+      "txn_id": "txn-000004",
+      "account_id": "acc-cre-0001",
+      "amount": -574.55,
+      "currency": "GBP",
+      "description": "AMAZON PRIME MEMBERSHIP",
+      "posted_at": "2026-04-20T07:31:22Z",
+      "balance": -620.34
+    },
+    {
+      "txn_id": "txn-000007",
+      "account_id": "acc-sav-0002",
+      "amount": 635.18,
+      "currency": "GBP",
+      "description": "FX TRANSFER TO USD ACCOUNT",
+      "posted_at": "2025-06-29T01:18:16Z",
+      "balance": 1408.8
+    },
+    {
+      "txn_id": "txn-000008",
+      "account_id": "acc-sav-0002",
+      "amount": 314.63,
+      "currency": "GBP",
+      "description": "TRANSFER FROM CURRENT",
+      "posted_at": "2025-08-16T12:22:42Z",
+      "balance": 1723.43
+    },
+    {
+      "txn_id": "txn-000006",
+      "account_id": "acc-sav-0002",
+      "amount": 773.62,
+      "currency": "GBP",
+      "description": "FX TRANSFER TO USD ACCOUNT",
+      "posted_at": "2025-08-18T01:16:58Z",
+      "balance": 773.62
+    },
+    {
+      "txn_id": "txn-000010",
+      "account_id": "acc-sav-0002",
+      "amount": 848.51,
+      "currency": "GBP",
+      "description": "FX TRANSFER TO USD ACCOUNT",
+      "posted_at": "2025-12-31T10:43:45Z",
+      "balance": 2097.62
+    },
+    {
+      "txn_id": "txn-000009",
+      "account_id": "acc-sav-0002",
+      "amount": -474.32,
+      "currency": "GBP",
+      "description": "INTERNAL TRANSFER REF 553161",
+      "posted_at": "2026-04-05T21:44:03Z",
+      "balance": 1249.11
+    }
+  ]
+}
