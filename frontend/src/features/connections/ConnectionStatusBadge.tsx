@@ -8,8 +8,7 @@ export function ConnectionStatusBadge({ status }: { status: string }) {
         ? undefined
         : 'bg-muted text-muted-foreground border-transparent'
 
-  const variant =
-    status === 'error' ? 'destructive' : 'outline'
+  const variant = status === 'error' ? 'destructive' : 'outline'
 
   return (
     <Badge variant={variant} className={className}>

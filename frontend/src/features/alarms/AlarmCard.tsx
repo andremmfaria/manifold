@@ -4,7 +4,15 @@ import { BellOff, BellRing } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
-export function AlarmCard({ alarm, onMute, onUnmute }: { alarm: Alarm; onMute?: () => void; onUnmute?: () => void }) {
+export function AlarmCard({
+  alarm,
+  onMute,
+  onUnmute,
+}: {
+  alarm: Alarm
+  onMute?: () => void
+  onUnmute?: () => void
+}) {
   return (
     <Card>
       <CardContent className="flex items-center justify-between py-4">
@@ -14,7 +22,8 @@ export function AlarmCard({ alarm, onMute, onUnmute }: { alarm: Alarm; onMute?: 
             <AlarmStateBadge state={alarm.state} />
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Last evaluated: {alarm.last_evaluated_at ? new Date(alarm.last_evaluated_at).toLocaleString() : 'Never'}
+            Last evaluated:{' '}
+            {alarm.last_evaluated_at ? new Date(alarm.last_evaluated_at).toLocaleString() : 'Never'}
           </p>
         </div>
         <div>
@@ -22,7 +31,11 @@ export function AlarmCard({ alarm, onMute, onUnmute }: { alarm: Alarm; onMute?: 
             <Button
               variant="outline"
               size="sm"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onUnmute?.(); }}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                onUnmute?.()
+              }}
             >
               <BellRing className="h-4 w-4" />
               Unmute
@@ -31,7 +44,11 @@ export function AlarmCard({ alarm, onMute, onUnmute }: { alarm: Alarm; onMute?: 
             <Button
               variant="outline"
               size="sm"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMute?.(); }}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                onMute?.()
+              }}
             >
               <BellOff className="h-4 w-4" />
               Mute

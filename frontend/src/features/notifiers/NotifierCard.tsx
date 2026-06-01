@@ -7,11 +7,11 @@ import { Button } from '@/components/ui/button'
 export function NotifierCard({
   notifier,
   onTest,
-  isTesting = false
+  isTesting = false,
 }: {
-  notifier: Notifier;
-  onTest?: () => void;
-  isTesting?: boolean;
+  notifier: Notifier
+  onTest?: () => void
+  isTesting?: boolean
 }) {
   return (
     <Card>
@@ -28,7 +28,9 @@ export function NotifierCard({
               </Badge>
             </div>
             <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-              <span className={`inline-flex h-2 w-2 rounded-full ${notifier.is_enabled ? 'bg-green-500' : 'bg-muted-foreground/40'}`} />
+              <span
+                className={`inline-flex h-2 w-2 rounded-full ${notifier.is_enabled ? 'bg-green-500' : 'bg-muted-foreground/40'}`}
+              />
               {notifier.is_enabled ? 'Active' : 'Disabled'}
             </div>
           </div>

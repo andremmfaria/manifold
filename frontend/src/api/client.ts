@@ -40,11 +40,7 @@ export const clearSessionHint = (): void => {
 }
 
 // Requests that must never themselves trigger a token refresh (avoids recursion / pointless calls).
-const NO_REFRESH_PATHS = [
-  '/api/v1/auth/refresh',
-  '/api/v1/auth/login',
-  '/api/v1/auth/logout',
-]
+const NO_REFRESH_PATHS = ['/api/v1/auth/refresh', '/api/v1/auth/login', '/api/v1/auth/logout']
 const isNoRefreshPath = (url?: string): boolean =>
   !!url && NO_REFRESH_PATHS.some((path) => url.includes(path))
 

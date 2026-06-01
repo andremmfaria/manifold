@@ -5,14 +5,14 @@ import { useAccounts } from '@/features/accounts/useAccounts'
 import { StandingOrderList } from '@/features/standing-orders/StandingOrderList'
 import { useStandingOrders } from '@/features/standing-orders/useStandingOrders'
 import { rootRoute } from '../__root'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export const standingOrdersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/standing-orders',
-  beforeLoad: ({ context }: { context: { auth: AuthContextValue } }) => {
-    if (!context.auth.isAuthenticated) throw redirect({ to: '/login' })
+  beforeLoad: ({ context, location }: { context: { auth: AuthContextValue }; location: { href: string } }) => {
+    if (!context.auth.isAuthenticated) throw redirect({ to: '/login', search: { redirect: location.href } })
   },
   component: StandingOrdersPage,
 })
@@ -29,7 +29,9 @@ function StandingOrdersPage() {
       <div className="space-y-6 p-6 max-w-7xl mx-auto">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Standing Orders</h1>
-          <p className="mt-1 text-muted-foreground">Scheduled recurring transfers from your connected account.</p>
+          <p className="mt-1 text-muted-foreground">
+            Scheduled recurring transfers from your connected account.
+          </p>
         </div>
 
         {isLoading ? (
@@ -46,10 +48,7 @@ function StandingOrdersPage() {
           </Card>
         ) : (
           <Card>
-            <CardHeader className="border-b">
-              <CardTitle>All Standing Orders</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="p-4">
               <StandingOrderList items={data} />
             </CardContent>
           </Card>

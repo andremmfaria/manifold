@@ -65,9 +65,7 @@ function ChangePasswordPage() {
                 onChange={(e) => setNewPassword(e.target.value)}
               />
             </div>
-            {error ? (
-              <p className="text-sm text-destructive">{error}</p>
-            ) : null}
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <Button type="submit" size="lg" className="w-full mt-1">
               Update
             </Button>

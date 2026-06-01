@@ -11,8 +11,8 @@ import { rootRoute } from '../__root'
 export const notifiersIndexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/notifiers',
-  beforeLoad: ({ context }: { context: { auth: AuthContextValue } }) => {
-    if (!context.auth.isAuthenticated) throw redirect({ to: '/login' })
+  beforeLoad: ({ context, location }: { context: { auth: AuthContextValue }; location: { href: string } }) => {
+    if (!context.auth.isAuthenticated) throw redirect({ to: '/login', search: { redirect: location.href } })
   },
   component: NotifiersPage,
 })
@@ -24,7 +24,7 @@ function NotifiersPage() {
   const handleTest = (id: string) => {
     testNotifier(id, {
       onSuccess: () => alert('Test notification delivered successfully!'),
-      onError: (err: any) => alert(`Failed to deliver test: ${err.message}`)
+      onError: (err: any) => alert(`Failed to deliver test: ${err.message}`),
     })
   }
 
@@ -34,7 +34,9 @@ function NotifiersPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-foreground">Notifiers</h1>
-            <p className="mt-1 text-muted-foreground">Configure how you receive alarm notifications.</p>
+            <p className="mt-1 text-muted-foreground">
+              Configure how you receive alarm notifications.
+            </p>
           </div>
           <Button asChild>
             <Link to="/notifiers/new">

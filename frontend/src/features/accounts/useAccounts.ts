@@ -10,5 +10,8 @@ export function useAccount(accountId: string) {
 }
 
 export function useBalanceHistory(accountId: string) {
-  return useQuery({ queryKey: ['accounts', accountId, 'balances'], queryFn: () => accountsApi.balances(accountId) })
+  return useQuery({
+    queryKey: ['accounts', accountId, 'balances'],
+    queryFn: () => accountsApi.balances(accountId),
+  })
 }

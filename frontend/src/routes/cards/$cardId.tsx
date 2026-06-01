@@ -11,8 +11,8 @@ import { rootRoute } from '../__root'
 export const cardDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/cards/$cardId',
-  beforeLoad: ({ context }: { context: { auth: AuthContextValue } }) => {
-    if (!context.auth.isAuthenticated) throw redirect({ to: '/login' })
+  beforeLoad: ({ context, location }: { context: { auth: AuthContextValue }; location: { href: string } }) => {
+    if (!context.auth.isAuthenticated) throw redirect({ to: '/login', search: { redirect: location.href } })
   },
   component: CardDetailPage,
 })
@@ -28,7 +28,11 @@ function CardDetailPage() {
       <div className="space-y-6 p-6 max-w-7xl mx-auto">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Card detail</h1>
 
-        {card ? <CardDetail card={card} /> : <p className="text-muted-foreground">Loading card details...</p>}
+        {card ? (
+          <CardDetail card={card} />
+        ) : (
+          <p className="text-muted-foreground">Loading card details...</p>
+        )}
 
         <div className="space-y-4">
           <h2 className="text-xl font-semibold tracking-tight text-foreground">Balances</h2>
@@ -38,9 +42,13 @@ function CardDetailPage() {
                 <Card key={balance.id}>
                   <CardContent className="pt-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-muted-foreground">{balance.balance_type}</span>
+                      <span className="text-sm font-medium text-muted-foreground">
+                        {balance.balance_type}
+                      </span>
                       <Badge variant="secondary">
-                        {new Date(balance.reference_date || balance.created_at).toLocaleDateString()}
+                        {new Date(
+                          balance.reference_date || balance.created_at,
+                        ).toLocaleDateString()}
                       </Badge>
                     </div>
                     <p className="mt-3 text-2xl font-bold text-foreground">
@@ -56,7 +64,9 @@ function CardDetailPage() {
         </div>
 
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold tracking-tight text-foreground">Recent Transactions</h2>
+          <h2 className="text-xl font-semibold tracking-tight text-foreground">
+            Recent Transactions
+          </h2>
           {transactions.length > 0 ? (
             <TransactionTable items={transactions} />
           ) : (

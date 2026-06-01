@@ -15,12 +15,12 @@ describe('AlarmRuleBuilder', () => {
       value: { combinator: 'and', rules: [] },
       onChange: vi.fn(),
     })
-    const queryBuilder = (element.props.children as {
+    const queryBuilder = element.props.children as {
       props: {
         fields: Array<{ name: string; label: string }>
         controlClassnames: Record<string, string>
       }
-    })
+    }
 
     expect(queryBuilder.props.fields.map((field) => field.label)).toEqual(
       expect.arrayContaining(['Balance', 'Currency']),

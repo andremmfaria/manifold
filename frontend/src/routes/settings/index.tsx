@@ -6,9 +6,11 @@ import type { AuthContextValue } from '@/features/auth/AuthProvider'
 export const settingsIndexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/settings',
-  beforeLoad: ({ context }: { context: { auth: AuthContextValue } }) => {
-    if (!context.auth.isAuthenticated) throw redirect({ to: '/login' })
-    throw redirect({ to: context.auth.role === 'superadmin' ? '/settings/users' : '/settings/access' })
+  beforeLoad: ({ context, location }: { context: { auth: AuthContextValue }; location: { href: string } }) => {
+    if (!context.auth.isAuthenticated) throw redirect({ to: '/login', search: { redirect: location.href } })
+    throw redirect({
+      to: context.auth.role === 'superadmin' ? '/settings/users' : '/settings/access',
+    })
   },
   component: () => <AppShell />,
 })

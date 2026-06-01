@@ -1,7 +1,11 @@
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 
-export function BalanceHistoryChart({ data }: { data: Array<{ recorded_at: string; current: string | null }> }) {
+export function BalanceHistoryChart({
+  data,
+}: {
+  data: Array<{ recorded_at: string; current: string | null }>
+}) {
   const chartData = data.map((item) => ({
     recorded_at: new Date(item.recorded_at).toLocaleDateString(),
     current: item.current ? Number(item.current) : null,

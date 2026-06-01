@@ -10,9 +10,15 @@ export function useCard(cardId: string) {
 }
 
 export function useCardTransactions(cardId: string) {
-  return useQuery({ queryKey: ['cards', cardId, 'transactions'], queryFn: () => cardsApi.listTransactions(cardId) })
+  return useQuery({
+    queryKey: ['cards', cardId, 'transactions'],
+    queryFn: () => cardsApi.listTransactions(cardId),
+  })
 }
 
 export function useCardBalances(cardId: string) {
-  return useQuery({ queryKey: ['cards', cardId, 'balances'], queryFn: () => cardsApi.listBalances(cardId) })
+  return useQuery({
+    queryKey: ['cards', cardId, 'balances'],
+    queryFn: () => cardsApi.listBalances(cardId),
+  })
 }

@@ -13,8 +13,8 @@ import { rootRoute } from '../__root'
 export const alarmDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/alarms/$alarmId',
-  beforeLoad: ({ context }: { context: { auth: AuthContextValue } }) => {
-    if (!context.auth.isAuthenticated) throw redirect({ to: '/login' })
+  beforeLoad: ({ context, location }: { context: { auth: AuthContextValue }; location: { href: string } }) => {
+    if (!context.auth.isAuthenticated) throw redirect({ to: '/login', search: { redirect: location.href } })
   },
   component: AlarmDetailPage,
 })
@@ -40,7 +40,11 @@ function AlarmDetailPage() {
   }
 
   if (!alarm) {
-    return <AppShell><div className="p-12 text-center text-destructive">Alarm not found</div></AppShell>
+    return (
+      <AppShell>
+        <div className="p-12 text-center text-destructive">Alarm not found</div>
+      </AppShell>
+    )
   }
 
   const handleMute = () => {
@@ -63,7 +67,9 @@ function AlarmDetailPage() {
                 {alarm.name}
                 <AlarmStateBadge state={alarm.state} />
               </h1>
-              <p className="mt-1 text-sm text-muted-foreground">ID: <span className="font-mono">{alarm.id}</span></p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                ID: <span className="font-mono">{alarm.id}</span>
+              </p>
             </div>
             <div>
               {alarm.state === 'muted' ? (
@@ -125,7 +131,9 @@ function AlarmDetailPage() {
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold tracking-tight text-foreground mb-4">Evaluation History</h2>
+          <h2 className="text-lg font-semibold tracking-tight text-foreground mb-4">
+            Evaluation History
+          </h2>
           <AlarmHistory alarmId={alarm.id} />
         </div>
       </div>

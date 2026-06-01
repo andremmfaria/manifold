@@ -16,8 +16,8 @@ import { rootRoute } from '../__root'
 export const alarmsNewRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/alarms/new',
-  beforeLoad: ({ context }: { context: { auth: AuthContextValue } }) => {
-    if (!context.auth.isAuthenticated) throw redirect({ to: '/login' })
+  beforeLoad: ({ context, location }: { context: { auth: AuthContextValue }; location: { href: string } }) => {
+    if (!context.auth.isAuthenticated) throw redirect({ to: '/login', search: { redirect: location.href } })
   },
   component: NewAlarmPage,
 })
@@ -31,13 +31,11 @@ function NewAlarmPage() {
   const [name, setName] = useState('')
   const [accountIds, setAccountIds] = useState<string[]>([])
   const [notifierIds, setNotifierIds] = useState<string[]>([])
-  
+
   // Default rule structure expected by react-querybuilder
   const [condition, setCondition] = useState({
     combinator: 'and',
-    rules: [
-      { field: 'balance', operator: '<', value: 100 }
-    ]
+    rules: [{ field: 'balance', operator: '<', value: 100 }],
   })
 
   const [repeatCount, setRepeatCount] = useState(1)
@@ -49,10 +47,10 @@ function NewAlarmPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    
+
     try {
-      if (!name) throw new Error("Name is required");
-      if (accountIds.length === 0) throw new Error("At least one account is required");
+      if (!name) throw new Error('Name is required')
+      if (accountIds.length === 0) throw new Error('At least one account is required')
 
       await createAlarm({
         name,
@@ -62,7 +60,7 @@ function NewAlarmPage() {
         repeat_count: repeatCount,
         for_duration_minutes: forDurationMinutes,
         cooldown_minutes: cooldownMinutes,
-        notify_on_resolve: notifyOnResolve
+        notify_on_resolve: notifyOnResolve,
       })
       navigate({ to: '/alarms' })
     } catch (err: any) {
@@ -97,7 +95,7 @@ function NewAlarmPage() {
                   type="text"
                   required
                   value={name}
-                  onChange={e => setName(e.target.value)}
+                  onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Low Balance Alert"
                 />
               </div>
@@ -108,11 +106,15 @@ function NewAlarmPage() {
                   id="alarm-accounts"
                   multiple
                   value={accountIds}
-                  onChange={e => setAccountIds(Array.from(e.target.selectedOptions, option => option.value))}
+                  onChange={(e) =>
+                    setAccountIds(Array.from(e.target.selectedOptions, (option) => option.value))
+                  }
                   className="h-32 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm text-foreground focus-visible:outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
                 >
-                  {accounts?.map(acc => (
-                    <option key={acc.id} value={acc.id}>{acc.display_name || acc.account_type}</option>
+                  {accounts?.map((acc) => (
+                    <option key={acc.id} value={acc.id}>
+                      {acc.display_name || acc.account_type}
+                    </option>
                   ))}
                 </select>
                 <p className="text-xs text-muted-foreground">Hold Ctrl/Cmd to select multiple</p>
@@ -129,11 +131,15 @@ function NewAlarmPage() {
                   id="alarm-notifiers"
                   multiple
                   value={notifierIds}
-                  onChange={e => setNotifierIds(Array.from(e.target.selectedOptions, option => option.value))}
+                  onChange={(e) =>
+                    setNotifierIds(Array.from(e.target.selectedOptions, (option) => option.value))
+                  }
                   className="h-32 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm text-foreground focus-visible:outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
                 >
-                  {notifiers?.items.map(notifier => (
-                    <option key={notifier.id} value={notifier.id}>{notifier.name} ({notifier.type})</option>
+                  {notifiers?.items.map((notifier) => (
+                    <option key={notifier.id} value={notifier.id}>
+                      {notifier.name} ({notifier.type})
+                    </option>
                   ))}
                 </select>
               </div>
@@ -150,7 +156,7 @@ function NewAlarmPage() {
                       type="number"
                       min="1"
                       value={repeatCount}
-                      onChange={e => setRepeatCount(parseInt(e.target.value))}
+                      onChange={(e) => setRepeatCount(parseInt(e.target.value))}
                     />
                   </div>
 
@@ -161,7 +167,7 @@ function NewAlarmPage() {
                       type="number"
                       min="0"
                       value={forDurationMinutes}
-                      onChange={e => setForDurationMinutes(parseInt(e.target.value))}
+                      onChange={(e) => setForDurationMinutes(parseInt(e.target.value))}
                     />
                   </div>
 
@@ -172,7 +178,7 @@ function NewAlarmPage() {
                       type="number"
                       min="0"
                       value={cooldownMinutes}
-                      onChange={e => setCooldownMinutes(parseInt(e.target.value))}
+                      onChange={(e) => setCooldownMinutes(parseInt(e.target.value))}
                     />
                   </div>
 
@@ -181,7 +187,7 @@ function NewAlarmPage() {
                       type="checkbox"
                       id="notify_on_resolve"
                       checked={notifyOnResolve}
-                      onChange={e => setNotifyOnResolve(e.target.checked)}
+                      onChange={(e) => setNotifyOnResolve(e.target.checked)}
                       className="h-4 w-4 rounded border-input accent-primary"
                     />
                     <Label htmlFor="notify_on_resolve">Notify when resolved</Label>
@@ -190,11 +196,7 @@ function NewAlarmPage() {
               </div>
 
               <div className="flex justify-end gap-3 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate({ to: '/alarms' })}
-                >
+                <Button type="button" variant="outline" onClick={() => navigate({ to: '/alarms' })}>
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isPending}>

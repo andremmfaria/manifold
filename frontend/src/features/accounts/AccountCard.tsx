@@ -1,4 +1,5 @@
 import { CreditCard } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 import type { Account } from '@/api/accounts'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -14,7 +15,13 @@ export function AccountCard({ account }: { account: Account }) {
           <div className="flex items-center gap-2 min-w-0">
             <CreditCard className="h-4 w-4 text-muted-foreground shrink-0" />
             <CardTitle className="truncate">
-              {account.display_name || account.account_type}
+              <Link
+                to="/accounts/$accountId"
+                params={{ accountId: account.id }}
+                className="rounded-sm outline-none hover:underline focus-visible:underline focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {account.display_name || account.account_type}
+              </Link>
             </CardTitle>
           </div>
           <Badge variant="outline" className="shrink-0 capitalize">
@@ -31,9 +38,7 @@ export function AccountCard({ account }: { account: Account }) {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}
-              <span className="ml-1.5 text-base font-medium text-muted-foreground">
-                {currency}
-              </span>
+              <span className="ml-1.5 text-base font-medium text-muted-foreground">{currency}</span>
             </>
           ) : (
             <span className="text-muted-foreground">—</span>

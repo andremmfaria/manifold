@@ -58,9 +58,7 @@ export function AuthCredentialFields({
   if (authMode === 'none') return null
 
   const hint = isEdit ? (
-    <p className="text-xs text-muted-foreground">
-      Leave blank to keep the current credentials.
-    </p>
+    <p className="text-xs text-muted-foreground">Leave blank to keep the current credentials.</p>
   ) : null
 
   if (authMode === 'api_key') {

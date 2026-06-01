@@ -8,8 +8,8 @@ import { rootRoute } from '../__root'
 export const cardsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/cards',
-  beforeLoad: ({ context }: { context: { auth: AuthContextValue } }) => {
-    if (!context.auth.isAuthenticated) throw redirect({ to: '/login' })
+  beforeLoad: ({ context, location }: { context: { auth: AuthContextValue }; location: { href: string } }) => {
+    if (!context.auth.isAuthenticated) throw redirect({ to: '/login', search: { redirect: location.href } })
   },
   component: CardsPage,
 })

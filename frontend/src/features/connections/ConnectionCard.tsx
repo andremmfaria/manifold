@@ -1,6 +1,7 @@
-import { Link } from "@tanstack/react-router";
-import type { Connection } from "@/api/connections";
-import { ConnectionStatusBadge } from "./ConnectionStatusBadge";
+import type { ReactNode } from 'react'
+import { Link } from '@tanstack/react-router'
+import type { Connection } from '@/api/connections'
+import { ConnectionStatusBadge } from './ConnectionStatusBadge'
 import {
   Card,
   CardHeader,
@@ -9,15 +10,19 @@ import {
   CardAction,
   CardContent,
   CardFooter,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 
 export function ConnectionCard({
   connection,
   onSync,
+  footer,
 }: {
-  connection: Connection;
-  onSync?: () => void;
+  connection: Connection
+  onSync?: () => void
+  // When provided, replaces the default footer buttons (e.g. the detail page swaps in
+  // the source-configuration section in place of the redundant "View details" link).
+  footer?: ReactNode
 }) {
   return (
     <Card>
@@ -31,7 +36,9 @@ export function ConnectionCard({
             {connection.display_name || connection.provider_type}
           </Link>
         </CardTitle>
-        <CardDescription>{connection.provider_type}</CardDescription>
+        <CardDescription>
+          {connection.provider_type} - {connection.id}
+        </CardDescription>
         <CardAction>
           <ConnectionStatusBadge status={connection.status} />
         </CardAction>
@@ -44,33 +51,30 @@ export function ConnectionCard({
           </div>
           <div className="flex justify-between gap-3">
             <dt className="text-muted-foreground">Consent</dt>
-            <dd className="text-foreground">
-              {connection.consent_expires_at || "—"}
-            </dd>
+            <dd className="text-foreground">{connection.consent_expires_at || '—'}</dd>
           </div>
           <div className="flex justify-between gap-3">
             <dt className="text-muted-foreground">Last sync</dt>
-            <dd className="text-foreground">
-              {connection.last_sync_at || "Never"}
-            </dd>
+            <dd className="text-foreground">{connection.last_sync_at || 'Never'}</dd>
           </div>
         </dl>
       </CardContent>
-      <CardFooter className="gap-2">
-        <Button asChild variant="outline" size="sm">
-          <Link
-            to="/connections/$connectionId"
-            params={{ connectionId: connection.id }}
-          >
-            View details
-          </Link>
-        </Button>
-        {onSync ? (
-          <Button variant="outline" size="sm" onClick={onSync} type="button">
-            Run sync
-          </Button>
-        ) : null}
+      <CardFooter className={footer ? 'flex-col items-stretch gap-2' : 'gap-2'}>
+        {footer ?? (
+          <>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/connections/$connectionId" params={{ connectionId: connection.id }}>
+                View details
+              </Link>
+            </Button>
+            {onSync ? (
+              <Button variant="outline" size="sm" onClick={onSync} type="button">
+                Run sync
+              </Button>
+            ) : null}
+          </>
+        )}
       </CardFooter>
     </Card>
-  );
+  )
 }

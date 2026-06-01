@@ -13,8 +13,8 @@ import { Monitor, Smartphone, Globe } from 'lucide-react'
 export const settingsSessionsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/settings/sessions',
-  beforeLoad: ({ context }: { context: { auth: AuthContextValue } }) => {
-    if (!context.auth.isAuthenticated) throw redirect({ to: '/login' })
+  beforeLoad: ({ context, location }: { context: { auth: AuthContextValue }; location: { href: string } }) => {
+    if (!context.auth.isAuthenticated) throw redirect({ to: '/login', search: { redirect: location.href } })
     if (context.auth.mustChangePassword) throw redirect({ to: '/change-password' })
   },
   component: SessionsPage,
@@ -44,12 +44,12 @@ function parseUserAgent(userAgent: string) {
   const ua = userAgent.toLowerCase()
   let browser = 'Unknown Browser'
   let os = 'Unknown OS'
-  
+
   if (ua.includes('firefox')) browser = 'Firefox'
   else if (ua.includes('chrome')) browser = 'Chrome'
   else if (ua.includes('safari')) browser = 'Safari'
   else if (ua.includes('edge')) browser = 'Edge'
-  
+
   if (ua.includes('windows')) os = 'Windows'
   else if (ua.includes('mac')) os = 'macOS'
   else if (ua.includes('linux')) os = 'Linux'
@@ -62,9 +62,13 @@ function parseUserAgent(userAgent: string) {
 function SessionsPage() {
   const queryClient = useQueryClient()
 
-  const { data: sessions, isLoading, error } = useQuery<Session[]>({
+  const {
+    data: sessions,
+    isLoading,
+    error,
+  } = useQuery<Session[]>({
     queryKey: ['sessions'],
-    queryFn: () => client.get('/api/v1/auth/sessions').then(res => res.data),
+    queryFn: () => client.get('/api/v1/auth/sessions').then((res) => res.data),
   })
 
   const revokeSession = useMutation({
@@ -81,16 +85,20 @@ function SessionsPage() {
     },
   })
 
-  const activeSessions = sessions?.filter(s => !s.is_current) || []
-  const currentSession = sessions?.find(s => s.is_current)
+  const activeSessions = sessions?.filter((s) => !s.is_current) || []
+  const currentSession = sessions?.find((s) => s.is_current)
 
   return (
     <AppShell>
       <div className="p-6 max-w-4xl mx-auto space-y-8">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight text-foreground">Active Sessions</h2>
-            <p className="mt-1 text-muted-foreground">Manage the devices that are currently logged in to your account.</p>
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+              Active Sessions
+            </h2>
+            <p className="mt-1 text-muted-foreground">
+              Manage the devices that are currently logged in to your account.
+            </p>
           </div>
           {activeSessions.length > 0 && (
             <Button
@@ -161,8 +169,12 @@ function SessionsPage() {
                           {session.user_agent}
                         </p>
                         <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
-                          <span>Signed in: {new Date(session.created_at).toLocaleDateString()}</span>
-                          <span>Last active: {new Date(session.last_seen_at).toLocaleString()}</span>
+                          <span>
+                            Signed in: {new Date(session.created_at).toLocaleDateString()}
+                          </span>
+                          <span>
+                            Last active: {new Date(session.last_seen_at).toLocaleString()}
+                          </span>
                         </div>
                       </div>
                     </div>

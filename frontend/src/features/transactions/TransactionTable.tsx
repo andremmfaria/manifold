@@ -1,12 +1,7 @@
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import type { ColumnDef } from '@tanstack/react-table'
+import { Link } from '@tanstack/react-router'
+import { Card, CardTitle, CardContent } from '@/components/ui/card'
+import { DataTable } from '@/components/ui/data-table'
 
 function AmountCell({ amount, currency }: { amount: string | null; currency: string | null }) {
   if (!amount) return <span className="text-muted-foreground">—</span>
@@ -26,49 +21,79 @@ function AmountCell({ amount, currency }: { amount: string | null; currency: str
   )
 }
 
+const columns: ColumnDef<any, any>[] = [
+  {
+    id: 'date',
+    accessorKey: 'transaction_date',
+    meta: { label: 'Date' },
+    header: 'Date',
+    cell: ({ row }) => (
+      <span className="text-muted-foreground">{row.original.transaction_date || '—'}</span>
+    ),
+  },
+  {
+    id: 'account',
+    accessorKey: 'account_id',
+    meta: { label: 'Account' },
+    header: 'Account',
+    cell: ({ row }) => {
+      const { account_id, account_display_name } = row.original
+      if (!account_id) return <span className="text-muted-foreground">—</span>
+      const label = account_display_name || account_id
+      const isRawId = !account_display_name
+      return (
+        <Link
+          to="/accounts/$accountId"
+          params={{ accountId: account_id }}
+          className="rounded-sm outline-none hover:underline focus-visible:underline focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <span className={isRawId ? 'font-mono text-xs' : 'font-medium'}>{label}</span>
+        </Link>
+      )
+    },
+  },
+  {
+    id: 'description',
+    accessorKey: 'description',
+    meta: { label: 'Description' },
+    header: 'Description',
+    cell: ({ row }) => (
+      <span className="font-medium text-foreground">{row.original.description || '—'}</span>
+    ),
+  },
+  {
+    id: 'merchant',
+    accessorKey: 'merchant_name',
+    meta: { label: 'Merchant' },
+    header: 'Merchant',
+    cell: ({ row }) => (
+      <span className="text-muted-foreground">{row.original.merchant_name || '—'}</span>
+    ),
+  },
+  {
+    id: 'amount',
+    accessorKey: 'amount',
+    meta: { label: 'Amount' },
+    header: () => <div className="text-right">Amount</div>,
+    cell: ({ row }) => (
+      <div className="text-right">
+        <AmountCell amount={row.original.amount} currency={row.original.currency} />
+      </div>
+    ),
+  },
+]
+
 export function TransactionTable({ items }: { items: any[] }) {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Transactions</CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="px-4">Date</TableHead>
-              <TableHead className="px-4">Description</TableHead>
-              <TableHead className="px-4">Merchant</TableHead>
-              <TableHead className="px-4 text-right">Amount</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                  No transactions found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              items.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="px-4 text-muted-foreground">
-                    {item.transaction_date || '—'}
-                  </TableCell>
-                  <TableCell className="px-4 font-medium text-foreground">
-                    {item.description || '—'}
-                  </TableCell>
-                  <TableCell className="px-4 text-muted-foreground">
-                    {item.merchant_name || '—'}
-                  </TableCell>
-                  <TableCell className="px-4 text-right">
-                    <AmountCell amount={item.amount} currency={item.currency} />
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+      <CardContent className="p-4">
+        <DataTable
+          columns={columns}
+          data={items}
+          emptyMessage="No transactions found."
+          storageKey="tx-table"
+          toolbar={<CardTitle>Transactions</CardTitle>}
+        />
       </CardContent>
     </Card>
   )

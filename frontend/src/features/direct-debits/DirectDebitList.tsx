@@ -1,52 +1,60 @@
+import type { ColumnDef } from '@tanstack/react-table'
 import { Badge } from '@/components/ui/badge'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { CardTitle } from '@/components/ui/card'
+import { DataTable } from '@/components/ui/data-table'
+
+const columns: ColumnDef<any, any>[] = [
+  {
+    id: 'name',
+    accessorKey: 'name',
+    meta: { label: 'Name' },
+    header: 'Name',
+    cell: ({ row }) => <span className="font-medium text-foreground">{row.original.name}</span>,
+  },
+  {
+    id: 'reference',
+    accessorKey: 'reference',
+    meta: { label: 'Reference' },
+    header: 'Reference',
+    cell: ({ row }) => (
+      <span className="text-muted-foreground">{row.original.reference || '—'}</span>
+    ),
+  },
+  {
+    id: 'amount',
+    accessorKey: 'amount',
+    meta: { label: 'Amount' },
+    header: 'Amount',
+    cell: ({ row }) => (
+      <span className="text-foreground">
+        {row.original.amount ? `${row.original.amount} ${row.original.currency || ''}`.trim() : '—'}
+      </span>
+    ),
+  },
+  {
+    id: 'status',
+    accessorKey: 'status',
+    meta: { label: 'Status' },
+    header: 'Status',
+    cell: ({ row }) =>
+      row.original.status ? (
+        <Badge variant="secondary" className="capitalize">
+          {row.original.status}
+        </Badge>
+      ) : (
+        <span className="text-muted-foreground text-xs">unknown</span>
+      ),
+  },
+]
 
 export function DirectDebitList({ items }: { items: any[] }) {
-  if (items.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground py-8 text-center">
-        No direct debits found for this account.
-      </p>
-    )
-  }
-
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Name</TableHead>
-          <TableHead>Reference</TableHead>
-          <TableHead>Amount</TableHead>
-          <TableHead>Status</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {items.map((item) => (
-          <TableRow key={item.id}>
-            <TableCell className="font-medium text-foreground">{item.name}</TableCell>
-            <TableCell className="text-muted-foreground">{item.reference || '—'}</TableCell>
-            <TableCell className="text-foreground">
-              {item.amount ? `${item.amount} ${item.currency || ''}`.trim() : '—'}
-            </TableCell>
-            <TableCell>
-              {item.status ? (
-                <Badge variant="secondary" className="capitalize">
-                  {item.status}
-                </Badge>
-              ) : (
-                <span className="text-muted-foreground text-xs">unknown</span>
-              )}
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <DataTable
+      columns={columns}
+      data={items}
+      emptyMessage="No direct debits found for this account."
+      storageKey="direct-debits"
+      toolbar={<CardTitle>All Direct Debits</CardTitle>}
+    />
   )
 }

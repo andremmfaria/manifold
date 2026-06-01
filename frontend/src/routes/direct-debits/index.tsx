@@ -5,14 +5,14 @@ import { DirectDebitList } from '@/features/direct-debits/DirectDebitList'
 import { useAccounts } from '@/features/accounts/useAccounts'
 import { useDirectDebits } from '@/features/direct-debits/useDirectDebits'
 import { rootRoute } from '../__root'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export const directDebitsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/direct-debits',
-  beforeLoad: ({ context }: { context: { auth: AuthContextValue } }) => {
-    if (!context.auth.isAuthenticated) throw redirect({ to: '/login' })
+  beforeLoad: ({ context, location }: { context: { auth: AuthContextValue }; location: { href: string } }) => {
+    if (!context.auth.isAuthenticated) throw redirect({ to: '/login', search: { redirect: location.href } })
   },
   component: DirectDebitsPage,
 })
@@ -29,7 +29,9 @@ function DirectDebitsPage() {
       <div className="space-y-6 p-6 max-w-7xl mx-auto">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Direct Debits</h1>
-          <p className="mt-1 text-muted-foreground">Recurring payments drawn from your connected account.</p>
+          <p className="mt-1 text-muted-foreground">
+            Recurring payments drawn from your connected account.
+          </p>
         </div>
 
         {isLoading ? (
@@ -46,10 +48,7 @@ function DirectDebitsPage() {
           </Card>
         ) : (
           <Card>
-            <CardHeader className="border-b">
-              <CardTitle>All Direct Debits</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="p-4">
               <DirectDebitList items={data} />
             </CardContent>
           </Card>

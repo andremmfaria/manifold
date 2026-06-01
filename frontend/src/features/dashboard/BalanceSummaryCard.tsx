@@ -12,7 +12,11 @@ export function BalanceSummaryCard({ accountsTotal }: { accountsTotal: number })
       </CardHeader>
       <CardContent>
         <span className="text-4xl font-bold tracking-tight text-foreground">
-          ${accountsTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          $
+          {accountsTotal.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
         </span>
       </CardContent>
     </Card>

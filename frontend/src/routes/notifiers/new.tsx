@@ -12,8 +12,8 @@ import { rootRoute } from '../__root'
 export const notifiersNewRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/notifiers/new',
-  beforeLoad: ({ context }: { context: { auth: AuthContextValue } }) => {
-    if (!context.auth.isAuthenticated) throw redirect({ to: '/login' })
+  beforeLoad: ({ context, location }: { context: { auth: AuthContextValue }; location: { href: string } }) => {
+    if (!context.auth.isAuthenticated) throw redirect({ to: '/login', search: { redirect: location.href } })
   },
   component: NewNotifierPage,
 })
@@ -24,44 +24,52 @@ function NewNotifierPage() {
 
   const [name, setName] = useState('')
   const [type, setType] = useState('email')
-  const [config, setConfig] = useState('{\n  "smtp_host": "smtp.example.com",\n  "smtp_port": 587,\n  "from_address": "alarms@example.com",\n  "to_address": "you@example.com"\n}')
+  const [config, setConfig] = useState(
+    '{\n  "smtp_host": "smtp.example.com",\n  "smtp_port": 587,\n  "from_address": "alarms@example.com",\n  "to_address": "you@example.com"\n}',
+  )
   const [error, setError] = useState('')
 
   const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newType = e.target.value;
-    setType(newType);
-    
+    const newType = e.target.value
+    setType(newType)
+
     // Provide sensible default config based on type
     if (newType === 'email') {
-      setConfig('{\n  "smtp_host": "smtp.example.com",\n  "smtp_port": 587,\n  "from_address": "alarms@example.com",\n  "to_address": "you@example.com"\n}');
+      setConfig(
+        '{\n  "smtp_host": "smtp.example.com",\n  "smtp_port": 587,\n  "from_address": "alarms@example.com",\n  "to_address": "you@example.com"\n}',
+      )
     } else if (newType === 'webhook') {
-      setConfig('{\n  "url": "https://example.com/webhook",\n  "method": "POST",\n  "headers": {}\n}');
+      setConfig(
+        '{\n  "url": "https://example.com/webhook",\n  "method": "POST",\n  "headers": {}\n}',
+      )
     } else if (newType === 'slack') {
-      setConfig('{\n  "webhook_url": "https://hooks.slack.com/services/...",\n  "channel": "#alerts"\n}');
+      setConfig(
+        '{\n  "webhook_url": "https://hooks.slack.com/services/...",\n  "channel": "#alerts"\n}',
+      )
     } else if (newType === 'telegram') {
-      setConfig('{\n  "bot_token": "YOUR_BOT_TOKEN",\n  "chat_id": "YOUR_CHAT_ID"\n}');
+      setConfig('{\n  "bot_token": "YOUR_BOT_TOKEN",\n  "chat_id": "YOUR_CHAT_ID"\n}')
     }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    
+
     try {
-      if (!name) throw new Error("Name is required");
-      
-      let parsedConfig;
+      if (!name) throw new Error('Name is required')
+
+      let parsedConfig
       try {
-        parsedConfig = JSON.parse(config);
+        parsedConfig = JSON.parse(config)
       } catch (e) {
-        throw new Error("Invalid JSON in configuration");
+        throw new Error('Invalid JSON in configuration')
       }
 
       await createNotifier({
         name,
         type,
         config: parsedConfig,
-        is_enabled: true
+        is_enabled: true,
       })
       navigate({ to: '/notifiers' })
     } catch (err: any) {
@@ -74,7 +82,9 @@ function NewNotifierPage() {
       <div className="space-y-6 p-6 max-w-2xl mx-auto">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Add Notifier</h1>
-          <p className="mt-1 text-muted-foreground">Configure a new destination for alarm notifications.</p>
+          <p className="mt-1 text-muted-foreground">
+            Configure a new destination for alarm notifications.
+          </p>
         </div>
 
         <Card>
@@ -96,7 +106,7 @@ function NewNotifierPage() {
                   type="text"
                   required
                   value={name}
-                  onChange={e => setName(e.target.value)}
+                  onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Work Email, On-Call Slack"
                 />
               </div>
@@ -122,11 +132,13 @@ function NewNotifierPage() {
                   id="notifier-config"
                   required
                   value={config}
-                  onChange={e => setConfig(e.target.value)}
+                  onChange={(e) => setConfig(e.target.value)}
                   className="h-48 w-full rounded-lg border border-input bg-transparent px-2.5 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
                   placeholder="{}"
                 />
-                <p className="text-xs text-muted-foreground">Provide the connection details in JSON format.</p>
+                <p className="text-xs text-muted-foreground">
+                  Provide the connection details in JSON format.
+                </p>
               </div>
 
               <div className="flex justify-end gap-3 pt-2">

@@ -17,15 +17,21 @@ export function AlarmStatusWidget({ activeAlarmsCount }: { activeAlarmsCount: nu
             Active Alarms
           </CardTitle>
           {hasAlarms && (
-            <Badge variant="destructive" className="ml-auto">{activeAlarmsCount}</Badge>
+            <Badge variant="destructive" className="ml-auto">
+              {activeAlarmsCount}
+            </Badge>
           )}
         </div>
       </CardHeader>
       <CardContent>
-        <span className={`text-4xl font-bold tracking-tight ${hasAlarms ? 'text-destructive' : 'text-foreground'}`}>
+        <span
+          className={`text-4xl font-bold tracking-tight ${hasAlarms ? 'text-destructive' : 'text-foreground'}`}
+        >
           {activeAlarmsCount}
         </span>
-        <p className={`mt-1 text-sm ${hasAlarms ? 'text-destructive/80' : 'text-muted-foreground'}`}>
+        <p
+          className={`mt-1 text-sm ${hasAlarms ? 'text-destructive/80' : 'text-muted-foreground'}`}
+        >
           {activeAlarmsCount === 1 ? 'Alarm requires attention' : 'Alarms require attention'}
         </p>
       </CardContent>

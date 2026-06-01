@@ -55,9 +55,21 @@ type SyncResult = {
 }
 
 type FileFormState = {
+  displayName: string
   source: string
   authMode: AuthMode
   syncInterval: string
+}
+
+// Derive a display name from the JSON file referenced by a path or URL, used when the
+// user leaves the display name blank. e.g. "/data/finances.json" -> "finances".
+function deriveNameFromSource(source: string): string {
+  const trimmed = source.trim()
+  if (!trimmed) return ''
+  // Drop query string / hash, then take the last path segment.
+  const withoutQuery = trimmed.split(/[?#]/)[0]
+  const segment = withoutQuery.split('/').filter(Boolean).pop() ?? ''
+  return segment.replace(/\.json$/i, '')
 }
 
 const SYNC_INTERVAL_OPTIONS = [
@@ -83,6 +95,7 @@ function ConnectPage() {
   // JSON file provider dialog state
   const [fileDialogProvider, setFileDialogProvider] = useState<Provider | null>(null)
   const [fileForm, setFileForm] = useState<FileFormState>({
+    displayName: '',
     source: '',
     authMode: 'none',
     syncInterval: '1h',
@@ -101,7 +114,12 @@ function ConnectPage() {
     if (provider.auth_kind === 'file') {
       // Open the JSON config dialog instead of redirecting
       setFileDialogProvider(provider)
-      setFileForm({ source: '', authMode: 'none', syncInterval: '1h' })
+      setFileForm({
+        displayName: '',
+        source: '',
+        authMode: 'none',
+        syncInterval: '1h',
+      })
       setFileCredentials(EMPTY_CREDENTIALS)
       setSyncResult(null)
       setCreatedConnectionId(null)
@@ -137,8 +155,7 @@ function ConnectPage() {
     setSyncResult(null)
 
     try {
-      const isUrl =
-        fileForm.source.startsWith('http://') || fileForm.source.startsWith('https://')
+      const isUrl = fileForm.source.startsWith('http://') || fileForm.source.startsWith('https://')
       const config: Record<string, unknown> = {
         auth_mode: fileForm.authMode === 'none' ? undefined : fileForm.authMode,
         sync_interval: fileForm.syncInterval,
@@ -149,10 +166,17 @@ function ConnectPage() {
         config.path = fileForm.source
       }
 
+      // Fall back to the JSON file name when the user left the display name blank,
+      // then to the provider's default name.
+      const displayName =
+        fileForm.displayName.trim() ||
+        deriveNameFromSource(fileForm.source) ||
+        fileDialogProvider.display_name
+
       const credentials = buildCredentials(fileForm.authMode, fileCredentials)
       const connection = await connectionsApi.create({
         provider_type: fileDialogProvider.provider_type,
-        display_name: fileDialogProvider.display_name,
+        display_name: displayName,
         config,
         ...(credentials ? { credentials } : {}),
       })
@@ -173,7 +197,12 @@ function ConnectPage() {
           latest = runs[0] ?? null
           if (!latest || !PENDING.has(latest.status)) break
           // Still in flight — update UI with pending indicator so user sees activity.
-          setSyncResult({ accounts: 0, transactions: 0, error: undefined, pending: true })
+          setSyncResult({
+            accounts: 0,
+            transactions: 0,
+            error: undefined,
+            pending: true,
+          })
         }
         if (latest?.status === 'failed') {
           setSyncResult({
@@ -190,7 +219,11 @@ function ConnectPage() {
           })
         }
       } catch {
-        setSyncResult({ accounts: 0, transactions: 0, error: 'Sync request failed' })
+        setSyncResult({
+          accounts: 0,
+          transactions: 0,
+          error: 'Sync request failed',
+        })
       }
     } catch (err: unknown) {
       const e = err as { response?: { data?: { detail?: string } } }
@@ -279,8 +312,8 @@ function ConnectPage() {
             <DialogHeader>
               <DialogTitle>Configure JSON source</DialogTitle>
               <DialogDescription>
-                Provide the file path or URL of your JSON data file and choose how often
-                Manifold should read it.
+                Provide the file path or URL of your JSON data file and choose how often Manifold
+                should read it.
               </DialogDescription>
             </DialogHeader>
 
@@ -300,8 +333,8 @@ function ConnectPage() {
                   <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm text-foreground space-y-1">
                     <p className="font-medium text-foreground">File loaded successfully.</p>
                     <p className="text-muted-foreground">
-                      {syncResult.accounts} account{syncResult.accounts !== 1 ? 's' : ''},{' '}
-                      {syncResult.transactions} transaction
+                      {syncResult.accounts} account
+                      {syncResult.accounts !== 1 ? 's' : ''}, {syncResult.transactions} transaction
                       {syncResult.transactions !== 1 ? 's' : ''} imported.
                     </p>
                   </div>
@@ -312,7 +345,10 @@ function ConnectPage() {
                       <Button
                         onClick={() => {
                           setFileDialogProvider(null)
-                          void navigate({ to: '/connections/$connectionId', params: { connectionId: createdConnectionId } })
+                          void navigate({
+                            to: '/connections/$connectionId',
+                            params: { connectionId: createdConnectionId },
+                          })
                         }}
                       >
                         View connection
@@ -328,14 +364,27 @@ function ConnectPage() {
               // Config form
               <div className="space-y-4">
                 <div className="space-y-1.5">
+                  <Label htmlFor="file-display-name">Display name</Label>
+                  <Input
+                    id="file-display-name"
+                    placeholder="Defaults to the JSON file name"
+                    value={fileForm.displayName}
+                    onChange={(e) =>
+                      setFileForm((f) => ({
+                        ...f,
+                        displayName: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-1.5">
                   <Label htmlFor="file-source">File path or URL</Label>
                   <Input
                     id="file-source"
                     placeholder="/data/finances.json or https://example.com/data.json"
                     value={fileForm.source}
-                    onChange={(e) =>
-                      setFileForm((f) => ({ ...f, source: e.target.value }))
-                    }
+                    onChange={(e) => setFileForm((f) => ({ ...f, source: e.target.value }))}
                   />
                 </div>
 
@@ -387,9 +436,7 @@ function ConnectPage() {
                   </Select>
                 </div>
 
-                {formError && (
-                  <p className="text-sm text-destructive">{formError}</p>
-                )}
+                {formError && <p className="text-sm text-destructive">{formError}</p>}
 
                 <DialogFooter>
                   <Button

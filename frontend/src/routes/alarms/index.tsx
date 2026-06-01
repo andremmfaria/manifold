@@ -11,8 +11,8 @@ import { rootRoute } from '../__root'
 export const alarmsIndexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/alarms',
-  beforeLoad: ({ context }: { context: { auth: AuthContextValue } }) => {
-    if (!context.auth.isAuthenticated) throw redirect({ to: '/login' })
+  beforeLoad: ({ context, location }: { context: { auth: AuthContextValue }; location: { href: string } }) => {
+    if (!context.auth.isAuthenticated) throw redirect({ to: '/login', search: { redirect: location.href } })
   },
   component: AlarmsPage,
 })
@@ -38,7 +38,9 @@ function AlarmsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-foreground">Alarms</h1>
-            <p className="mt-1 text-muted-foreground">Manage your active alert conditions and thresholds.</p>
+            <p className="mt-1 text-muted-foreground">
+              Manage your active alert conditions and thresholds.
+            </p>
           </div>
           <Button asChild>
             <Link to="/alarms/new">
@@ -57,7 +59,12 @@ function AlarmsPage() {
         ) : (
           <div className="grid gap-4">
             {data?.items.map((alarm) => (
-              <Link key={alarm.id} to="/alarms/$alarmId" params={{ alarmId: alarm.id }} className="block group">
+              <Link
+                key={alarm.id}
+                to="/alarms/$alarmId"
+                params={{ alarmId: alarm.id }}
+                className="block group"
+              >
                 <div className="transition-all group-hover:ring-2 group-hover:ring-primary/40 rounded-xl">
                   <AlarmCard
                     alarm={alarm}

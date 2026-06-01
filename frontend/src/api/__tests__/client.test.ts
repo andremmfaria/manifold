@@ -10,8 +10,6 @@ describe('API client', () => {
   it('has correct Content-Type header', () => {
     const headers = client.defaults.headers as Record<string, any>
 
-    expect(headers['Content-Type'] ?? headers.common?.['Content-Type']).toBe(
-      'application/json',
-    )
+    expect(headers['Content-Type'] ?? headers.common?.['Content-Type']).toBe('application/json')
   })
 })

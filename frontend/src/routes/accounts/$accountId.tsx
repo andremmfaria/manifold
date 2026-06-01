@@ -9,8 +9,8 @@ import { rootRoute } from '../__root'
 export const accountDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/accounts/$accountId',
-  beforeLoad: ({ context }: { context: { auth: AuthContextValue } }) => {
-    if (!context.auth.isAuthenticated) throw redirect({ to: '/login' })
+  beforeLoad: ({ context, location }: { context: { auth: AuthContextValue }; location: { href: string } }) => {
+    if (!context.auth.isAuthenticated) throw redirect({ to: '/login', search: { redirect: location.href } })
   },
   component: AccountDetailPage,
 })
