@@ -62,6 +62,7 @@ def _serialize_account(account: Account, current_balance: Balance | None) -> dic
         "iban": account.iban,
         "sort_code": account.sort_code,
         "account_number": account.account_number,
+        "identity_id": str(account.identity_id) if account.identity_id else None,
         "is_active": account.is_active,
         "current_balance": str(current_balance.current)
         if current_balance and current_balance.current is not None

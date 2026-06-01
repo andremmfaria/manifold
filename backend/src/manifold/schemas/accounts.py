@@ -21,6 +21,7 @@ class AccountResponse(SchemaModel):
     iban: str | None
     sort_code: str | None
     account_number: str | None
+    identity_id: str | None = None
     is_active: bool
     current_balance: Decimal | None = None
     balance_currency: str | None = None
