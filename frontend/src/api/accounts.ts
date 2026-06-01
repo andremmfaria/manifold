@@ -7,6 +7,12 @@ export type Account = {
   currency: string
   current_balance: string | null
   balance_currency: string | null
+  /**
+   * Populated once the backend exposes identity_id on the accounts list response.
+   * Null/absent means the account is not yet linked to an identity (or the backend
+   * has not yet included the field). Grouping on the accounts page is gated on this.
+   */
+  identity_id?: string | null
 }
 
 export type AccountListResponse = {
