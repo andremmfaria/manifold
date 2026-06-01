@@ -57,6 +57,8 @@ The core of the application, independent of infrastructure.
 - **Canonical Models**: Defines what an "Account" or "Transaction" is within Manifold.
 - **Orchestration**: Manages the flow between data ingestion, alarm evaluation, and notification.
 - **Ownership/RBAC**: Ensures users can only access data they own or have been delegated.
+- **Account Identity** (`domain/account_identity.py`, `domain/identity_backfill.py`): Resolves which `Account` rows across different provider connections represent the same real-world bank account, grouping them under a shared `AccountIdentity` node. Runs inside the sync pipeline after every account upsert.
+- **Transaction Deduplication** (`domain/transaction_fingerprint.py`): Computes identity-scoped HMAC fingerprints for transactions so that the same physical transaction fetched by two connections belonging to the same identity is stored only once.
 
 ### Provider Layer (Adapters)
 
@@ -65,6 +67,15 @@ Handles communication with external financial institutions.
 - **Normalization**: Maps provider-specific JSON to Manifold canonical models.
 - **Auth Management**: Manages OAuth2 flows, token rotation, and API key storage.
 - **Resilience**: Implements rate limiting and retry logic specific to each provider.
+
+### Email Transport Layer (`email/`)
+
+A pluggable outbound email subsystem used by alarm notifications and system messages.
+
+- **Transport Protocol** (`email/base.py`): The `EmailTransport` protocol defines `send`, `validate_config`, `verify_webhook`, and `parse_webhook` — allowing any adapter to slot in transparently.
+- **Adapters** (`email/adapters/`): Six production-ready adapters ship out of the box: `smtp`, `ses`, `resend`, `postmark`, `mailgun`, and `brevo`.
+- **Factory** (`email/factory.py`): `get_transport(provider, config)` resolves the correct adapter at runtime from `InstanceEmailSettings.provider`.
+- **Suppression** (`models/email_suppression.py`): Bounce and complaint events received via provider webhooks write to `email_suppression`; the `address_hmac` column (BLAKE2 / HMAC of the address) keeps the list private while remaining queryable.
 
 ### Alarm Engine
 
@@ -78,10 +89,48 @@ The reactive heart of the system.
 
 1. **Trigger**: A sync job is triggered via cron (scheduler) or manually (API).
 2. **Ingestion**: The Taskiq worker calls a Provider Adapter to fetch new data.
-3. **Persistence**: New transactions/balances are upserted into the SQL Database.
-4. **Events**: The system detects notable changes (e.g., large transaction, low balance).
-5. **Evaluation**: The Alarm Engine runs active rules against the updated state.
-6. **Dispatch**: If an alarm fires, the Notifier Subsystem sends messages to configured channels.
+3. **Account Identity Resolution**: For each upserted `Account`, `_sync_accounts` in `SyncEngine` calls `extract_identifiers` (normalizes IBAN / SCAN / ABA to HMAC fingerprints via `security/fingerprint.py`) then `resolve_account_identity` to assign or merge `AccountIdentity` nodes. This happens inside the same database transaction as the account upsert so identity assignment is always consistent.
+4. **Persistence**: New transactions/balances are upserted into the SQL Database.
+5. **Transaction Deduplication**: `_sync_transactions` computes a Tier 1 identity-scoped hash (`identity_dedup_hash`) via `compute_tier1_hash` when `account.identity_id` is set. The upsert conflict key is `identity_dedup_hash`, ensuring the same physical transaction from two connections in the same identity is written only once. A Tier 2 content hash (`content_hash`) is also computed and stored for future opt-in dedup. Accounts without an identity fall back to the legacy MD5 `dedup_hash` path, preserving backward compatibility.
+6. **Events**: The system detects notable changes (e.g., large transaction, low balance).
+7. **Evaluation**: The Alarm Engine runs active rules against the updated state.
+8. **Dispatch**: If an alarm fires, the Notifier Subsystem sends messages to configured channels. For email channels, `email/factory.py` selects the configured `EmailTransport` adapter and checks `email_suppression` before delivery.
+
+## Key Data-Model Entities
+
+### Account Identity Graph
+
+The identity subsystem introduces three new tables that sit alongside the existing `accounts` table:
+
+| Entity | Table | Purpose |
+|---|---|---|
+| `AccountIdentity` | `account_identities` | Stable node representing one real-world bank account. Holds `master_account_id` (oldest member `Account`), `origin` (`auto` / `manual`), and tombstone fields (`merged_into`, `merged_at`). |
+| `AccountIdentifier` | `account_identifiers` | Append-only log of observed bank identifiers (IBAN, SCAN, ABA) keyed to an `AccountIdentity`. Values are stored as HMAC-SHA256 hex (`value_hmac`), never plaintext. `retired_at` excludes a row from future matching without deleting it. |
+| `AccountIdentityAssertion` | `account_identity_assertions` | User-level statements about an ordered account pair: `same` (force merge) or `do_not_merge` (block auto-merge). Stored at the `Account`-pair level so assertions survive identity churn. |
+
+Relationships:
+
+- `Account.identity_id → account_identities.id` — each `Account` row belongs to at most one live identity.
+- `AccountIdentity.master_account_id → accounts.id` — the canonical display source for the group; recomputed after every merge or sync.
+- `AccountIdentifier.identity_id → account_identities.id` — identifiers accrete onto an identity and may be re-pointed on merge.
+
+### Transaction Deduplication Columns
+
+`Transaction` gains three new columns (migration `0006_txn_dedup`):
+
+| Column | Type | Description |
+|---|---|---|
+| `identity_dedup_hash` | `String(64)` / UNIQUE | Tier 1: `HMAC(manifold-txn-dedup, identity_id + ':' + provider_transaction_id)`. Primary upsert conflict key when `identity_id` is set. |
+| `content_hash` | `String(64)` / indexed | Tier 2: `HMAC(manifold-txn-content, identity_id + ':' + amount + ':' + date + ':' + desc)`. Stored for future opt-in dedup; not a unique constraint. |
+| `is_cross_connection_duplicate` | `Boolean` | Set by backfill when a row is identified as a duplicate of a canonical row under the same identity. Read-time queries filter `WHERE is_cross_connection_duplicate = FALSE`. |
+
+### Email Subsystem Entities
+
+| Entity | Table | Purpose |
+|---|---|---|
+| `InstanceEmailSettings` | `instance_email_settings` | Singleton row (`id = 'default'`) holding the active provider name, encrypted config JSON, and from-address. |
+| `EmailSuppression` | `email_suppression` | Bounce/complaint list. `address_hmac` stores a keyed hash of the recipient address so the list is queryable without storing plaintext addresses. |
+| `EmailWebhookEvent` | `email_webhook_events` | Raw inbound webhook payloads from the email provider, encrypted at rest. Indexed on `(provider, event_type)` for replay and audit. |
 
 ## Encryption Architecture (DEK/KEK)
 
@@ -109,7 +158,7 @@ The `DatabaseBackend` ABC allows Manifold to be dialect-agnostic:
 - **SQLite**: Perfect for single-user, low-resource environments. Uses `aiosqlite` for async I/O.
 - **PostgreSQL**: Recommended for multi-user or high-traffic setups. Uses `asyncpg`.
 - **MariaDB/MySQL**: Supported for users with existing infrastructure. Uses `asyncmy`.
-- **Migrations**: Alembic handles schema versioning across all supported dialects.
+- **Migrations**: Alembic handles schema versioning across all supported dialects. The current head is `0007_email_subsystem`; earlier milestones are `0005_account_identity` (identity graph tables) and `0006_txn_dedup` (cross-connection dedup columns on `transactions`).
 
 ## Auth and Session Model
 
@@ -143,6 +192,52 @@ The notification router is responsible for delivering alerts triggered by the Al
 - **Template Rendering**: Translates internal alarm state into human-readable messages tailored for each channel (e.g., short for Telegram, rich for Email).
 - **Batching**: Future-proofing for high-volume accounts to prevent alert fatigue.
 - **Provider Isolation**: Each notifier (Slack, SMTP, etc.) is isolated; a failure in one channel does not prevent delivery through others.
+
+### Account Identity Subsystem
+
+The identity subsystem solves a fundamental aggregation problem: the same physical bank account may appear under multiple `ProviderConnection` rows (e.g., a current account linked via TrueLayer and again via a JSON endpoint). Without grouping, balances and transactions are double-counted.
+
+**Identifier extraction** (`domain/account_identity.py: extract_identifiers`): At sync time, raw IBAN, UK sort-code/account-number (SCAN), and US routing/account-number (ABA) fields from the provider `AccountData` DTO are normalized and hashed with `compute_identifier_hmac` (`security/fingerprint.py`). The HMAC key is derived via HKDF with label `manifold-fingerprint` from the application secret, scoped by `user_id` to make cross-user comparison structurally impossible. Multi-currency providers (e.g., Wise, Revolut) that issue multiple wallets under a single IBAN include the `currency` dimension in the hash so wallets remain distinct.
+
+**Identity resolution** (`resolve_account_identity`): After each account upsert the engine runs a three-way match:
+
+- **0 matches** — mint a new `AccountIdentity` node and bind the account to it.
+- **1 match** — bind the account to the existing identity; accrete any new identifiers onto it.
+- **≥2 matches** — auto-merge: the identity owning the oldest `Account` (by `created_at`, tie-broken by smallest UUID) is the survivor; losers are tombstoned (`merged_into`/`merged_at` set). A `do_not_merge` `AccountIdentityAssertion` for any pair in the cluster vetoes the merge entirely.
+
+**Manual merge / unmerge** (`IdentityMergeService`, `IdentityUnmergeService`): Users can explicitly merge account pairs via the frontend. Unmerge reconstructs the pre-merge partition using `merged_from_identity` provenance on identifier rows and re-derives each account's HMAC fingerprints. Bridge accounts — those whose identifiers span two origin groups — are retained with the survivor.
+
+**Backfill** (`domain/identity_backfill.py`): A one-shot idempotent task (migration `0005_account_identity`) processes all existing `Account` rows that have `identity_id IS NULL`, running the same Phase 3 match/create/merge logic against each user's DEK context.
+
+**Merge suggestions** (`suggest_merges`): A scoring function surfaces candidate pairs for manual review. Pairs are scored on display-name trigram similarity, account-type match, currency match, and same provider type; pairs with an existing `do_not_merge` assertion or a shared identity are excluded.
+
+For full details see [`docs/account-identity.md`](account-identity.md).
+
+### Transaction Cross-Connection Deduplication
+
+When two `Account` rows belong to the same `AccountIdentity`, both connections will independently fetch many of the same transactions from the bank. The Tier 1 dedup mechanism in `SyncEngine._sync_transactions` prevents double-insertion.
+
+**Tier 1** (`domain/transaction_fingerprint.py: compute_tier1_hash`): For each transaction the engine computes `HMAC(manifold-txn-dedup, identity_id + ':' + normalized_provider_transaction_id)`. The 64-char hex digest is stored in `Transaction.identity_dedup_hash`. Because it is covered by a `UNIQUE` constraint, the upsert with conflict key `identity_dedup_hash` silently updates the existing row rather than inserting a duplicate. No DEK is required — `provider_transaction_id` is plaintext.
+
+**Tier 2** (`compute_content_hash`): A content-based fallback hash (`HMAC(manifold-txn-content, identity_id + ':' + amount + ':' + date + ':' + normalized_description)`) is computed from already-decrypted values while the DEK context is active and stored in `Transaction.content_hash`. It is indexed for lookup but carries no unique constraint and is **disabled by default** — it exists for future opt-in dedup of transactions where the provider assigns different IDs to the same payment across connections.
+
+**Backward compatibility**: Accounts without an `identity_id` continue to use the legacy `MD5(connection_id:provider_transaction_id)` hash stored in `Transaction.dedup_hash`. The upsert conflict key switches to `dedup_hash` for these rows. Both columns are always written, so the `uq_transactions_dedup_hash` constraint is never violated during the transition period.
+
+**Duplicate flagging**: The `Transaction.is_cross_connection_duplicate` boolean is set by a post-backfill pass to mark legacy duplicate rows. All read-time queries filter `WHERE is_cross_connection_duplicate = FALSE` to avoid double-counting balances and spending summaries.
+
+### Email Transport Subsystem
+
+Manifold's outbound email is decoupled from any specific provider through the `EmailTransport` protocol (`email/base.py`). The protocol enforces four methods: `send`, `validate_config`, `verify_webhook`, and `parse_webhook` — covering the full lifecycle of transactional email plus suppression list maintenance.
+
+**Adapters** (`email/adapters/`): Six adapters ship in-tree: `smtp` (direct SMTP via `aiosmtplib`), `ses` (AWS SES v2 via `boto3`), `resend`, `postmark`, `mailgun`, and `brevo`. Each is a thin wrapper around the provider's HTTP or SDK API; all config is encrypted at rest in `InstanceEmailSettings.config`.
+
+**Factory** (`email/factory.py: get_transport`): The factory function is the only place that knows which adapter class to instantiate. API and worker code depends only on the `EmailTransport` protocol, never on a concrete adapter.
+
+**Suppression management**: Providers deliver bounce and complaint events as webhooks. Each adapter's `verify_webhook` validates the provider-specific signature before `parse_webhook` extracts `SuppressionEvent` objects. The API layer writes `EmailSuppression` rows with an HMAC of the address (`address_hmac`) so suppression lookups are O(1) without storing plaintext email addresses. Raw webhook payloads are journalled in `EmailWebhookEvent` (encrypted) for audit and replay.
+
+**Settings persistence**: `InstanceEmailSettings` is a singleton row (`id = 'default'`) in `instance_email_settings`. `provider` and `config` (encrypted JSON) are loaded by `get_transport` at send time. `from_address` and `from_name` are also encrypted.
+
+For full details see [`docs/email.md`](email.md).
 
 ### Security and Isolation
 

@@ -16,8 +16,11 @@ Whether you are managing a single household account or coordinating finances for
 
 - **Financial Data Ingestion**: Seamlessly sync data from TrueLayer (Open Banking) or push data via the flexible JSON provider.
 - **Unified Views**: Centralized dashboard for accounts, transactions, balances, cards, direct debits, and standing orders.
+- **Cross-connection Account Identity**: The same real-world bank account seen across multiple provider connections is automatically grouped into a single identity. Identities are matched on normalised IBAN, sort-code/account-number, or ABA routing data. Manual merge and unmerge are also supported. See [`docs/account-identity.md`](docs/account-identity.md).
+- **Cross-connection Transaction Dedup**: Transactions that arrive via two different connections for the same identity are deduplicated to a single row using an identity-scoped HMAC fingerprint, eliminating double-counts without data loss. See [`docs/account-identity.md`](docs/account-identity.md).
 - **Advanced Alarm Engine**: Define sophisticated alarm rules using an AND/OR/NOT condition tree. Monitor balances, sync health, and specific transaction patterns.
-- **Multi-channel Notifications**: Get alerted via Email (SMTP), Webhook, Slack, or Telegram when alarms fire.
+- **Multi-channel Notifications**: Get alerted via Email, Webhook, Slack, or Telegram when alarms fire.
+- **Pluggable Email Transport**: The email subsystem supports multiple delivery backends — SMTP, Amazon SES, Brevo, Mailgun, Postmark, and Resend — selected per notification channel. Includes a suppression list and inbound webhook handling for bounces and complaints. See [`docs/email.md`](docs/email.md).
 - **Recurring Payment Detection**: Automatically identify recurring debits and predict future financial obligations.
 - **Security First**: Per-user AES-256-GCM encryption at rest for all sensitive credentials. Data is only decrypted in memory when needed for a specific user's sync or evaluation.
 - **Multi-user Delegation**: Support for multiple users with granular delegation. Grant "Viewer" or "Admin" access to specific accounts within a household or team.
@@ -28,12 +31,13 @@ Whether you are managing a single household account or coordinating finances for
 
 Manifold uses a layered architecture to ensure modularity and ease of extension:
 
-1. **Frontend**: A modern React/TypeScript SPA built with Vite and shadcn/ui.
+1. **Frontend**: A modern React/TypeScript SPA built with Vite, shadcn/ui, and Tailwind CSS v4. Supports OS-aware dark mode and ships with a full app shell.
 2. **API Layer**: FastAPI-based REST API handling authentication, request validation, and routing.
-3. **Domain Layer**: Pure business logic that manages accounts, transactions, and alarm evaluation without being tied to specific providers or databases.
+3. **Domain Layer**: Pure business logic that manages accounts, transactions, and alarm evaluation without being tied to specific providers or databases. Includes the Account Identity subsystem for cross-connection grouping and the transaction deduplication engine.
 4. **Provider Layer**: Pluggable adapters (TrueLayer, JSON) that translate external data into the Manifold canonical model.
 5. **Background Jobs**: Taskiq-powered worker system using Redis for job orchestration (syncing, alarm evaluation, recurrence detection).
 6. **Persistence**: A dialect-agnostic SQL layer supporting SQLite, PostgreSQL, and MariaDB.
+7. **Email Subsystem**: A transport-agnostic email layer (`backend/src/manifold/email/`) with adapter implementations for SMTP, SES, Brevo, Mailgun, Postmark, and Resend. Handles suppression and inbound bounce/complaint webhooks.
 
 ```text
   [Browser] <──> [Nginx/Frontend] <──> [FastAPI Backend] <──> [SQL Database]
@@ -147,7 +151,9 @@ A generic "push" or "pull" provider for manual data or custom integrations.
 
 ### Adding a Provider
 
-New providers can be added by implementing the `BaseProvider` interface in `backend/src/manifold/providers/base.py`. See `docs/providers.md` for details.
+New providers can be added by implementing the `BaseProvider` interface in `backend/src/manifold/providers/base.py`. See [`docs/providers.md`](docs/providers.md) for details.
+
+Once a provider is connected, accounts it returns are automatically matched against existing identities from other connections. See [`docs/account-identity.md`](docs/account-identity.md) for how cross-connection grouping works.
 
 ## Alarms
 
@@ -161,7 +167,7 @@ Alarms are the heart of Manifold. You can create rules that monitor your data co
 
 Manifold supports several notification channels:
 
-- **Email**: Requires SMTP server settings.
+- **Email**: Delivered via a pluggable transport backend. Configure SMTP credentials (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM_ADDRESS`, `SMTP_USE_TLS`) for the built-in SMTP adapter, or configure an alternative adapter (SES, Brevo, Mailgun, Postmark, Resend) per notification channel. The email subsystem maintains a suppression list and processes inbound bounce/complaint webhooks automatically. See [`docs/email.md`](docs/email.md).
 - **Slack**: Requires a Webhook URL.
 - **Telegram**: Requires a Bot Token and Chat ID.
 - **Webhook**: Sends a JSON POST request to a custom endpoint.
@@ -225,7 +231,7 @@ Manifold is for the power user who wants to automate the tedious parts of financ
 
 ## Community and Support
 
-- **Documentation**: You are reading it! Check the `docs/` folder for deep dives.
+- **Documentation**: You are reading it! Check the `docs/` folder for deep dives, including [`docs/account-identity.md`](docs/account-identity.md) (cross-connection identity and dedup), [`docs/email.md`](docs/email.md) (pluggable email transport), and [`docs/providers.md`](docs/providers.md).
 - **GitHub Issues**: Report bugs or request features on our [GitHub Issues](https://github.com/your-org/manifold/issues) page.
 - **Discussions**: Join our community on [GitHub Discussions](https://github.com/your-org/manifold/discussions) to share your custom alarm rules and provider integrations.
 

@@ -96,6 +96,20 @@ manifold.example.com {
 3. Grant permissions: `GRANT ALL PRIVILEGES ON manifold.* TO 'manifold'@'%';`
 4. Update `.env`: `DATABASE_URL=mysql+asyncmy://manifold:your_password@localhost:3306/manifold`
 
+### Migration Sequence
+
+Manifold uses Alembic. Migrations run automatically on startup (or manually via `alembic upgrade head`). The full ordered sequence is:
+
+| Revision | Description |
+|---|---|
+| `0001_initial` | Core schema — users, connections, accounts, transactions |
+| `0002_data_in` | Provider-specific data tables |
+| `0003_alarms_notifiers` | Alarm engine and notifier configuration tables |
+| `0004_user_names` | Display name columns on the users table |
+| `0005_account_identity` | Account identity grouping — `account_identities` table and `accounts.identity_id` FK |
+| `0006_txn_dedup` | Cross-connection transaction deduplication columns (`identity_dedup_hash`, `content_hash`, `is_cross_connection_duplicate`) |
+| `0007_email_subsystem` | Email subsystem tables — `instance_email_settings`, `email_suppression`, `email_webhook_events` |
+
 ## Backup Strategy
 
 Your financial data is valuable. Back it up regularly.
@@ -123,12 +137,50 @@ If your `SECRET_KEY` is compromised, you must rotate it.
 3. Restart the stack.
 4. Users will need to re-authorize their bank connections.
 
+## Email Transport Configuration
+
+Manifold ships a pluggable email transport layer used for alarm notifications and system messages. The active provider and its credentials are stored encrypted in the database via the admin UI (`/settings/email`). The following adapters are supported: `smtp`, `ses`, `resend`, `postmark`, `mailgun`, `brevo`.
+
+The SMTP adapter can also be seeded from environment variables as a convenience for first-run or self-hosted setups where a UI config step is undesirable:
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `SMTP_HOST` | _(empty)_ | SMTP server hostname |
+| `SMTP_PORT` | `587` | SMTP server port |
+| `SMTP_USE_TLS` | `true` | Enable STARTTLS |
+| `SMTP_USER` | _(empty)_ | SMTP authentication username |
+| `SMTP_PASSWORD` | _(empty)_ | SMTP authentication password |
+| `SMTP_FROM_ADDRESS` | _(empty)_ | Envelope `From` address |
+
+For API-based providers (SES, Resend, Postmark, Mailgun, Brevo), credentials and provider-specific keys (e.g. API keys, signing secrets) are stored exclusively in the encrypted `instance_email_settings` database row — they are not read from environment variables.
+
+### Bounce and Complaint Webhook
+
+To keep the suppression list up to date, register the following URL with your email provider's bounce/complaint webhook settings:
+
+```
+POST https://<your-domain>/api/v1/email/webhooks/{provider}
+```
+
+Replace `{provider}` with the lowercase adapter name (e.g. `ses`, `postmark`, `mailgun`, `resend`, `brevo`). The SMTP adapter does not support webhooks.
+
+Each provider requires a signing secret or token to authenticate inbound webhook requests. Set this in the encrypted provider config via the admin UI — the field name varies by adapter (`webhook_secret`, `webhook_signing_key`, or `webhook_token`).
+
 ## Upgrade Procedure
 
 1. Pull the latest code: `git pull origin main`
 2. Pull new images: `docker compose pull`
 3. Restart the stack: `docker compose up -d`
 4. Run migrations: `docker compose exec backend uv run alembic upgrade head`
+5. **If upgrading from a release prior to `0005_account_identity`**, run the identity backfill to assign existing accounts to identity groups:
+
+   ```bash
+   docker compose exec backend uv run manifold backfill-identities
+   ```
+
+   This command is idempotent — it is safe to run multiple times. A second run with no new unassigned accounts exits cleanly. It must be run after migrations complete and before the next sync cycle to ensure cross-connection deduplication (migration `0006_txn_dedup`) operates correctly.
+
+   For more detail on the identity model, see `docs/account-identity.md`.
 
 ## Health Checks and Troubleshooting
 
@@ -292,7 +344,12 @@ Before going "live" with your Manifold instance, verify the following:
 
 - [ ] `SECRET_KEY` is a strong, random 64-character string.
 - [ ] `APP_ENV` is set to `production`.
+- [ ] `ALLOWED_ORIGINS` is restricted to your exact frontend domain.
+- [ ] `TRUELAYER_REDIRECT_URI` is set to your public HTTPS callback URL and matches the TrueLayer console.
+- [ ] `TRUELAYER_SANDBOX` is set to `false` for production (default is `false`).
 - [ ] Database is being backed up at least daily.
 - [ ] `.env` file is stored in a secure backup location.
 - [ ] HTTPS is correctly configured and the certificate is valid.
+- [ ] If email notifications are required, the email transport is configured in the admin UI and the bounce/complaint webhook URL is registered with your provider.
+- [ ] If upgrading from before `0005_account_identity`, the identity backfill (`manifold backfill-identities`) has been run after migrations.
 - [ ] You have successfully performed a test sync and received a test notification.
