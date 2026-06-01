@@ -4,7 +4,7 @@ import {
   useNavigate,
   useParams,
 } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppShell } from "@/components/layout/AppShell";
 import type { AuthContextValue } from "@/features/auth/AuthProvider";
@@ -34,7 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { connectionsApi } from "@/api/connections";
+import { connectionsApi, type SyncRun } from "@/api/connections";
 import { rootRoute } from "../__root";
 
 export const connectionDetailRoute = createRoute({
@@ -61,12 +61,45 @@ const AUTH_MODE_OPTIONS = [
   { value: "basic", label: "Basic auth" },
 ];
 
-function SyncRunFeedback({ connectionId }: { connectionId: string }) {
+// Statuses that mean the run is still in flight — keep polling.
+const PENDING_STATUSES = new Set(["queued", "running"]);
+const POLL_INTERVAL_MS = 2_000;
+const POLL_MAX_ATTEMPTS = 15; // ~30 s cap
+
+function SyncRunFeedback({
+  connectionId,
+  pollResetKey,
+}: {
+  connectionId: string;
+  pollResetKey: number;
+}) {
+  // Count how many fetches have fired since the last poll reset.
+  const attemptRef = useRef(0);
+
   const { data: runs = [], isLoading } = useQuery({
     queryKey: ["sync-runs", connectionId],
-    queryFn: () => connectionsApi.syncRuns(connectionId),
-    staleTime: 30_000,
+    queryFn: async () => {
+      attemptRef.current += 1;
+      return connectionsApi.syncRuns(connectionId);
+    },
+    staleTime: 10_000,
+    refetchOnWindowFocus: false,
+    refetchInterval: (query): number | false => {
+      const latest = (query.state.data as SyncRun[] | undefined)?.[0];
+      const isPending = !latest || PENDING_STATUSES.has(latest.status);
+      const underCap = attemptRef.current < POLL_MAX_ATTEMPTS;
+      return isPending && underCap ? POLL_INTERVAL_MS : false;
+    },
   });
+
+  // Reset attempt counter whenever the parent kicks a new poll cycle.
+  // Using a ref mutation inside render is intentional here: we only want to
+  // reset the counter when pollResetKey changes, not trigger a re-render.
+  const prevKeyRef = useRef(pollResetKey);
+  if (prevKeyRef.current !== pollResetKey) {
+    prevKeyRef.current = pollResetKey;
+    attemptRef.current = 0;
+  }
 
   if (isLoading) {
     return <Skeleton className="h-20 w-full" />;
@@ -79,6 +112,7 @@ function SyncRunFeedback({ connectionId }: { connectionId: string }) {
     );
   }
 
+  const isPending = PENDING_STATUSES.has(latest.status);
   const isError = latest.status === "failed";
 
   return (
@@ -90,9 +124,14 @@ function SyncRunFeedback({ connectionId }: { connectionId: string }) {
       }`}
     >
       <p className={`font-medium ${isError ? "text-destructive" : "text-foreground"}`}>
-        Last sync: {latest.status}
+        Last sync:{" "}
+        {isPending ? (
+          <span className="text-muted-foreground">{latest.status}&hellip;</span>
+        ) : (
+          latest.status
+        )}
       </p>
-      {!isError && (
+      {!isError && !isPending && (
         <p className="text-muted-foreground">
           {latest.accounts_synced ?? 0} account
           {(latest.accounts_synced ?? 0) !== 1 ? "s" : ""},{" "}
@@ -138,6 +177,8 @@ function ConnectionDetailPage() {
 
   const [syncingNow, setSyncingNow] = useState(false);
   const [syncNowError, setSyncNowError] = useState<string | null>(null);
+  // Incrementing this resets the poll-attempt counter inside SyncRunFeedback.
+  const [syncPollKey, setSyncPollKey] = useState(0);
 
   const isFileProvider = connection?.provider_type === "json";
 
@@ -196,6 +237,7 @@ function ConnectionDetailPage() {
     setSyncNowError(null);
     try {
       await connectionsApi.sync(connection.id);
+      setSyncPollKey((k) => k + 1);
       await queryClient.invalidateQueries({ queryKey: ["sync-runs", connection.id] });
       await queryClient.invalidateQueries({ queryKey: ["connections"] });
     } catch {
@@ -266,7 +308,7 @@ function ConnectionDetailPage() {
             {/* Sync result / load feedback */}
             <div className="space-y-2">
               <p className="text-sm font-medium text-foreground">Latest sync result</p>
-              <SyncRunFeedback connectionId={connectionId} />
+              <SyncRunFeedback connectionId={connectionId} pollResetKey={syncPollKey} />
             </div>
 
             {syncNowError && (

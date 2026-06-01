@@ -44,6 +44,7 @@ type SyncResult = {
   accounts: number
   transactions: number
   error?: string
+  pending?: boolean
 }
 
 type FileFormState = {
@@ -146,12 +147,23 @@ function ConnectPage() {
       })
       setCreatedConnectionId(connection.id)
 
-      // Trigger sync immediately and show result
+      // Trigger sync then poll until terminal status or 30 s cap.
       try {
         await connectionsApi.sync(connection.id)
-        // Poll for the latest sync run to get counts
-        const runs = await connectionsApi.syncRuns(connection.id)
-        const latest = runs[0]
+        const PENDING = new Set(['queued', 'running'])
+        const MAX_ATTEMPTS = 15
+        const INTERVAL_MS = 2_000
+        let latest = null
+        for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+          if (attempt > 0) {
+            await new Promise((r) => setTimeout(r, INTERVAL_MS))
+          }
+          const runs = await connectionsApi.syncRuns(connection.id)
+          latest = runs[0] ?? null
+          if (!latest || !PENDING.has(latest.status)) break
+          // Still in flight — update UI with pending indicator so user sees activity.
+          setSyncResult({ accounts: 0, transactions: 0, error: undefined, pending: true })
+        }
         if (latest?.status === 'failed') {
           setSyncResult({
             accounts: 0,
@@ -264,7 +276,12 @@ function ConnectPage() {
             {syncResult ? (
               // Show load result after successful creation + sync
               <div className="space-y-4">
-                {syncResult.error ? (
+                {syncResult.pending ? (
+                  <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm text-foreground space-y-1">
+                    <p className="font-medium text-muted-foreground">Syncing&hellip;</p>
+                    <p className="text-muted-foreground">Waiting for sync to complete.</p>
+                  </div>
+                ) : syncResult.error ? (
                   <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
                     Sync failed: {syncResult.error}
                   </div>
@@ -278,21 +295,23 @@ function ConnectPage() {
                     </p>
                   </div>
                 )}
-                <DialogFooter>
-                  {createdConnectionId && (
-                    <Button
-                      onClick={() => {
-                        setFileDialogProvider(null)
-                        void navigate({ to: '/connections/$connectionId', params: { connectionId: createdConnectionId } })
-                      }}
-                    >
-                      View connection
+                {!syncResult.pending && (
+                  <DialogFooter>
+                    {createdConnectionId && (
+                      <Button
+                        onClick={() => {
+                          setFileDialogProvider(null)
+                          void navigate({ to: '/connections/$connectionId', params: { connectionId: createdConnectionId } })
+                        }}
+                      >
+                        View connection
+                      </Button>
+                    )}
+                    <Button variant="outline" onClick={() => setFileDialogProvider(null)}>
+                      Done
                     </Button>
-                  )}
-                  <Button variant="outline" onClick={() => setFileDialogProvider(null)}>
-                    Done
-                  </Button>
-                </DialogFooter>
+                  </DialogFooter>
+                )}
               </div>
             ) : (
               // Config form
